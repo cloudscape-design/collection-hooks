@@ -1,0 +1,15 @@
+{
+  "compilerOptions": {
+    "target": "es5",
+    "module": "esnext",
+    "declaration": true,
+    "esModuleInterop": true,
+    "moduleResolution": "Node",
+    "lib": ["es5", "es2015.collection"],
+    "strict": true,
+    "outDir": "dist/mjs",
+    "rootDir": "src"
+  },
+  "include": ["src/**/*.ts"],
+  "exclude": ["**/__tests__/**"]
+}
