@@ -6,7 +6,7 @@ Cloudscape is an open source design system for building intuitive, engaging, and
 
 Cloudscape was built for and is used by Amazon Web Services (AWS) products and services. We created it in 2016 to improve the consistency of the user experience across AWS web applications, and also to help teams implement those applications faster. Since then, we have continued enhancing the system based on customer feedback and research.
 
-You can find [documentation about collection hooks](https://cloudscape.design/get-started/dev-guides/collection-hooks/) in the Cloudscape documentation website.
+You can find [documentation about collection hooks](https://cloudscape.design/get-started/dev-guides/collection-hooks/) on the Cloudscape documentation website.
 
 Browse the [components repository](https://github.com/cloudscape-design/components) of Cloudscape Design System.
 
