@@ -2,9 +2,9 @@
 
 This package contains the source code of the React collection hooks for the [Cloudscape Design System](https://cloudscape.design/).
 
-Cloudscape is an open source design system for building intuitive, engaging, and consistent web cloud experiences at scale. It consists of an extensive set of guidelines to create user experiences, along with the design resources and front-end components to streamline implementation.
+Cloudscape is an open source design system for building intuitive, engaging, and inclusive web cloud experiences at scale. It consists of an extensive set of guidelines to create user experiences, along with the design resources and front-end components to streamline implementation.
 
-Cloudscape was built for and is used by Amazon Web Services (AWS) products and services. We created it in 2016 to improve the consistency of the user experience across AWS web applications, and also to help teams implement those applications faster. Since then, we have continued enhancing the system based on customer feedback and research.
+Cloudscape was built for and is used by Amazon Web Services (AWS) products and services. We created it in 2016 to improve the user experience across AWS web applications, and also to help teams implement those applications faster. Since then, we have continued enhancing the system based on customer feedback and research.
 
 You can find [documentation about collection hooks](https://cloudscape.design/get-started/dev-guides/collection-hooks/) on the Cloudscape documentation website.
 
