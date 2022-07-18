@@ -1,6 +1,6 @@
 # Contributing Guidelines
 
-For more information on our support model, versioning, browsers and frameworks support, visit our [main components repository](https://github.com/cloudscape-design/components).
+For more information on our support model, versioning, browsers and frameworks support, visit our [main components repository contributing guidelines](https://github.com/cloudscape-design/components/blob/main/CONTRIBUTING.md).
 
 
 ## How to contribute code
