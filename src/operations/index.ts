@@ -1,10 +1,11 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
-import { UseCollectionOptions, CollectionState, TrackBy } from '../interfaces';
+import { UseCollectionOptions, CollectionState, TrackBy, Operator } from '../interfaces';
 import { filter } from './filter.js';
 import { propertyFilter } from './property-filter.js';
 import { sort } from './sort.js';
 import { getPagesCount, normalizePageIndex, paginate } from './paginate.js';
+import { parseDateToken, parseDateValue } from './date-utils.js';
 
 export function processItems<T>(
   items: ReadonlyArray<T>,
@@ -72,3 +73,16 @@ export const itemsAreEqual = <T>(items1: ReadonlyArray<T>, items2: ReadonlyArray
   items1.forEach(item => set1.add(getTrackableValue(trackBy, item)));
   return items2.every(item => set1.has(getTrackableValue(trackBy, item)));
 };
+
+/**
+ * Evaluates date property token on the given value.
+ * @param value Property value that can be of type Date or ISO8601 date string.
+ * @param tokenValue Filter value that can be ISO8601 date string or stringified date-range picker value.
+ * @param tokenOperator Filter operator.
+ * @returns true if value matches and false if it does not or if the value or token format is invalid.
+ */
+export function filteringFunctionDate(value: any, tokenValue: string, tokenOperator: Operator): boolean {
+  const date = parseDateValue(value);
+  const applyFilter = parseDateToken(tokenValue, tokenOperator);
+  return date ? applyFilter(date) : false;
+}

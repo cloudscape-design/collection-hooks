@@ -22,6 +22,8 @@ const filterUsingOperator = (itemValue: any, tokenValue: string, operator: Opera
       return (itemValue + '').toLowerCase().indexOf((tokenValue + '').toLowerCase()) > -1;
     case '!:':
       return (itemValue + '').toLowerCase().indexOf((tokenValue + '').toLowerCase()) === -1;
+    default:
+      return false;
   }
 };
 
@@ -43,12 +45,15 @@ function filterByToken<T>(token: Token, item: T, filteringPropertiesMap: Filteri
     // token refers to a unknown property or uses an unsupported operator
     if (
       !(token.propertyKey in filteringPropertiesMap) ||
-      !(token.operator in filteringPropertiesMap[token.propertyKey as keyof FilteringPropertiesMap<T>].operators)
+      !(token.operator in filteringPropertiesMap[token.propertyKey as keyof T].operators)
     ) {
       return false;
     }
     const itemValue: any = fixupFalsyValues(item[token.propertyKey as keyof T]);
-    return filterUsingOperator(itemValue, token.value, token.operator);
+    const filteringFunction = filteringPropertiesMap[token.propertyKey as keyof T].filteringFunction;
+    return filteringFunction
+      ? filteringFunction(itemValue, token.value, token.operator)
+      : filterUsingOperator(itemValue, token.value, token.operator);
   }
   return freeTextFilter(token.value, item, token.operator, filteringPropertiesMap);
 }
@@ -71,6 +76,7 @@ export type FilteringPropertiesMap<T> = {
     operators: {
       [key in Operator]?: true;
     };
+    filteringFunction?: (value: T[key], tokenValue: string, tokenOperator: Operator) => boolean;
   };
 };
 export function propertyFilter<T>(
@@ -85,13 +91,12 @@ export function propertyFilter<T>(
         key,
         operators,
         defaultOperator,
+        filteringFunction,
       }: NonNullable<UseCollectionOptions<T>['propertyFiltering']>['filteringProperties'][0]
     ) => {
       const operatorSet: { [key: string]: true } = { [defaultOperator ?? '=']: true };
       operators?.forEach(op => (operatorSet[op] = true));
-      acc[key as keyof T] = {
-        operators: operatorSet,
-      };
+      acc[key as keyof T] = { operators: operatorSet, filteringFunction };
       return acc;
     },
     {} as FilteringPropertiesMap<T>

@@ -28,7 +28,7 @@ export interface SelectionChangeDetail<T> {
 
 export type TrackBy<T> = string | ((item: T) => string);
 
-export type Operator = '<' | '<=' | '>' | '>=' | ':' | '!:' | '=' | '!=';
+export type Operator = '<' | '<=' | '>' | '>=' | ':' | '!:' | '=' | '!=' | 'IN';
 export type Operation = 'and' | 'or';
 export interface Token {
   value: string;
@@ -39,13 +39,17 @@ export interface Query {
   tokens: readonly Token[];
   operation: Operation;
 }
-export interface FilteringProperty {
-  key: string;
+export interface FilteringProperty<T, Key extends keyof T = any> {
+  key: Key;
   groupValuesLabel: string;
   propertyLabel: string;
   operators?: readonly Operator[];
   defaultOperator?: Operator;
   group?: string;
+  // custom filtering function
+  filteringFunction?: (value: T[Key], tokenValue: string, tokenOperator: Operator) => boolean;
+  // Alternative API (performance)
+  // filteringFunction?: (tokenValue: string, tokenOperator: Operator) => (value: T[Key]) => boolean
 }
 export interface PropertyFilteringOption {
   propertyKey: string;
@@ -61,7 +65,7 @@ export interface UseCollectionOptions<T> {
   propertyFiltering?: {
     empty?: React.ReactNode;
     noMatch?: React.ReactNode;
-    filteringProperties: readonly FilteringProperty[];
+    filteringProperties: readonly FilteringProperty<T>[];
     // custom filtering function
     filteringFunction?: (item: T, query: Query) => boolean;
     defaultQuery?: Query;
@@ -113,7 +117,7 @@ interface UseCollectionResultBase<T> {
   propertyFilterProps: {
     query: Query;
     onChange(event: CustomEvent<Query>): void;
-    filteringProperties: readonly FilteringProperty[];
+    filteringProperties: readonly FilteringProperty<T>[];
     filteringOptions: readonly PropertyFilteringOption[];
   };
   paginationProps: {
@@ -132,4 +136,12 @@ export interface UseCollectionResult<T> extends UseCollectionResultBase<T> {
 
 export interface CollectionRef {
   scrollToTop: () => void;
+}
+
+// Corresponds to DateRangePickerProps.TimeUnit.
+export type DateTimeUnit = 'second' | 'minute' | 'hour' | 'day' | 'week' | 'month' | 'year';
+
+export interface DateRange {
+  start: Date;
+  end: Date;
 }

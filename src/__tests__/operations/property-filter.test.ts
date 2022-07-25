@@ -1,7 +1,7 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
 import { processItems } from '../../operations';
-import { Operator } from '../../interfaces';
+import { FilteringProperty, Operator } from '../../interfaces';
 
 const propertyFiltering = {
   filteringProperties: [
@@ -25,7 +25,7 @@ const propertyFiltering = {
     },
     {
       key: 'number',
-      operators: [':', '!:', '=', '!=', '<', '<=', '>', '>='],
+      operators: [':', '!:', '=', '!=', '<', '<=', '>', '>=', 'IN'],
       groupValuesLabel: 'Number values',
       propertyLabel: 'Number',
     },
@@ -46,7 +46,7 @@ const propertyFiltering = {
       groupValuesLabel: 'Boolean values',
       propertyLabel: 'Boolean',
     },
-  ],
+  ] as FilteringProperty<any>[],
 } as const;
 
 test('returns all items when query is empty', () => {
@@ -306,5 +306,67 @@ describe('filtering function', () => {
       }
     );
     expect(processed).toEqual([]);
+  });
+});
+
+describe('property filtering function', () => {
+  test('overrides default matcher', () => {
+    const items = [{ number: 0 }, { number: 2 }, { number: 4 }];
+    const filteringProperties = propertyFiltering.filteringProperties.map(value => ({ ...value }));
+    const numberProperty = filteringProperties.find(prop => prop.key === 'number')!;
+    numberProperty.filteringFunction = (value: any, tokenValue: string, tokenOperator: Operator) => {
+      return value === 2 && tokenValue === '1..3' && tokenOperator === 'IN';
+    };
+    const { items: processed } = processItems(
+      items,
+      {
+        propertyFilteringQuery: {
+          tokens: [{ propertyKey: 'number', operator: 'IN', value: '1..3' }],
+          operation: 'and',
+        },
+      },
+      { propertyFiltering: { filteringProperties } }
+    );
+    expect(processed).toEqual([items[1]]);
+  });
+
+  test('cannot be used with unlisted operators', () => {
+    const items = [{ number: 1 }, { number: 2 }, { number: 3 }];
+    const filteringProperties = propertyFiltering.filteringProperties.map(value => ({ ...value }));
+    const numberProperty = filteringProperties.find(prop => prop.key === 'number')!;
+    numberProperty.operators = ['=', '!=', '<', '<=', '>', '>='];
+    numberProperty.filteringFunction = jest.fn();
+    const { items: processed } = processItems(
+      items,
+      {
+        propertyFilteringQuery: {
+          tokens: [{ propertyKey: 'number', operator: 'IN', value: '1..3' }],
+          operation: 'and',
+        },
+      },
+      { propertyFiltering: { filteringProperties } }
+    );
+    expect(processed).toEqual([]);
+    expect(numberProperty.filteringFunction).not.toHaveBeenCalled();
+  });
+
+  test('can be used with object values', () => {
+    const items = [{ number: { value: 1 } }, { number: { value: 2 } }, { number: { value: 4 } }];
+    const filteringProperties = propertyFiltering.filteringProperties.map(value => ({ ...value }));
+    const numberProperty = filteringProperties.find(prop => prop.key === 'number')!;
+    numberProperty.filteringFunction = (value: any, tokenValue: string, tokenOperator: Operator) => {
+      return value.value >= 1 && value.value <= 3 && tokenValue === '1..3' && tokenOperator === 'IN';
+    };
+    const { items: processed } = processItems(
+      items,
+      {
+        propertyFilteringQuery: {
+          tokens: [{ propertyKey: 'number', operator: 'IN', value: '1..3' }],
+          operation: 'and',
+        },
+      },
+      { propertyFiltering: { filteringProperties } }
+    );
+    expect(processed).toEqual([items[0], items[1]]);
   });
 });

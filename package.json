@@ -82,5 +82,8 @@
       }
     },
     "testRegex": "/__tests__/.*\\.test\\.tsx?$"
+  },
+  "dependencies": {
+    "date-fns": "^2.29.1"
   }
 }
