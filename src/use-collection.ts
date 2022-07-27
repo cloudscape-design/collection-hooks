@@ -2,11 +2,14 @@
 // SPDX-License-Identifier: Apache-2.0
 import { useRef } from 'react';
 import { processItems, processSelectedItems, itemsAreEqual } from './operations/index.js';
-import { UseCollectionOptions, UseCollectionResult, CollectionRef } from './interfaces';
+import { UseCollectionOptions, UseCollectionResult, CollectionRef, Operator } from './interfaces';
 import { createSyncProps } from './utils.js';
 import { useCollectionState } from './use-collection-state.js';
 
-export function useCollection<T>(allItems: ReadonlyArray<T>, options: UseCollectionOptions<T>): UseCollectionResult<T> {
+export function useCollection<T, Op extends Operator = Operator>(
+  allItems: ReadonlyArray<T>,
+  options: UseCollectionOptions<T, Op>
+): UseCollectionResult<T, Op> {
   const collectionRef = useRef<CollectionRef>(null);
   const [state, actions] = useCollectionState(options, collectionRef);
   const { items, pagesCount, filteredItemsCount, actualPageIndex } = processItems(allItems, state, options);

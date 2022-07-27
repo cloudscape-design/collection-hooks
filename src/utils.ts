@@ -1,6 +1,7 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
 import { Dispatch, Reducer, ReactNode } from 'react';
+import { FilteringOptions } from '.';
 import {
   CollectionActions,
   UseCollectionOptions,
@@ -10,6 +11,8 @@ import {
   CollectionRef,
   Query,
   PropertyFilteringOption,
+  Operator,
+  FilteringProperty,
 } from './interfaces';
 import { fixupFalsyValues } from './operations/property-filter.js';
 
@@ -29,13 +32,21 @@ interface FilteringAction {
   type: 'filtering';
   filteringText: string;
 }
-interface PropertyFilteringAction {
+interface PropertyFilteringAction<Op extends Operator> {
   type: 'property-filtering';
-  query: Query;
+  query: Query<Op>;
 }
-type Action<T> = SelectionAction<T> | SortingAction<T> | PaginationAction | FilteringAction | PropertyFilteringAction;
-export type CollectionReducer<T> = Reducer<CollectionState<T>, Action<T>>;
-export function collectionReducer<T>(state: CollectionState<T>, action: Action<T>): CollectionState<T> {
+type Action<T, Op extends Operator> =
+  | SelectionAction<T>
+  | SortingAction<T>
+  | PaginationAction
+  | FilteringAction
+  | PropertyFilteringAction<Op>;
+export type CollectionReducer<T, Op extends Operator> = Reducer<CollectionState<T, Op>, Action<T, Op>>;
+export function collectionReducer<T, Op extends Operator>(
+  state: CollectionState<T, Op>,
+  action: Action<T, Op>
+): CollectionState<T, Op> {
   const newState = { ...state };
   switch (action.type) {
     case 'selection':
@@ -60,13 +71,13 @@ export function collectionReducer<T>(state: CollectionState<T>, action: Action<T
   return newState;
 }
 
-export function createActions<T>({
+export function createActions<T, Op extends Operator>({
   dispatch,
   collectionRef,
 }: {
-  dispatch: Dispatch<Action<T>>;
+  dispatch: Dispatch<Action<T, Op>>;
   collectionRef: React.RefObject<CollectionRef>;
-}): CollectionActions<T> {
+}): CollectionActions<T, Op> {
   return {
     setFiltering(filteringText) {
       dispatch({ type: 'filtering', filteringText });
@@ -83,24 +94,24 @@ export function createActions<T>({
     setSelectedItems(selectedItems: Array<T>) {
       dispatch({ type: 'selection', selectedItems });
     },
-    setPropertyFiltering(query: Query) {
+    setPropertyFiltering(query: Query<Op>) {
       dispatch({ type: 'property-filtering', query });
       collectionRef.current && collectionRef.current.scrollToTop();
     },
   };
 }
 
-export function createSyncProps<T>(
-  options: UseCollectionOptions<T>,
-  { filteringText, sortingState, selectedItems, currentPageIndex, propertyFilteringQuery }: CollectionState<T>,
-  actions: CollectionActions<T>,
+export function createSyncProps<T, Op extends Operator>(
+  options: UseCollectionOptions<T, Op>,
+  { filteringText, sortingState, selectedItems, currentPageIndex, propertyFilteringQuery }: CollectionState<T, Op>,
+  actions: CollectionActions<T, Op>,
   collectionRef: React.RefObject<CollectionRef>,
   {
     pagesCount,
     actualPageIndex,
     allItems,
   }: { pagesCount?: number; actualPageIndex?: number; allItems: ReadonlyArray<T> }
-): Pick<UseCollectionResult<T>, 'collectionProps' | 'filterProps' | 'paginationProps' | 'propertyFilterProps'> {
+): Pick<UseCollectionResult<T, Op>, 'collectionProps' | 'filterProps' | 'paginationProps' | 'propertyFilterProps'> {
   let empty: ReactNode | null = options.filtering
     ? allItems.length
       ? options.filtering.noMatch

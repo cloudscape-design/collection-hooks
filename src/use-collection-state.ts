@@ -2,13 +2,13 @@
 // SPDX-License-Identifier: Apache-2.0
 import { useReducer } from 'react';
 import { createActions, collectionReducer, CollectionReducer } from './utils.js';
-import { UseCollectionOptions, CollectionState, CollectionActions, CollectionRef } from './interfaces';
+import { UseCollectionOptions, CollectionState, CollectionActions, CollectionRef, Operator } from './interfaces';
 
-export function useCollectionState<T>(
-  options: UseCollectionOptions<T>,
+export function useCollectionState<T, Op extends Operator>(
+  options: UseCollectionOptions<T, Op>,
   collectionRef: React.RefObject<CollectionRef>
-): readonly [CollectionState<T>, CollectionActions<T>] {
-  const [state, dispatch] = useReducer<CollectionReducer<T>>(collectionReducer, {
+): readonly [CollectionState<T, Op>, CollectionActions<T, Op>] {
+  const [state, dispatch] = useReducer<CollectionReducer<T, Op>>(collectionReducer, {
     selectedItems: options.selection?.defaultSelectedItems ?? [],
     sortingState: options.sorting?.defaultState,
     currentPageIndex: options.pagination?.defaultPage ?? 1,

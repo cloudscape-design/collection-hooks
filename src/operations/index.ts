@@ -1,15 +1,15 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
-import { UseCollectionOptions, CollectionState, TrackBy } from '../interfaces';
+import { UseCollectionOptions, CollectionState, TrackBy, Operator } from '../interfaces';
 import { filter } from './filter.js';
 import { propertyFilter } from './property-filter.js';
 import { sort } from './sort.js';
 import { getPagesCount, normalizePageIndex, paginate } from './paginate.js';
 
-export function processItems<T>(
+export function processItems<T, Op extends Operator>(
   items: ReadonlyArray<T>,
-  { filteringText, sortingState, currentPageIndex, propertyFilteringQuery }: Partial<CollectionState<T>>,
-  { filtering, sorting, pagination, propertyFiltering }: UseCollectionOptions<T>
+  { filteringText, sortingState, currentPageIndex, propertyFilteringQuery }: Partial<CollectionState<T, Op>>,
+  { filtering, sorting, pagination, propertyFiltering }: UseCollectionOptions<T, Op>
 ): {
   items: ReadonlyArray<T>;
   pagesCount: number | undefined;
