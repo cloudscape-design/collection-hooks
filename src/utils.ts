@@ -8,8 +8,7 @@ import {
   SortingState,
   UseCollectionResult,
   CollectionRef,
-  Query,
-  PropertyFilteringOption,
+  PropertyFilter,
 } from './interfaces';
 import { fixupFalsyValues } from './operations/property-filter.js';
 
@@ -31,7 +30,7 @@ interface FilteringAction {
 }
 interface PropertyFilteringAction {
   type: 'property-filtering';
-  query: Query;
+  query: PropertyFilter.Query;
 }
 type Action<T> = SelectionAction<T> | SortingAction<T> | PaginationAction | FilteringAction | PropertyFilteringAction;
 export type CollectionReducer<T> = Reducer<CollectionState<T>, Action<T>>;
@@ -83,7 +82,7 @@ export function createActions<T>({
     setSelectedItems(selectedItems: Array<T>) {
       dispatch({ type: 'selection', selectedItems });
     },
-    setPropertyFiltering(query: Query) {
+    setPropertyFiltering(query: PropertyFilter.Query) {
       dispatch({ type: 'property-filtering', query });
       collectionRef.current && collectionRef.current.scrollToTop();
     },
@@ -112,7 +111,7 @@ export function createSyncProps<T>(
       : options.propertyFiltering.empty
     : empty;
   const filteringOptions = options.propertyFiltering
-    ? options.propertyFiltering.filteringProperties.reduce<PropertyFilteringOption[]>((acc, property) => {
+    ? options.propertyFiltering.filteringProperties.reduce<PropertyFilter.FilteringOption[]>((acc, property) => {
         Object.keys(
           allItems.reduce<{ [key in string]: boolean }>((acc, item) => {
             acc['' + fixupFalsyValues(item[property.key as keyof T])] = true;
