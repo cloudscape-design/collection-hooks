@@ -30,7 +30,7 @@ export function parseDateValue(value: string | Date): null | Date {
  * @param operator - Filter operator.
  * @returns a filtering function to be applied on the date value.
  */
-export function parseDateToken(value: string, operator: Operator): (date: Date) => boolean {
+export function parseDateToken(value: unknown, operator: Operator): (date: Date) => boolean {
   const range = parseDateTokenValue(value);
   if (!range) {
     // Invalid token value.
@@ -59,28 +59,34 @@ export function parseDateToken(value: string, operator: Operator): (date: Date) 
 }
 
 // The value is expected to be of type DatePickerProps.Value or DateRangePickerProps.Value (stringified).
-function parseDateTokenValue(value: string): null | DateRange {
+function parseDateTokenValue(value: unknown): null | DateRange {
   // If value can be parsed as a valid date transform it to a date range and return.
-  const date = parseDateValue(value);
-  if (date) {
-    return !value.includes('T') ? roundDateRangeToDay({ start: date, end: date }) : { start: date, end: date };
+  if (typeof value === 'string') {
+    const date = parseDateValue(value);
+    if (date) {
+      return !value.includes('T') ? roundDateRangeToDay({ start: date, end: date }) : { start: date, end: date };
+    }
   }
-  return parseDateRangePickerValue(value);
+
+  if (typeof value === 'object' && value) {
+    return parseDateRangePickerValue(value);
+  }
+
+  return null;
 }
 
 // The value is expected to be of type DateRangePickerProps.Value (stringified).
-function parseDateRangePickerValue(value: string): null | DateRange {
+function parseDateRangePickerValue(value: Record<string, any>): null | DateRange {
   try {
-    const parsed = JSON.parse(value);
-    if (parsed.type === 'absolute') {
-      const start = parseDateValue(parsed.startDate);
-      const end = parseDateValue(parsed.endDate);
+    if (value.type === 'absolute') {
+      const start = parseDateValue(value.startDate);
+      const end = parseDateValue(value.endDate);
       if (!start || !end) {
         return null;
       }
-      return !parsed.startDate.includes('T') ? roundDateRangeToDay({ start, end }) : { start, end };
+      return !value.startDate.includes('T') ? roundDateRangeToDay({ start, end }) : { start, end };
     } else {
-      return getRelativeDateRange(parsed.unit, parsed.amount);
+      return getRelativeDateRange(value.unit, value.amount);
     }
   } catch {
     // The value is not a valid JSON string.

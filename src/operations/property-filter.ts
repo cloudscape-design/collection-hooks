@@ -2,42 +2,48 @@
 // SPDX-License-Identifier: Apache-2.0
 import { UseCollectionOptions, Operator, Query, Token } from '../interfaces';
 
-const filterUsingOperator = (itemValue: any, tokenValue: string, operator: Operator) => {
-  switch (operator) {
-    case '<':
-      return itemValue < tokenValue;
-    case '<=':
-      return itemValue <= tokenValue;
-    case '>':
-      return itemValue > tokenValue;
-    case '>=':
-      return itemValue >= tokenValue;
-    case '=':
-      // eslint-disable-next-line eqeqeq
-      return itemValue == tokenValue;
-    case '!=':
-      // eslint-disable-next-line eqeqeq
-      return itemValue != tokenValue;
-    case ':':
-      return (itemValue + '').toLowerCase().indexOf((tokenValue + '').toLowerCase()) > -1;
-    case '!:':
-      return (itemValue + '').toLowerCase().indexOf((tokenValue + '').toLowerCase()) === -1;
-    default:
-      return false;
+const filterUsingOperator = (itemValue: any, tokenValue: unknown, operator: Operator) => {
+  if (typeof tokenValue === 'string') {
+    switch (operator) {
+      case '<':
+        return itemValue < tokenValue;
+      case '<=':
+        return itemValue <= tokenValue;
+      case '>':
+        return itemValue > tokenValue;
+      case '>=':
+        return itemValue >= tokenValue;
+      case '=':
+        // eslint-disable-next-line eqeqeq
+        return itemValue == tokenValue;
+      case '!=':
+        // eslint-disable-next-line eqeqeq
+        return itemValue != tokenValue;
+      case ':':
+        return (itemValue + '').toLowerCase().indexOf((tokenValue + '').toLowerCase()) > -1;
+      case '!:':
+        return (itemValue + '').toLowerCase().indexOf((tokenValue + '').toLowerCase()) === -1;
+      default:
+        return false;
+    }
   }
+  return false;
 };
 
 function freeTextFilter<T>(
-  value: string,
+  value: unknown,
   item: T,
   operator: Operator,
   filteringPropertiesMap: FilteringPropertiesMap<T>
 ): boolean {
-  const matches = Object.keys(filteringPropertiesMap).some(propertyKey => {
-    const { operators } = filteringPropertiesMap[propertyKey as keyof typeof filteringPropertiesMap];
-    return !!operators[operator] && filterUsingOperator(item[propertyKey as keyof typeof item], value, ':');
-  });
-  return operator === ':' ? matches : !matches;
+  if (typeof value === 'string') {
+    const matches = Object.keys(filteringPropertiesMap).some(propertyKey => {
+      const { operators } = filteringPropertiesMap[propertyKey as keyof typeof filteringPropertiesMap];
+      return !!operators[operator] && filterUsingOperator(item[propertyKey as keyof typeof item], value, ':');
+    });
+    return operator === ':' ? matches : !matches;
+  }
+  return false;
 }
 
 function filterByToken<T>(token: Token, item: T, filteringPropertiesMap: FilteringPropertiesMap<T>) {
@@ -76,7 +82,7 @@ export type FilteringPropertiesMap<T> = {
     operators: {
       [key in Operator]?: true;
     };
-    filteringFunction?: (value: T[key], tokenValue: string, tokenOperator: Operator) => boolean;
+    filteringFunction?: (value: T[key], tokenValue: any, tokenOperator: Operator) => boolean;
   };
 };
 export function propertyFilter<T>(

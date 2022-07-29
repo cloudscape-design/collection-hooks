@@ -191,7 +191,7 @@ describe('date filtering function', () => {
             {
               propertyKey: 'date',
               operator: 'IN',
-              value: '{ "type": "absolute", "startDate": "2020-01-02", "endDate": "2020-01-03" }',
+              value: { type: 'absolute', startDate: '2020-01-02', endDate: '2020-01-03' },
             },
           ],
           operation: 'and',
@@ -211,7 +211,7 @@ describe('date filtering function', () => {
             {
               propertyKey: 'dateTime',
               operator: 'IN',
-              value: '{ "type": "absolute", "startDate": "2020-01-02T02:22:22", "endDate": "2020-01-02T02:22:23" }',
+              value: { type: 'absolute', startDate: '2020-01-02T02:22:22', endDate: '2020-01-02T02:22:23' },
             },
           ],
           operation: 'and',
@@ -233,7 +233,7 @@ describe('date filtering function', () => {
               {
                 propertyKey: 'date',
                 operator: 'IN',
-                value: '{ "type": "relative", "unit": "day", "amount": 1 }',
+                value: { type: 'relative', unit: 'day', amount: 1 },
               },
             ],
             operation: 'and',
@@ -258,7 +258,7 @@ describe('date filtering function', () => {
               {
                 propertyKey: 'dateTime',
                 operator: 'IN',
-                value: '{ "type": "relative", "unit": "second", "amount": 2 }',
+                value: { type: 'relative', unit: 'second', amount: 2 },
               },
             ],
             operation: 'and',

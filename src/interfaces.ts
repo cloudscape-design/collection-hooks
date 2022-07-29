@@ -31,7 +31,7 @@ export type TrackBy<T> = string | ((item: T) => string);
 export type Operator = '<' | '<=' | '>' | '>=' | ':' | '!:' | '=' | '!=' | 'IN';
 export type Operation = 'and' | 'or';
 export interface Token {
-  value: string;
+  value: any;
   propertyKey?: string;
   operator: Operator;
 }
@@ -47,7 +47,7 @@ export interface FilteringProperty<T, Key extends keyof T = any> {
   defaultOperator?: Operator;
   group?: string;
   // custom filtering function
-  filteringFunction?: (value: T[Key], tokenValue: string, tokenOperator: Operator) => boolean;
+  filteringFunction?: (value: T[Key], tokenValue: any, tokenOperator: Operator) => boolean;
   // Alternative API (performance)
   // filteringFunction?: (tokenValue: string, tokenOperator: Operator) => (value: T[Key]) => boolean
 }
