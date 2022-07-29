@@ -6,5 +6,10 @@ export {
   FilteringOptions,
   UseCollectionOptions,
   UseCollectionResult,
-  PropertyFilter,
+  PropertyFilterOperator,
+  PropertyFilterOperation,
+  PropertyFilterToken,
+  PropertyFilterQuery,
+  PropertyFilterProperty,
+  PropertyFilterOption,
 } from './interfaces';
