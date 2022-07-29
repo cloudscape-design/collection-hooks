@@ -43,7 +43,6 @@ const Table = React.forwardRef<CollectionRef, TableProps>(
   (
     {
       empty,
-      loading,
       items,
       sortingColumn,
       sortingDescending,
@@ -63,7 +62,6 @@ const Table = React.forwardRef<CollectionRef, TableProps>(
     }));
     return (
       <div>
-        <div data-testid="loading">{String(loading)}</div>
         <div data-testid="sortedby">
           {((sortingColumn && sortingColumn.sortingField) || '') + !!sortingDescending ? ' descending' : ''}
         </div>
