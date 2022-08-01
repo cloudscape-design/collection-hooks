@@ -72,7 +72,6 @@ interface UseCollectionResultBase<T> {
   actions: CollectionActions<T>;
   collectionProps: {
     empty?: React.ReactNode;
-    loading?: boolean;
     onSortingChange?(event: CustomEvent<SortingState<T>>): void;
     sortingColumn?: SortingColumn<T>;
     sortingDescending?: boolean;
