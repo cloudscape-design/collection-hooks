@@ -28,30 +28,6 @@ export interface SelectionChangeDetail<T> {
 
 export type TrackBy<T> = string | ((item: T) => string);
 
-export type Operator = '<' | '<=' | '>' | '>=' | ':' | '!:' | '=' | '!=';
-export type Operation = 'and' | 'or';
-export interface Token {
-  value: string;
-  propertyKey?: string;
-  operator: Operator;
-}
-export interface Query {
-  tokens: readonly Token[];
-  operation: Operation;
-}
-export interface FilteringProperty {
-  key: string;
-  groupValuesLabel: string;
-  propertyLabel: string;
-  operators?: readonly Operator[];
-  defaultOperator?: Operator;
-  group?: string;
-}
-export interface PropertyFilteringOption {
-  propertyKey: string;
-  value: string;
-}
-
 export interface UseCollectionOptions<T> {
   filtering?: FilteringOptions<T> & {
     empty?: React.ReactNode;
@@ -61,10 +37,10 @@ export interface UseCollectionOptions<T> {
   propertyFiltering?: {
     empty?: React.ReactNode;
     noMatch?: React.ReactNode;
-    filteringProperties: readonly FilteringProperty[];
+    filteringProperties: readonly PropertyFilterProperty[];
     // custom filtering function
-    filteringFunction?: (item: T, query: Query) => boolean;
-    defaultQuery?: Query;
+    filteringFunction?: (item: T, query: PropertyFilterQuery) => boolean;
+    defaultQuery?: PropertyFilterQuery;
   };
   sorting?: { defaultState?: SortingState<T> };
   pagination?: { defaultPage?: number; pageSize?: number };
@@ -77,7 +53,7 @@ export interface UseCollectionOptions<T> {
 
 export interface CollectionState<T> {
   filteringText: string;
-  propertyFilteringQuery: Query;
+  propertyFilteringQuery: PropertyFilterQuery;
   currentPageIndex: number;
   sortingState?: SortingState<T>;
   selectedItems: ReadonlyArray<T>;
@@ -88,7 +64,7 @@ export interface CollectionActions<T> {
   setCurrentPage(pageNumber: number): void;
   setSorting(state: SortingState<T>): void;
   setSelectedItems(selectedItems: ReadonlyArray<T>): void;
-  setPropertyFiltering(query: Query): void;
+  setPropertyFiltering(query: PropertyFilterQuery): void;
 }
 
 interface UseCollectionResultBase<T> {
@@ -110,10 +86,10 @@ interface UseCollectionResultBase<T> {
     onChange(event: CustomEvent<{ filteringText: string }>): void;
   };
   propertyFilterProps: {
-    query: Query;
-    onChange(event: CustomEvent<Query>): void;
-    filteringProperties: readonly FilteringProperty[];
-    filteringOptions: readonly PropertyFilteringOption[];
+    query: PropertyFilterQuery;
+    onChange(event: CustomEvent<PropertyFilterQuery>): void;
+    filteringProperties: readonly PropertyFilterProperty[];
+    filteringOptions: readonly PropertyFilterOption[];
   };
   paginationProps: {
     disabled?: boolean;
@@ -131,4 +107,29 @@ export interface UseCollectionResult<T> extends UseCollectionResultBase<T> {
 
 export interface CollectionRef {
   scrollToTop: () => void;
+}
+
+export type PropertyFilterOperator = '<' | '<=' | '>' | '>=' | ':' | '!:' | '=' | '!=';
+
+export type PropertyFilterOperation = 'and' | 'or';
+export interface PropertyFilterToken {
+  value: string;
+  propertyKey?: string;
+  operator: PropertyFilterOperator;
+}
+export interface PropertyFilterQuery {
+  tokens: readonly PropertyFilterToken[];
+  operation: PropertyFilterOperation;
+}
+export interface PropertyFilterProperty {
+  key: string;
+  groupValuesLabel: string;
+  propertyLabel: string;
+  operators?: readonly PropertyFilterOperator[];
+  defaultOperator?: PropertyFilterOperator;
+  group?: string;
+}
+export interface PropertyFilterOption {
+  propertyKey: string;
+  value: string;
 }

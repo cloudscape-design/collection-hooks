@@ -1,8 +1,8 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
-import { UseCollectionOptions, Operator, Query, Token } from '../interfaces';
+import { PropertyFilterOperator, PropertyFilterQuery, PropertyFilterToken, UseCollectionOptions } from '../interfaces';
 
-const filterUsingOperator = (itemValue: any, tokenValue: string, operator: Operator) => {
+const filterUsingOperator = (itemValue: any, tokenValue: string, operator: PropertyFilterOperator) => {
   switch (operator) {
     case '<':
       return itemValue < tokenValue;
@@ -28,7 +28,7 @@ const filterUsingOperator = (itemValue: any, tokenValue: string, operator: Opera
 function freeTextFilter<T>(
   value: string,
   item: T,
-  operator: Operator,
+  operator: PropertyFilterOperator,
   filteringPropertiesMap: FilteringPropertiesMap<T>
 ): boolean {
   const matches = Object.keys(filteringPropertiesMap).some(propertyKey => {
@@ -38,7 +38,7 @@ function freeTextFilter<T>(
   return operator === ':' ? matches : !matches;
 }
 
-function filterByToken<T>(token: Token, item: T, filteringPropertiesMap: FilteringPropertiesMap<T>) {
+function filterByToken<T>(token: PropertyFilterToken, item: T, filteringPropertiesMap: FilteringPropertiesMap<T>) {
   if (token.propertyKey) {
     // token refers to a unknown property or uses an unsupported operator
     if (
@@ -54,7 +54,7 @@ function filterByToken<T>(token: Token, item: T, filteringPropertiesMap: Filteri
 }
 
 function defaultFilteringFunction<T extends Record<string, any>>(filteringPropertiesMap: FilteringPropertiesMap<T>) {
-  return (item: T, { tokens, operation }: Query) => {
+  return (item: T, { tokens, operation }: PropertyFilterQuery) => {
     let result = operation === 'and' ? true : !tokens.length;
     for (const token of tokens) {
       result =
@@ -69,13 +69,13 @@ function defaultFilteringFunction<T extends Record<string, any>>(filteringProper
 export type FilteringPropertiesMap<T> = {
   [key in keyof T]: {
     operators: {
-      [key in Operator]?: true;
+      [key in PropertyFilterOperator]?: true;
     };
   };
 };
 export function propertyFilter<T>(
   items: ReadonlyArray<T>,
-  query: Query,
+  query: PropertyFilterQuery,
   { filteringFunction, filteringProperties }: NonNullable<UseCollectionOptions<T>['propertyFiltering']>
 ): ReadonlyArray<T> {
   const filteringPropertiesMap = filteringProperties.reduce<FilteringPropertiesMap<T>>(

@@ -1,7 +1,7 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
 import { processItems } from '../../operations';
-import { Operator } from '../../interfaces';
+import { PropertyFilterOperator } from '../../interfaces';
 
 const propertyFiltering = {
   filteringProperties: [
@@ -132,7 +132,7 @@ describe('Supported operators', () => {
   items[3].falsy = '';
   items[4].falsy = NaN;
 
-  test.each<[Operator, Item[]]>([
+  test.each<[PropertyFilterOperator, Item[]]>([
     [':', [items[2]]],
     ['!:', [items[0], items[1], items[3], items[4]]],
     ['=', [items[2]]],
@@ -154,14 +154,21 @@ describe('Supported operators', () => {
     const { items: processed } = processItems(items, { propertyFilteringQuery: operatorQuery }, { propertyFiltering });
     expect(processed).toEqual([items[3]]);
   });
-  test.each<Operator>(['<', '<=', '>', '>=', ':', '!:', '!='])('%s operator is not supported by default', operator => {
-    const operatorQuery = {
-      tokens: [{ propertyKey: 'default', operator, value: '3' }],
-      operation: 'and',
-    } as const;
-    const { items: processed } = processItems(items, { propertyFilteringQuery: operatorQuery }, { propertyFiltering });
-    expect(processed).toEqual([]);
-  });
+  test.each<PropertyFilterOperator>(['<', '<=', '>', '>=', ':', '!:', '!='])(
+    '%s operator is not supported by default',
+    operator => {
+      const operatorQuery = {
+        tokens: [{ propertyKey: 'default', operator, value: '3' }],
+        operation: 'and',
+      } as const;
+      const { items: processed } = processItems(
+        items,
+        { propertyFilteringQuery: operatorQuery },
+        { propertyFiltering }
+      );
+      expect(processed).toEqual([]);
+    }
+  );
   describe('treatment of the falsy values', () => {
     test('zero is treated as a number', () => {
       {
