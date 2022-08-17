@@ -1,8 +1,51 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
-import { PropertyFilterOperator, PropertyFilterQuery, PropertyFilterToken, UseCollectionOptions } from '../interfaces';
+import {
+  PropertyFilterOperator,
+  PropertyFilterOperatorMatch,
+  PropertyFilterOperatorMatchByType,
+  PropertyFilterQuery,
+  PropertyFilterToken,
+  UseCollectionOptions,
+} from '../interfaces';
+import {
+  matchDateIsEqual,
+  matchDateIsNotEqual,
+  matchDateIsAfter,
+  matchDateIsAfterOrEqual,
+  matchDateIsBefore,
+  matchDateIsBeforeOrEqual,
+} from '../matchers/date';
 
-const filterUsingOperator = (itemValue: any, tokenValue: string, operator: PropertyFilterOperator) => {
+const filterUsingOperator = (
+  itemValue: any,
+  tokenValue: string,
+  operator: PropertyFilterOperator,
+  match?: PropertyFilterOperatorMatchByType | PropertyFilterOperatorMatch
+) => {
+  if (match === 'date') {
+    switch (operator) {
+      case '<':
+        return matchDateIsBefore(tokenValue, itemValue);
+      case '<=':
+        return matchDateIsBeforeOrEqual(tokenValue, itemValue);
+      case '>':
+        return matchDateIsAfter(tokenValue, itemValue);
+      case '>=':
+        return matchDateIsAfterOrEqual(tokenValue, itemValue);
+      case '=':
+        return matchDateIsEqual(tokenValue, itemValue);
+      case '!=':
+        return matchDateIsNotEqual(tokenValue, itemValue);
+      default:
+        return false;
+    }
+  }
+
+  if (match) {
+    return match(tokenValue, itemValue);
+  }
+
   switch (operator) {
     case '<':
       return itemValue < tokenValue;
@@ -48,7 +91,9 @@ function filterByToken<T>(token: PropertyFilterToken, item: T, filteringProperti
       return false;
     }
     const itemValue: any = fixupFalsyValues(item[token.propertyKey as keyof T]);
-    return filterUsingOperator(itemValue, token.value, token.operator);
+    const match =
+      filteringPropertiesMap[token.propertyKey as keyof FilteringPropertiesMap<T>].operators[token.operator]?.match;
+    return filterUsingOperator(itemValue, token.value, token.operator, match);
   }
   return freeTextFilter(token.value, item, token.operator, filteringPropertiesMap);
 }
@@ -66,13 +111,18 @@ function defaultFilteringFunction<T extends Record<string, any>>(filteringProper
   };
 }
 
+interface OperatorProps {
+  match?: PropertyFilterOperatorMatchByType | PropertyFilterOperatorMatch;
+}
+
 export type FilteringPropertiesMap<T> = {
   [key in keyof T]: {
     operators: {
-      [key in PropertyFilterOperator]?: true;
+      [key in PropertyFilterOperator]?: OperatorProps;
     };
   };
 };
+
 export function propertyFilter<T>(
   items: ReadonlyArray<T>,
   query: PropertyFilterQuery,
@@ -87,10 +137,16 @@ export function propertyFilter<T>(
         defaultOperator,
       }: NonNullable<UseCollectionOptions<T>['propertyFiltering']>['filteringProperties'][0]
     ) => {
-      const operatorSet: { [key: string]: true } = { [defaultOperator ?? '=']: true };
-      operators?.forEach(op => (operatorSet[op] = true));
+      const operatorMap: { [key: string]: OperatorProps } = { [defaultOperator ?? '=']: {} };
+      operators?.forEach(op => {
+        if (typeof op === 'string') {
+          operatorMap[op] = {};
+        } else {
+          operatorMap[op.value] = { match: 'match' in op ? op.match : undefined };
+        }
+      });
       acc[key as keyof T] = {
-        operators: operatorSet,
+        operators: operatorMap,
       };
       return acc;
     },

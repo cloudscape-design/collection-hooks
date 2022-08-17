@@ -1,6 +1,7 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
 import * as React from 'react';
+import { DateType } from './date-utils';
 
 // shim for dom types
 interface CustomEvent<T> {
@@ -88,7 +89,9 @@ interface UseCollectionResultBase<T> {
   propertyFilterProps: {
     query: PropertyFilterQuery;
     onChange(event: CustomEvent<PropertyFilterQuery>): void;
-    filteringProperties: readonly PropertyFilterProperty[];
+    filteringProperties: readonly (PropertyFilterProperty & {
+      operators?: readonly (PropertyFilterOperator | PropertyFilterOperatorExtended)[];
+    })[];
     filteringOptions: readonly PropertyFilterOption[];
   };
   paginationProps: {
@@ -111,6 +114,18 @@ export interface CollectionRef {
 
 export type PropertyFilterOperator = '<' | '<=' | '>' | '>=' | ':' | '!:' | '=' | '!=';
 
+export interface PropertyFilterOperatorExtended {
+  value: PropertyFilterOperator;
+}
+
+export interface PropertyFilterOperatorWithMatch extends PropertyFilterOperatorExtended {
+  match?: PropertyFilterOperatorMatchByType | PropertyFilterOperatorMatch;
+}
+
+export type PropertyFilterOperatorMatchByType = 'date';
+
+export type PropertyFilterOperatorMatch = (tokenValue: DateType, itemValue: DateType) => boolean;
+
 export type PropertyFilterOperation = 'and' | 'or';
 export interface PropertyFilterToken {
   value: string;
@@ -125,7 +140,7 @@ export interface PropertyFilterProperty {
   key: string;
   groupValuesLabel: string;
   propertyLabel: string;
-  operators?: readonly PropertyFilterOperator[];
+  operators?: readonly (PropertyFilterOperator | PropertyFilterOperatorExtended | PropertyFilterOperatorWithMatch)[];
   defaultOperator?: PropertyFilterOperator;
   group?: string;
 }
