@@ -15,7 +15,7 @@ import {
   matchDateIsAfterOrEqual,
   matchDateIsBefore,
   matchDateIsBeforeOrEqual,
-} from '../matchers/date';
+} from '../matchers/date.js';
 
 const filterUsingOperator = (
   itemValue: any,

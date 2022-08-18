@@ -38,7 +38,7 @@ export function parseIsoDate(isoDate: string): Date {
 }
 
 export function parseTimezoneOffset(isoDate: string): number {
-  const [, time] = isoDate.split('T');
+  const [, time = ''] = isoDate.split('T');
   const [, signCharacter, offsetPart] = time.split(/(-|\+)/);
 
   if (signCharacter && offsetPart) {

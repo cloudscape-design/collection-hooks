@@ -26,12 +26,18 @@
     "./operations": {
       "require": "./dist/cjs/operations.js",
       "default": "./dist/mjs/operations.js"
+    },
+    "./matchers": {
+      "require": "./dist/cjs/matchers.js",
+      "default": "./dist/mjs/matchers.js"
     }
   },
   "files": [
     "dist",
     "operations.js",
     "operations.d.ts",
+    "matchers.js",
+    "matchers.d.ts",
     "package.json",
     "README.md"
   ],
