@@ -1,7 +1,7 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
 
-import { DateType, compareDates } from '../date-utils.js';
+import { DateType, compareDates } from '../utils/compare-dates.js';
 
 /*
   The date type can be represented as a Date object or ISO8601 date or date-time string, examples:
