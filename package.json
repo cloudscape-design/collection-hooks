@@ -8,7 +8,7 @@
   "homepage": "https://cloudscape.design",
   "scripts": {
     "lint": "eslint . --ext .ts,.tsx",
-    "test": "jest --coverage",
+    "test": "TZ=Europe/Berlin jest --coverage",
     "clean": "rimraf ./dist",
     "build": "tsc -p ./tsconfig.json && tsc -p ./tsconfig.cjs.json",
     "generate-deep-package": "node ./scripts/generate-deep-package.js",

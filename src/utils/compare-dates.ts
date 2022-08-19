@@ -4,11 +4,10 @@
 import { parseIsoDate } from './parse-iso-date.js';
 import { startOfDay } from './start-of-day.js';
 
-export function compareDates(date: Date | string, dateToCompare: Date | string): number {
-  const useExactCompare = date instanceof Date || date.includes('T');
+export function compareDates(date: Date | string, dateToCompare: string): number {
   const parsedDate = date instanceof Date ? date : parseIsoDate(date);
-  const parsedDateToCompare = dateToCompare instanceof Date ? dateToCompare : parseIsoDate(dateToCompare);
-  return useExactCompare
+  const parsedDateToCompare = parseIsoDate(dateToCompare);
+  return dateToCompare.includes('T')
     ? parsedDate.getTime() - parsedDateToCompare.getTime()
     : startOfDay(parsedDate).getTime() - startOfDay(parsedDateToCompare).getTime();
 }

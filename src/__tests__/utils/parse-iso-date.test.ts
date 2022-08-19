@@ -3,24 +3,29 @@
 
 import { parseIsoDate } from '../../utils/parse-iso-date';
 
-jest.mock('../../utils/get-browser-timezone-offset', () => ({
-  getBrowserTimezoneOffset: jest.fn().mockReturnValue(60),
-}));
+const timezoneOffsetInHours = (0 - new Date().getTimezoneOffset()) / 60;
 
 test.each([
+  // Date-only
   ['2020-01-01', [2020, 0, 1, 0, 0, 0]],
-  ['2020-01-01T00:00:00', [2020, 0, 1, 1, 0, 0]],
-  ['2020-01-01T01:02:02', [2020, 0, 1, 2, 2, 2]],
-  ['2020-01-01T01:02:02+2:00', [2020, 0, 1, 3, 2, 2]],
-  ['2020-01-01T01:02:02-1:00', [2020, 0, 1, 0, 2, 2]],
+  // Date-time with UTC offset
+  ['2020-01-01T01:02:03Z', [2020, 0, 1, 1, 2, 3]],
+  ['2020-01-01T01:02:03.123Z', [2020, 0, 1, 1, 2, 3]],
+  ['2020-01-01T01:02:03+0:00', [2020, 0, 1, 1, 2, 3]],
+  // Date-time with explicit offset
+  ['2020-01-01T01:00:03+1:30', [2020, 0, 1, 2, 30, 3]],
+  // Date-time with explicit offset (negative)
+  ['2020-01-01T01:00:00-2:00', [2019, 11, 31, 23, 0, 0]],
+  // Date-time with browser's offset
+  ['2020-01-01T10:00:00', [2020, 0, 1, 10 + timezoneOffsetInHours, 0, 0]],
 ])('parses date correctly', (dateString, [year, month, date, hours, minutes, seconds]) => {
   const parsed = parseIsoDate(dateString);
-  expect(parsed.getFullYear()).toBe(year);
-  expect(parsed.getMonth()).toBe(month);
-  expect(parsed.getDate()).toBe(date);
-  expect(parsed.getHours()).toBe(hours);
-  expect(parsed.getMinutes()).toBe(minutes);
-  expect(parsed.getSeconds()).toBe(seconds);
+  expect(parsed.getUTCFullYear()).toBe(year);
+  expect(parsed.getUTCMonth()).toBe(month);
+  expect(parsed.getUTCDate()).toBe(date);
+  expect(parsed.getUTCHours()).toBe(hours);
+  expect(parsed.getUTCMinutes()).toBe(minutes);
+  expect(parsed.getUTCSeconds()).toBe(seconds);
 });
 
 test.each([['2020-01-0x'], ['2020-01-01T01:02:0x'], ['2020-01-01T01:02:03+2:xx']])(
