@@ -22,7 +22,7 @@ test.each([
   ['2020-01-01', '2020-01-01T00:00:00Z', 0],
   ['2020-01-01', '2020-01-01T01:01:01Z', -(hour + minute + second)],
   ['2020-01-01', '2020-01-01T00:00:00-1:00', hour],
-  ['2020-01-01', '2020-01-01T00:00:00', -timezoneOffsetInHours * hour],
+  ['2020-01-01', '2020-01-01T00:00:00', timezoneOffsetInHours * hour],
 ])('compares date strings against date-time strings', (itemDate, tokenDate, compareResult) => {
   expect(compareDates(itemDate, tokenDate)).toBe(compareResult);
 });
@@ -30,7 +30,7 @@ test.each([
 test.each([
   ['2020-01-01T00:00:00', '2020-01-01', 0],
   ['2020-01-01T10:00:00', '2020-01-01', 0],
-  ['2020-01-01T23:00:00', '2020-01-01', day],
+  ['2020-01-01T23:00:00', '2020-01-01', 0],
   ['2020-01-01T23:00:00Z', '2020-01-01', day],
 ])('compares date-time strings against date strings', (itemDate, tokenDate, compareResult) => {
   expect(compareDates(itemDate, tokenDate)).toBe(compareResult);
@@ -41,7 +41,7 @@ test.each([
   ['2020-01-01T00:00:00', '2020-01-01T00:00:00', 0],
   ['2020-01-01T00:00:01', '2020-01-01T00:00:00', second],
   ['2020-01-01T02:02:02+1:00', '2020-01-01T02:02:02+2:00', -hour],
-  ['2020-01-01T00:00:00Z', '2020-01-01T00:00:00', -timezoneOffsetInHours * hour],
+  ['2020-01-01T00:00:00Z', '2020-01-01T00:00:00', timezoneOffsetInHours * hour],
 ])('compares date-time strings against date-time strings', (itemDate, tokenDate, compareResult) => {
   expect(compareDates(itemDate, tokenDate)).toBe(compareResult);
 });
@@ -59,8 +59,8 @@ test.each([
   [new Date(Date.UTC(2020, 0, 1, 0, 0, 0)), '2020-01-01T00:00:00Z', 0],
   [new Date('2020-01-01T00:00:00'), '2020-01-01T00:00:00Z', -timezoneOffsetInHours * hour],
   [new Date('2020-01-01'), '2020-01-01T00:00:30Z', -30 * second],
-  [new Date('2020-01-01'), '2020-01-01T00:00:00', -timezoneOffsetInHours * hour],
-  [new Date('2020-01-01T00:00:00'), '2020-01-01T00:00:00', -2 * timezoneOffsetInHours * hour],
+  [new Date('2020-01-01'), '2020-01-01T00:00:00', timezoneOffsetInHours * hour],
+  [new Date('2020-01-01T00:00:00'), '2020-01-01T00:00:00', 0],
   [new Date('2020-01-01T00:00:00'), `2020-01-01T00:00:00-${timezoneOffsetInHours}:00`, 0],
 ])('compares date objects against date-time strings', (itemDate, tokenDate, compareResult) => {
   expect(compareDates(itemDate, tokenDate)).toBe(compareResult);

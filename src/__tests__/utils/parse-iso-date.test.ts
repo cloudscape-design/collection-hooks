@@ -17,7 +17,7 @@ test.each([
   // Date-time with explicit offset (negative)
   ['2020-01-01T01:00:00-2:00', [2019, 11, 31, 23, 0, 0]],
   // Date-time with browser's offset
-  ['2020-01-01T10:00:00', [2020, 0, 1, 10 + timezoneOffsetInHours, 0, 0]],
+  ['2020-01-01T10:00:00', [2020, 0, 1, 10 - timezoneOffsetInHours, 0, 0]],
 ])('parses date correctly', (dateString, [year, month, date, hours, minutes, seconds]) => {
   const parsed = parseIsoDate(dateString);
   expect(parsed.getUTCFullYear()).toBe(year);

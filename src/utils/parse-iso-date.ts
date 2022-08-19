@@ -18,26 +18,18 @@ export function parseIsoDate(isoDate: string): Date {
     return new Date(Date.UTC(year, month, day));
   }
 
-  const date = new Date(Date.UTC(year, month, day, hours, minutes, seconds));
-
-  let timezoneOffset = 0;
-
-  // No need to shift offset if found a UTC offset indicator.
+  // Instantiate date as UTC if found the UTC timezone indicator.
   if (isoDate.indexOf('Z') !== -1) {
-    timezoneOffset = 0;
+    return new Date(Date.UTC(year, month, day, hours, minutes, seconds));
   }
-  // If offset is explicitly defined - try parsing it.
-  else if (signCharacter && offsetPart) {
+
+  // Instantiate date with explicitly defined offset.
+  if (signCharacter && offsetPart) {
     const [offsetHours, offsetMinutes] = offsetPart.split(':');
-    timezoneOffset = Number(signCharacter + '1') * (Number(offsetHours) * 60 + Number(offsetMinutes));
-  }
-  // Shift offset by browser's offset.
-  else {
-    // Taking offset of the corresponding date, not new Date() to account for dayling savings.
-    timezoneOffset = 0 - date.getTimezoneOffset();
+    const timezoneOffset = Number(signCharacter + '1') * (Number(offsetHours) * 60 + Number(offsetMinutes));
+    return new Date(Date.UTC(year, month, day, hours, minutes, seconds) + timezoneOffset * 60 * 1000);
   }
 
-  date.setTime(date.getTime() + timezoneOffset * 60 * 1000);
-
-  return date;
+  // Instantiate date with the current timezone offset.
+  return new Date(year, month, day, hours, minutes, seconds);
 }
