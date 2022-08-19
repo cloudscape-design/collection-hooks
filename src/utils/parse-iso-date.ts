@@ -12,15 +12,16 @@ export function parseIsoDate(isoDate: string): Date {
   const year = Number(yearStr);
   const month = Number(monthStr) - 1;
   const day = Number(dayStr);
-  const hours = Number(hoursStr) - 1;
+  const hours = Number(hoursStr);
   const minutes = Number(minutesStr);
   const seconds = Number(secondsStr);
   const offsetInMinutes = parseTimezoneOffset(isoDate);
 
-  const date = timePart
-    ? new Date(Date.UTC(year, month, day, hours, minutes, seconds))
-    : new Date(Date.UTC(year, month, day, 0, 0, 0));
-  date.setTime(date.getTime() + offsetInMinutes * 60 * 1000);
+  if (timePart) {
+    const date = new Date(year, month, day, hours, minutes, seconds);
+    date.setTime(date.getTime() + offsetInMinutes * 60 * 1000);
+    return date;
+  }
 
-  return date;
+  return new Date(year, month, day);
 }
