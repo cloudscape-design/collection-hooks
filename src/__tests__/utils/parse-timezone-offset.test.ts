@@ -1,9 +1,9 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
 
-import { parseTimezoneOffset } from '../utils/parse-timezone-offset';
+import { parseTimezoneOffset } from '../../utils/parse-timezone-offset';
 
-jest.mock('../utils/get-browser-timezone-offset', () => ({
+jest.mock('../../utils/get-browser-timezone-offset', () => ({
   getBrowserTimezoneOffset: jest.fn().mockReturnValue(88),
 }));
 

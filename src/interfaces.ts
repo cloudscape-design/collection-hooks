@@ -115,19 +115,19 @@ export type PropertyFilterOperator = '<' | '<=' | '>' | '>=' | ':' | '!:' | '=' 
 
 export interface PropertyFilterOperatorExtended {
   value: PropertyFilterOperator;
-}
-
-export interface PropertyFilterOperatorWithMatch extends PropertyFilterOperatorExtended {
   match?: PropertyFilterOperatorMatchByType | PropertyFilterOperatorMatch;
+  [x: string]: unknown;
 }
 
 export type PropertyFilterOperatorMatchByType = 'date';
 
-export type PropertyFilterOperatorMatch = (tokenValue: Date | string, itemValue: Date | string) => boolean;
+export type PropertyFilterOperatorMatch = (tokenValue: unknown, itemValue: unknown) => boolean;
 
 export type PropertyFilterOperation = 'and' | 'or';
 export interface PropertyFilterToken {
-  value: string;
+  // By default, the token value is a string.
+  // When a custom property is used, the token value can be any;
+  value: any;
   propertyKey?: string;
   operator: PropertyFilterOperator;
 }
@@ -139,7 +139,7 @@ export interface PropertyFilterProperty {
   key: string;
   groupValuesLabel: string;
   propertyLabel: string;
-  operators?: readonly (PropertyFilterOperator | PropertyFilterOperatorExtended | PropertyFilterOperatorWithMatch)[];
+  operators?: readonly (PropertyFilterOperator | PropertyFilterOperatorExtended)[];
   defaultOperator?: PropertyFilterOperator;
   group?: string;
 }
