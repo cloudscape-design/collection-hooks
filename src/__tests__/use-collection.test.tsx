@@ -545,7 +545,7 @@ describe('Operator matchers', () => {
       defaultQuery: {
         operation: 'and',
         tokens: [
-          { propertyKey: 'eventDate', operator: '>=', value: new Date('2020-01-02') },
+          { propertyKey: 'eventDate', operator: '>=', value: '2020-01-02' },
           { propertyKey: 'eventDate', operator: '<', value: '2020-01-04' },
         ],
       },
@@ -590,7 +590,7 @@ describe('Operator matchers', () => {
       defaultQuery: {
         operation: 'and',
         tokens: [
-          { propertyKey: 'eventDate', operator: '>=', value: new Date('2020-01-02') },
+          { propertyKey: 'eventDate', operator: '>=', value: '2020-01-02' },
           { propertyKey: 'eventDate', operator: '<', value: '2020-01-04' },
           { propertyKey: 'custom', operator: '=', value: null },
         ],

@@ -3,7 +3,7 @@
 
 import { parseIsoDate } from '../../utils/parse-iso-date';
 
-const timezoneOffsetInHours = (0 - new Date().getTimezoneOffset()) / 60;
+const timezoneOffsetInHours = (0 - new Date('2020-01-01').getTimezoneOffset()) / 60;
 
 test.each([
   // Date-only

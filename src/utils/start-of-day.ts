@@ -3,6 +3,6 @@
 
 export function startOfDay(date: Date): Date {
   const copy = new Date(date.getTime());
-  copy.setUTCHours(0, 0, 0, 0);
+  copy.setHours(0, 0, 0, 0);
   return copy;
 }

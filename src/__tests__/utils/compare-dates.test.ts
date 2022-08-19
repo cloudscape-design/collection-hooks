@@ -29,10 +29,9 @@ test.each([
 
 test.each([
   ['2020-01-01T00:00:00', '2020-01-01', 0],
-  ['2020-01-01T23:59:59Z', '2020-01-01', 0],
-  ['2020-01-01T23:58:00+0:01', '2020-01-01', 0],
-  ['2020-01-01T23:59:00+0:01', '2020-01-01', day],
+  ['2020-01-01T10:00:00', '2020-01-01', 0],
   ['2020-01-01T23:00:00', '2020-01-01', day],
+  ['2020-01-01T23:00:00Z', '2020-01-01', day],
 ])('compares date-time strings against date strings', (itemDate, tokenDate, compareResult) => {
   expect(compareDates(itemDate, tokenDate)).toBe(compareResult);
 });
