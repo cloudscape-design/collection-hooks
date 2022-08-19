@@ -1,7 +1,6 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
 import * as React from 'react';
-import { DateType } from './date-utils';
 
 // shim for dom types
 interface CustomEvent<T> {
@@ -124,7 +123,7 @@ export interface PropertyFilterOperatorWithMatch extends PropertyFilterOperatorE
 
 export type PropertyFilterOperatorMatchByType = 'date';
 
-export type PropertyFilterOperatorMatch = (tokenValue: DateType, itemValue: DateType) => boolean;
+export type PropertyFilterOperatorMatch = (tokenValue: Date | string, itemValue: Date | string) => boolean;
 
 export type PropertyFilterOperation = 'and' | 'or';
 export interface PropertyFilterToken {

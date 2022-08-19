@@ -4,9 +4,7 @@
 import { parseIsoDate } from './parse-iso-date.js';
 import { startOfDay } from './start-of-day.js';
 
-export type DateType = Date | string;
-
-export function compareDates(date: DateType, dateToCompare: DateType): number {
+export function compareDates(date: Date | string, dateToCompare: Date | string): number {
   const useExactCompare = date instanceof Date || date.includes('T');
   const parsedDate = date instanceof Date ? date : parseIsoDate(date);
   const parsedDateToCompare = dateToCompare instanceof Date ? dateToCompare : parseIsoDate(dateToCompare);

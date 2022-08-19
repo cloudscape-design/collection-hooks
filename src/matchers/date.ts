@@ -1,7 +1,7 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
 
-import { DateType, compareDates } from '../utils/compare-dates.js';
+import { compareDates } from '../utils/compare-dates.js';
 
 /*
   The date type can be represented as a Date object or ISO8601 date or date-time string, examples:
@@ -14,26 +14,26 @@ import { DateType, compareDates } from '../utils/compare-dates.js';
   the dates are compared as milliseconds. Otherwise - compare as dates but consider the second value timezone.
 */
 
-export function matchDateIsEqual(date: DateType, dateToCompare: DateType): boolean {
+export function matchDateIsEqual(date: Date | string, dateToCompare: Date | string): boolean {
   return compareDates(date, dateToCompare) === 0;
 }
 
-export function matchDateIsNotEqual(date: DateType, dateToCompare: DateType): boolean {
+export function matchDateIsNotEqual(date: Date | string, dateToCompare: Date | string): boolean {
   return compareDates(date, dateToCompare) !== 0;
 }
 
-export function matchDateIsBefore(date: DateType, dateToCompare: DateType): boolean {
+export function matchDateIsBefore(date: Date | string, dateToCompare: Date | string): boolean {
   return compareDates(date, dateToCompare) < 0;
 }
 
-export function matchDateIsBeforeOrEqual(date: DateType, dateToCompare: DateType): boolean {
+export function matchDateIsBeforeOrEqual(date: Date | string, dateToCompare: Date | string): boolean {
   return matchDateIsBefore(date, dateToCompare) || matchDateIsEqual(date, dateToCompare);
 }
 
-export function matchDateIsAfter(date: DateType, dateToCompare: DateType): boolean {
+export function matchDateIsAfter(date: Date | string, dateToCompare: Date | string): boolean {
   return compareDates(date, dateToCompare) > 0;
 }
 
-export function matchDateIsAfterOrEqual(date: DateType, dateToCompare: DateType): boolean {
+export function matchDateIsAfterOrEqual(date: Date | string, dateToCompare: Date | string): boolean {
   return matchDateIsAfter(date, dateToCompare) || matchDateIsEqual(date, dateToCompare);
 }
