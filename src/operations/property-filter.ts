@@ -26,24 +26,24 @@ const filterUsingOperator = (
   if (match === 'date') {
     switch (operator) {
       case '<':
-        return matchDateIsBefore(tokenValue, itemValue);
+        return matchDateIsBefore(itemValue, tokenValue);
       case '<=':
-        return matchDateIsBeforeOrEqual(tokenValue, itemValue);
+        return matchDateIsBeforeOrEqual(itemValue, tokenValue);
       case '>':
-        return matchDateIsAfter(tokenValue, itemValue);
+        return matchDateIsAfter(itemValue, tokenValue);
       case '>=':
-        return matchDateIsAfterOrEqual(tokenValue, itemValue);
+        return matchDateIsAfterOrEqual(itemValue, tokenValue);
       case '=':
-        return matchDateIsEqual(tokenValue, itemValue);
+        return matchDateIsEqual(itemValue, tokenValue);
       case '!=':
-        return matchDateIsNotEqual(tokenValue, itemValue);
+        return matchDateIsNotEqual(itemValue, tokenValue);
       default:
         return false;
     }
   }
 
   if (match) {
-    return match(tokenValue, itemValue);
+    return match(itemValue, tokenValue);
   }
 
   switch (operator) {
@@ -93,6 +93,7 @@ function filterByToken<T>(token: PropertyFilterToken, item: T, filteringProperti
     const itemValue: any = fixupFalsyValues(item[token.propertyKey as keyof T]);
     const match =
       filteringPropertiesMap[token.propertyKey as keyof FilteringPropertiesMap<T>].operators[token.operator]?.match;
+
     return filterUsingOperator(itemValue, token.value, token.operator, match);
   }
   return freeTextFilter(token.value, item, token.operator, filteringPropertiesMap);
@@ -152,6 +153,7 @@ export function propertyFilter<T>(
     },
     {} as FilteringPropertiesMap<T>
   );
+
   const filter = filteringFunction || defaultFilteringFunction(filteringPropertiesMap);
   return items.filter(item => filter(item, query));
 }

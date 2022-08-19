@@ -148,7 +148,7 @@ function PropertyFilter({
           <li key={index}>
             <span className="property-key">{token.propertyKey}</span>
             <span className="operator">{token.operator}</span>
-            <span className="value">{token.value}</span>
+            <span className="value">{token.value?.toString()}</span>
           </li>
         ))}
       </ul>

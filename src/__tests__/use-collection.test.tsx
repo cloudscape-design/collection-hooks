@@ -3,6 +3,14 @@
 import { fireEvent, render as testRender } from '@testing-library/react';
 import * as React from 'react';
 import { useCollection } from '../';
+import {
+  matchDateIsAfter,
+  matchDateIsAfterOrEqual,
+  matchDateIsBefore,
+  matchDateIsBeforeOrEqual,
+  matchDateIsEqual,
+  matchDateIsNotEqual,
+} from '../matchers/date';
 import { Demo, Item, render } from './stubs';
 
 const generateItems = (length: number) =>
@@ -507,5 +515,92 @@ describe('Property filtering', () => {
     };
     const { container } = testRender(<MixedOptions />);
     expect(container?.textContent?.split(',')).toEqual(['0', 'false']);
+  });
+});
+
+describe('Operator matchers', () => {
+  test('should match values by date when using "date" matcher', () => {
+    const allItems = [
+      { id: '1', eventDate: new Date('2020-01-01') },
+      { id: '2', eventDate: new Date('2020-01-02') },
+      { id: '3', eventDate: new Date('2020-01-03') },
+      { id: '4', eventDate: new Date('2020-01-04') },
+    ];
+    const propertyFiltering = {
+      filteringProperties: [
+        {
+          key: 'eventDate',
+          groupValuesLabel: 'group label',
+          propertyLabel: 'property label',
+          operators: [
+            { value: '=', match: 'date' },
+            { value: '!=', match: 'date' },
+            { value: '<', match: 'date' },
+            { value: '<=', match: 'date' },
+            { value: '>', match: 'date' },
+            { value: '>=', match: 'date' },
+          ],
+        },
+      ],
+      defaultQuery: {
+        operation: 'and',
+        tokens: [
+          { propertyKey: 'eventDate', operator: '>=', value: new Date('2020-01-02') },
+          { propertyKey: 'eventDate', operator: '<', value: '2020-01-04' },
+        ],
+      },
+    } as const;
+    function App() {
+      const result = useCollection<Item>(allItems, { propertyFiltering });
+      return <Demo {...result} />;
+    }
+    const { getVisibleItems } = render(<App />);
+    expect(getVisibleItems()).toHaveLength(2);
+  });
+
+  test('should match values by using explicit matchers', () => {
+    const allItems = [
+      { id: '1', eventDate: '2020-01-01' },
+      { id: '2', eventDate: '2020-01-02' },
+      { id: '3', eventDate: '2020-01-03' },
+      { id: '4', eventDate: '2020-01-04' },
+    ];
+    const propertyFiltering = {
+      filteringProperties: [
+        {
+          key: 'eventDate',
+          groupValuesLabel: 'group label',
+          propertyLabel: 'property label',
+          operators: [
+            { value: '=', match: matchDateIsEqual },
+            { value: '!=', match: matchDateIsNotEqual },
+            { value: '<', match: matchDateIsBefore },
+            { value: '<=', match: matchDateIsBeforeOrEqual },
+            { value: '>', match: matchDateIsAfter },
+            { value: '>=', match: matchDateIsAfterOrEqual },
+          ],
+        },
+        {
+          key: 'custom',
+          groupValuesLabel: 'group label',
+          propertyLabel: 'property label',
+          operators: [{ value: '=', match: () => true }],
+        },
+      ],
+      defaultQuery: {
+        operation: 'and',
+        tokens: [
+          { propertyKey: 'eventDate', operator: '>=', value: new Date('2020-01-02') },
+          { propertyKey: 'eventDate', operator: '<', value: '2020-01-04' },
+          { propertyKey: 'custom', operator: '=', value: null },
+        ],
+      },
+    } as const;
+    function App() {
+      const result = useCollection<Item>(allItems, { propertyFiltering });
+      return <Demo {...result} />;
+    }
+    const { getVisibleItems } = render(<App />);
+    expect(getVisibleItems()).toHaveLength(2);
   });
 });

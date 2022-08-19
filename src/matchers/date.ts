@@ -14,26 +14,36 @@ import { compareDates } from '../utils/compare-dates.js';
   the dates are compared as milliseconds. Otherwise - compare as dates but consider the second value timezone.
 */
 
-export function matchDateIsEqual(date: Date | string, dateToCompare: Date | string): boolean {
-  return compareDates(date, dateToCompare) === 0;
+export function matchDateIsEqual(date: unknown, dateToCompare: unknown): boolean {
+  return compareDates(normalizeDate(date), normalizeDate(dateToCompare)) === 0;
 }
 
-export function matchDateIsNotEqual(date: Date | string, dateToCompare: Date | string): boolean {
-  return compareDates(date, dateToCompare) !== 0;
+export function matchDateIsNotEqual(date: unknown, dateToCompare: unknown): boolean {
+  return compareDates(normalizeDate(date), normalizeDate(dateToCompare)) !== 0;
 }
 
-export function matchDateIsBefore(date: Date | string, dateToCompare: Date | string): boolean {
-  return compareDates(date, dateToCompare) < 0;
+export function matchDateIsBefore(date: unknown, dateToCompare: unknown): boolean {
+  return compareDates(normalizeDate(date), normalizeDate(dateToCompare)) < 0;
 }
 
-export function matchDateIsBeforeOrEqual(date: Date | string, dateToCompare: Date | string): boolean {
-  return matchDateIsBefore(date, dateToCompare) || matchDateIsEqual(date, dateToCompare);
+export function matchDateIsBeforeOrEqual(date: unknown, dateToCompare: unknown): boolean {
+  return (
+    matchDateIsBefore(normalizeDate(date), normalizeDate(dateToCompare)) ||
+    matchDateIsEqual(normalizeDate(date), normalizeDate(dateToCompare))
+  );
 }
 
-export function matchDateIsAfter(date: Date | string, dateToCompare: Date | string): boolean {
-  return compareDates(date, dateToCompare) > 0;
+export function matchDateIsAfter(date: unknown, dateToCompare: unknown): boolean {
+  return compareDates(normalizeDate(date), normalizeDate(dateToCompare)) > 0;
 }
 
-export function matchDateIsAfterOrEqual(date: Date | string, dateToCompare: Date | string): boolean {
-  return matchDateIsAfter(date, dateToCompare) || matchDateIsEqual(date, dateToCompare);
+export function matchDateIsAfterOrEqual(date: unknown, dateToCompare: unknown): boolean {
+  return (
+    matchDateIsAfter(normalizeDate(date), normalizeDate(dateToCompare)) ||
+    matchDateIsEqual(normalizeDate(date), normalizeDate(dateToCompare))
+  );
+}
+
+function normalizeDate(date: unknown): Date | string {
+  return date instanceof Date || typeof date === 'string' ? date : '';
 }
