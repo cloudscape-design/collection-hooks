@@ -1,13 +1,12 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
 
-import { parseIsoDate } from './parse-iso-date.js';
 import { startOfDay } from './start-of-day.js';
 
-export function compareDates(date: Date | string, dateToCompare: string): number {
-  const parsedDate = date instanceof Date ? date : parseIsoDate(date);
-  const parsedDateToCompare = parseIsoDate(dateToCompare);
-  return dateToCompare.includes('T')
-    ? parsedDate.getTime() - parsedDateToCompare.getTime()
-    : startOfDay(parsedDate).getTime() - startOfDay(parsedDateToCompare).getTime();
+export function compareDates(date: Date, dateToCompare: Date): number {
+  return startOfDay(date).getTime() - startOfDay(dateToCompare).getTime();
+}
+
+export function compareTimestamps(date: Date, dateToCompare: Date): number {
+  return date.getTime() - dateToCompare.getTime();
 }

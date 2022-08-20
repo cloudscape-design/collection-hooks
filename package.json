@@ -30,6 +30,10 @@
     "./matchers": {
       "require": "./dist/cjs/matchers.js",
       "default": "./dist/mjs/matchers.js"
+    },
+    "./comparators": {
+      "require": "./dist/cjs/comparators.js",
+      "default": "./dist/mjs/comparators.js"
     }
   },
   "files": [
@@ -38,6 +42,8 @@
     "operations.d.ts",
     "matchers.js",
     "matchers.d.ts",
+    "comparators.js",
+    "comparators.d.ts",
     "package.json",
     "README.md"
   ],
