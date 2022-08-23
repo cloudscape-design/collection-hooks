@@ -115,13 +115,11 @@ export type PropertyFilterOperator = '<' | '<=' | '>' | '>=' | ':' | '!:' | '=' 
 
 export interface PropertyFilterOperatorExtended {
   value: PropertyFilterOperator;
-  match?: PropertyFilterOperatorMatchByType | PropertyFilterOperatorMatch;
+  match?: PropertyFilterOperatorMatch;
   [other: string]: unknown;
 }
 
-export type PropertyFilterOperatorMatchByType = 'date';
-
-export type PropertyFilterOperatorMatch = (itemValue: unknown, tokenValue: unknown) => boolean;
+export type PropertyFilterOperatorMatch = (itemValue: any, tokenValue: any) => boolean;
 
 export type PropertyFilterOperation = 'and' | 'or';
 export interface PropertyFilterToken {

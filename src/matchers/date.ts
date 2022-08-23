@@ -4,35 +4,42 @@
 import { compareDates, compareTimestamps } from '../utils/compare-dates.js';
 import { parseIsoDate } from '../utils/parse-iso-date.js';
 
-export function matchDateIsEqual(date: unknown, dateToCompare: unknown): boolean {
-  const comparator = isTimestamp(dateToCompare) ? compareTimestamps : compareDates;
-  return comparator(parseDateArgument(date), parseDateArgument(dateToCompare)) === 0;
+export function matchDateIsEqual(itemDate: Date, tokenDate: Date | string): boolean {
+  const comparator = isTimestamp(tokenDate) ? compareTimestamps : compareDates;
+  return comparator(parseItemDate(itemDate), parseTokenDate(tokenDate)) === 0;
 }
 
-export function matchDateIsNotEqual(date: unknown, dateToCompare: unknown): boolean {
-  const comparator = isTimestamp(dateToCompare) ? compareTimestamps : compareDates;
-  return comparator(parseDateArgument(date), parseDateArgument(dateToCompare)) !== 0;
+export function matchDateIsNotEqual(itemDate: Date, tokenDate: Date | string): boolean {
+  const comparator = isTimestamp(tokenDate) ? compareTimestamps : compareDates;
+  return comparator(parseItemDate(itemDate), parseTokenDate(tokenDate)) !== 0;
 }
 
-export function matchDateIsBefore(date: unknown, dateToCompare: unknown): boolean {
-  const comparator = isTimestamp(dateToCompare) ? compareTimestamps : compareDates;
-  return comparator(parseDateArgument(date), parseDateArgument(dateToCompare)) < 0;
+export function matchDateIsBefore(itemDate: Date, tokenDate: Date | string): boolean {
+  const comparator = isTimestamp(tokenDate) ? compareTimestamps : compareDates;
+  return comparator(parseItemDate(itemDate), parseTokenDate(tokenDate)) < 0;
 }
 
-export function matchDateIsBeforeOrEqual(date: unknown, dateToCompare: unknown): boolean {
-  return matchDateIsBefore(date, dateToCompare) || matchDateIsEqual(date, dateToCompare);
+export function matchDateIsBeforeOrEqual(itemDate: Date, tokenDate: Date | string): boolean {
+  return matchDateIsBefore(itemDate, tokenDate) || matchDateIsEqual(itemDate, tokenDate);
 }
 
-export function matchDateIsAfter(date: unknown, dateToCompare: unknown): boolean {
-  const comparator = isTimestamp(dateToCompare) ? compareTimestamps : compareDates;
-  return comparator(parseDateArgument(date), parseDateArgument(dateToCompare)) > 0;
+export function matchDateIsAfter(itemDate: Date, tokenDate: Date | string): boolean {
+  const comparator = isTimestamp(tokenDate) ? compareTimestamps : compareDates;
+  return comparator(parseItemDate(itemDate), parseTokenDate(tokenDate)) > 0;
 }
 
-export function matchDateIsAfterOrEqual(date: unknown, dateToCompare: unknown): boolean {
-  return matchDateIsAfter(date, dateToCompare) || matchDateIsEqual(date, dateToCompare);
+export function matchDateIsAfterOrEqual(itemDate: Date, tokenDate: Date | string): boolean {
+  return matchDateIsAfter(itemDate, tokenDate) || matchDateIsEqual(itemDate, tokenDate);
 }
 
-function parseDateArgument(date: unknown): Date {
+function parseItemDate(date: unknown): Date {
+  if (date instanceof Date) {
+    return date;
+  }
+  return new Date(NaN);
+}
+
+function parseTokenDate(date: unknown): Date {
   if (date instanceof Date) {
     return date;
   }

@@ -533,12 +533,12 @@ describe('Operator matchers', () => {
           groupValuesLabel: 'group label',
           propertyLabel: 'property label',
           operators: [
-            { value: '=', match: 'date' },
-            { value: '!=', match: 'date' },
-            { value: '<', match: 'date' },
-            { value: '<=', match: 'date' },
-            { value: '>', match: 'date' },
-            { value: '>=', match: 'date' },
+            { value: '=' },
+            { value: '!=' },
+            { value: '<' },
+            { value: '<=' },
+            { value: '>' },
+            { value: '>=' },
           ],
         },
       ],
@@ -560,10 +560,10 @@ describe('Operator matchers', () => {
 
   test('should match values by using explicit matchers', () => {
     const allItems = [
-      { id: '1', eventDate: '2020-01-01' },
-      { id: '2', eventDate: '2020-01-02' },
-      { id: '3', eventDate: '2020-01-03' },
-      { id: '4', eventDate: '2020-01-04' },
+      { id: '1', eventDate: new Date('2020-01-01') },
+      { id: '2', eventDate: new Date('2020-01-02') },
+      { id: '3', eventDate: new Date('2020-01-03') },
+      { id: '4', eventDate: new Date('2020-01-04') },
     ];
     const propertyFiltering = {
       filteringProperties: [

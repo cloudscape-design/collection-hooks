@@ -3,7 +3,6 @@
 import {
   PropertyFilterOperator,
   PropertyFilterOperatorMatch,
-  PropertyFilterOperatorMatchByType,
   PropertyFilterQuery,
   PropertyFilterToken,
   UseCollectionOptions,
@@ -19,11 +18,11 @@ import {
 
 const filterUsingOperator = (
   itemValue: any,
-  tokenValue: string,
+  tokenValue: any,
   operator: PropertyFilterOperator,
-  match?: PropertyFilterOperatorMatchByType | PropertyFilterOperatorMatch
+  match?: PropertyFilterOperatorMatch
 ) => {
-  if (match === 'date') {
+  if (itemValue instanceof Date) {
     switch (operator) {
       case '<':
         return matchDateIsBefore(itemValue, tokenValue);
@@ -113,7 +112,7 @@ function defaultFilteringFunction<T extends Record<string, any>>(filteringProper
 }
 
 interface OperatorProps {
-  match?: PropertyFilterOperatorMatchByType | PropertyFilterOperatorMatch;
+  match?: PropertyFilterOperatorMatch;
 }
 
 export type FilteringPropertiesMap<T> = {
