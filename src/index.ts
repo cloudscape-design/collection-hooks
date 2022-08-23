@@ -10,7 +10,6 @@ export {
   UseCollectionResult,
   PropertyFilterOperator,
   PropertyFilterOperatorExtended,
-  PropertyFilterOperatorMatchByType,
   PropertyFilterOperatorMatch,
   PropertyFilterOperation,
   PropertyFilterToken,
