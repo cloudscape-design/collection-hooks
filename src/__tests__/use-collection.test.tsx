@@ -327,8 +327,6 @@ describe('Property filtering', () => {
       {
         key: 'id',
         operators: [':', '!:', '=', '!='],
-        groupValuesLabel: 'Id values',
-        propertyLabel: 'Id',
       },
     ],
     empty: 'No items to display',
@@ -433,13 +431,9 @@ describe('Property filtering', () => {
       filteringProperties: [
         {
           key: 'id',
-          groupValuesLabel: 'Id values',
-          propertyLabel: 'Id',
         },
         {
           key: 'date',
-          groupValuesLabel: 'Date values',
-          propertyLabel: 'Date',
         },
       ],
     } as const;
@@ -463,8 +457,6 @@ describe('Property filtering', () => {
         filteringProperties: [
           {
             key: 'property',
-            groupValuesLabel: 'Property values',
-            propertyLabel: 'Property',
           },
         ],
       } as const;
@@ -485,8 +477,6 @@ describe('Property filtering', () => {
         filteringProperties: [
           {
             key: 'falsy',
-            groupValuesLabel: 'Falsy values',
-            propertyLabel: 'Falsy',
           },
         ],
       } as const;
