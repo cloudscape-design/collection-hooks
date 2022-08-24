@@ -28,7 +28,7 @@ export interface SelectionChangeDetail<T> {
 
 export type TrackBy<T> = string | ((item: T) => string);
 
-export interface UseCollectionOptions<T> {
+export interface UseCollectionOptions<T, P extends PropertyFilterProperty = PropertyFilterProperty> {
   filtering?: FilteringOptions<T> & {
     empty?: React.ReactNode;
     noMatch?: React.ReactNode;
@@ -37,7 +37,7 @@ export interface UseCollectionOptions<T> {
   propertyFiltering?: {
     empty?: React.ReactNode;
     noMatch?: React.ReactNode;
-    filteringProperties: readonly PropertyFilterProperty[];
+    filteringProperties: readonly P[];
     // custom filtering function
     filteringFunction?: (item: T, query: PropertyFilterQuery) => boolean;
     defaultQuery?: PropertyFilterQuery;
@@ -67,7 +67,7 @@ export interface CollectionActions<T> {
   setPropertyFiltering(query: PropertyFilterQuery): void;
 }
 
-interface UseCollectionResultBase<T> {
+interface UseCollectionResultBase<T, P extends PropertyFilterProperty = PropertyFilterProperty> {
   items: ReadonlyArray<T>;
   actions: CollectionActions<T>;
   collectionProps: {
@@ -88,7 +88,7 @@ interface UseCollectionResultBase<T> {
   propertyFilterProps: {
     query: PropertyFilterQuery;
     onChange(event: CustomEvent<PropertyFilterQuery>): void;
-    filteringProperties: readonly PropertyFilterProperty[];
+    filteringProperties: readonly P[];
     filteringOptions: readonly PropertyFilterOption[];
   };
   paginationProps: {
@@ -98,9 +98,10 @@ interface UseCollectionResultBase<T> {
   };
 }
 
-export interface UseCollectionResult<T> extends UseCollectionResultBase<T> {
+export interface UseCollectionResult<T, P extends PropertyFilterProperty = PropertyFilterProperty>
+  extends UseCollectionResultBase<T, P> {
   filteredItemsCount: number | undefined;
-  paginationProps: UseCollectionResultBase<T>['paginationProps'] & {
+  paginationProps: UseCollectionResultBase<T, P>['paginationProps'] & {
     pagesCount: number;
   };
 }
@@ -114,7 +115,6 @@ export type PropertyFilterOperator = '<' | '<=' | '>' | '>=' | ':' | '!:' | '=' 
 export interface PropertyFilterOperatorExtended<TokenValue = any> {
   value: PropertyFilterOperator;
   match?: PropertyFilterOperatorMatch<TokenValue>;
-  [other: string]: unknown;
 }
 
 export type PropertyFilterOperatorMatch<TokenValue> =
@@ -139,11 +139,8 @@ export interface PropertyFilterQuery {
 }
 export interface PropertyFilterProperty {
   key: string;
-  groupValuesLabel: string;
-  propertyLabel: string;
-  operators?: readonly (PropertyFilterOperator | PropertyFilterOperatorExtended)[];
   defaultOperator?: PropertyFilterOperator;
-  group?: string;
+  operators?: readonly (PropertyFilterOperator | PropertyFilterOperatorExtended)[];
 }
 export interface PropertyFilterOption {
   propertyKey: string;
