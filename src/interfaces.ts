@@ -88,9 +88,7 @@ interface UseCollectionResultBase<T> {
   propertyFilterProps: {
     query: PropertyFilterQuery;
     onChange(event: CustomEvent<PropertyFilterQuery>): void;
-    filteringProperties: readonly (PropertyFilterProperty & {
-      operators?: readonly (PropertyFilterOperator | PropertyFilterOperatorExtended)[];
-    })[];
+    filteringProperties: readonly PropertyFilterProperty[];
     filteringOptions: readonly PropertyFilterOption[];
   };
   paginationProps: {
