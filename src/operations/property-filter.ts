@@ -14,7 +14,7 @@ const filterUsingOperator = (
   itemValue: any,
   tokenValue: any,
   operator: PropertyFilterOperator,
-  match?: PropertyFilterOperatorMatch
+  match?: PropertyFilterOperatorMatch<any>
 ) => {
   if (match === 'date' || match === 'datetime') {
     const itemDate = itemValue instanceof Date ? itemValue : new Date(NaN);
@@ -109,7 +109,7 @@ function defaultFilteringFunction<T extends Record<string, any>>(filteringProper
 }
 
 interface OperatorProps {
-  match?: PropertyFilterOperatorMatch;
+  match?: PropertyFilterOperatorMatch<any>;
 }
 
 export type FilteringPropertiesMap<T> = {

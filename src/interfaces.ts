@@ -113,17 +113,19 @@ export interface CollectionRef {
 
 export type PropertyFilterOperator = '<' | '<=' | '>' | '>=' | ':' | '!:' | '=' | '!=';
 
-export interface PropertyFilterOperatorExtended {
+export interface PropertyFilterOperatorExtended<TokenValue = any> {
   value: PropertyFilterOperator;
-  match?: PropertyFilterOperatorMatch;
+  match?: PropertyFilterOperatorMatch<TokenValue>;
   [other: string]: unknown;
 }
 
-export type PropertyFilterOperatorMatch = PropertyFilterOperatorMatchByType | PropertyFilterOperatorMatchCustom;
+export type PropertyFilterOperatorMatch<TokenValue> =
+  | PropertyFilterOperatorMatchByType
+  | PropertyFilterOperatorMatchCustom<TokenValue>;
 
 export type PropertyFilterOperatorMatchByType = 'date' | 'datetime';
 
-export type PropertyFilterOperatorMatchCustom = (itemValue: any, tokenValue: any) => boolean;
+export type PropertyFilterOperatorMatchCustom<TokenValue> = (itemValue: any, tokenValue: TokenValue) => boolean;
 
 export type PropertyFilterOperation = 'and' | 'or';
 export interface PropertyFilterToken {
