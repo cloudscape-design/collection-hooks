@@ -7,8 +7,8 @@ import {
   PropertyFilterToken,
   UseCollectionOptions,
 } from '../interfaces';
-import { compareDates, compareDateTime } from '../utils/compare-dates';
-import { parseIsoDate } from '../utils/parse-iso-date';
+import { compareDates, compareDateTime } from '../utils/compare-dates.js';
+import { parseIsoDate } from '../utils/parse-iso-date.js';
 
 const filterUsingOperator = (
   itemValue: any,
