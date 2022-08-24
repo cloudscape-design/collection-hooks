@@ -3,14 +3,6 @@
 import { fireEvent, render as testRender } from '@testing-library/react';
 import * as React from 'react';
 import { useCollection } from '../';
-import {
-  matchDateIsAfter,
-  matchDateIsAfterOrEqual,
-  matchDateIsBefore,
-  matchDateIsBeforeOrEqual,
-  matchDateIsEqual,
-  matchDateIsNotEqual,
-} from '../matchers/date';
 import { Demo, Item, render } from './stubs';
 
 const generateItems = (length: number) =>
@@ -533,12 +525,12 @@ describe('Operator matchers', () => {
           groupValuesLabel: 'group label',
           propertyLabel: 'property label',
           operators: [
-            { value: '=' },
-            { value: '!=' },
-            { value: '<' },
-            { value: '<=' },
-            { value: '>' },
-            { value: '>=' },
+            { value: '=', match: 'date' },
+            { value: '!=', match: 'date' },
+            { value: '<', match: 'date' },
+            { value: '<=', match: 'date' },
+            { value: '>', match: 'date' },
+            { value: '>=', match: 'date' },
           ],
         },
       ],
@@ -558,12 +550,12 @@ describe('Operator matchers', () => {
     expect(getVisibleItems()).toHaveLength(2);
   });
 
-  test('should match values by using explicit matchers', () => {
+  test('should match values by date and time when using "datetime" matcher', () => {
     const allItems = [
-      { id: '1', eventDate: new Date('2020-01-01') },
-      { id: '2', eventDate: new Date('2020-01-02') },
-      { id: '3', eventDate: new Date('2020-01-03') },
-      { id: '4', eventDate: new Date('2020-01-04') },
+      { id: '1', eventDate: new Date('2020-01-01T01:00:00') },
+      { id: '2', eventDate: new Date('2020-01-01T02:00:00') },
+      { id: '3', eventDate: new Date('2020-01-01T03:00:00') },
+      { id: '4', eventDate: new Date('2020-01-01T04:00:00') },
     ];
     const propertyFiltering = {
       filteringProperties: [
@@ -572,12 +564,12 @@ describe('Operator matchers', () => {
           groupValuesLabel: 'group label',
           propertyLabel: 'property label',
           operators: [
-            { value: '=', match: matchDateIsEqual },
-            { value: '!=', match: matchDateIsNotEqual },
-            { value: '<', match: matchDateIsBefore },
-            { value: '<=', match: matchDateIsBeforeOrEqual },
-            { value: '>', match: matchDateIsAfter },
-            { value: '>=', match: matchDateIsAfterOrEqual },
+            { value: '=', match: 'datetime' },
+            { value: '!=', match: 'datetime' },
+            { value: '<', match: 'datetime' },
+            { value: '<=', match: 'datetime' },
+            { value: '>', match: 'datetime' },
+            { value: '>=', match: 'datetime' },
           ],
         },
         {
@@ -590,8 +582,8 @@ describe('Operator matchers', () => {
       defaultQuery: {
         operation: 'and',
         tokens: [
-          { propertyKey: 'eventDate', operator: '>=', value: '2020-01-02' },
-          { propertyKey: 'eventDate', operator: '<', value: '2020-01-04' },
+          { propertyKey: 'eventDate', operator: '>=', value: '2020-01-01T02:00:00' },
+          { propertyKey: 'eventDate', operator: '<', value: '2020-01-01T04:00:00' },
           { propertyKey: 'custom', operator: '=', value: null },
         ],
       },

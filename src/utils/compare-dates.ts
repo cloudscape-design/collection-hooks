@@ -7,6 +7,6 @@ export function compareDates(date: Date, dateToCompare: Date): number {
   return startOfDay(date).getTime() - startOfDay(dateToCompare).getTime();
 }
 
-export function compareTimestamps(date: Date, dateToCompare: Date): number {
+export function compareDateTime(date: Date, dateToCompare: Date): number {
   return date.getTime() - dateToCompare.getTime();
 }

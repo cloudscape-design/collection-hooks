@@ -8,7 +8,10 @@
   "homepage": "https://cloudscape.design",
   "scripts": {
     "lint": "eslint . --ext .ts,.tsx",
-    "test": "TZ=Europe/Berlin jest --coverage",
+    "test-8:00": "TZ=America/Los_Angeles jest -o ./src/__tests__/utils",
+    "test+8:00": "TZ=Asia/Brunei jest -o ./src/__tests__/utils",
+    "test-local": "jest --coverage",
+    "test": "npm run test-8:00 && npm run test+8:00 && npm run test-local",
     "clean": "rimraf ./dist",
     "build": "tsc -p ./tsconfig.json && tsc -p ./tsconfig.cjs.json",
     "generate-deep-package": "node ./scripts/generate-deep-package.js",
@@ -26,18 +29,12 @@
     "./operations": {
       "require": "./dist/cjs/operations.js",
       "default": "./dist/mjs/operations.js"
-    },
-    "./matchers": {
-      "require": "./dist/cjs/matchers.js",
-      "default": "./dist/mjs/matchers.js"
     }
   },
   "files": [
     "dist",
     "operations.js",
     "operations.d.ts",
-    "matchers.js",
-    "matchers.d.ts",
     "package.json",
     "README.md"
   ],

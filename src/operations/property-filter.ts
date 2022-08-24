@@ -7,14 +7,8 @@ import {
   PropertyFilterToken,
   UseCollectionOptions,
 } from '../interfaces';
-import {
-  matchDateIsEqual,
-  matchDateIsNotEqual,
-  matchDateIsAfter,
-  matchDateIsAfterOrEqual,
-  matchDateIsBefore,
-  matchDateIsBeforeOrEqual,
-} from '../matchers/date.js';
+import { compareDates, compareDateTime } from '../utils/compare-dates';
+import { parseIsoDate } from '../utils/parse-iso-date';
 
 const filterUsingOperator = (
   itemValue: any,
@@ -22,27 +16,30 @@ const filterUsingOperator = (
   operator: PropertyFilterOperator,
   match?: PropertyFilterOperatorMatch
 ) => {
-  if (itemValue instanceof Date) {
+  if (match === 'date' || match === 'datetime') {
+    const itemDate = itemValue instanceof Date ? itemValue : new Date(NaN);
+    const tokenDate = typeof tokenValue === 'string' ? parseIsoDate(tokenValue) : new Date(NaN);
+    const result = match === 'date' ? compareDates(itemDate, tokenDate) : compareDateTime(itemDate, tokenDate);
     switch (operator) {
       case '<':
-        return matchDateIsBefore(itemValue, tokenValue);
+        return result < 0;
       case '<=':
-        return matchDateIsBeforeOrEqual(itemValue, tokenValue);
+        return result <= 0;
       case '>':
-        return matchDateIsAfter(itemValue, tokenValue);
+        return result > 0;
       case '>=':
-        return matchDateIsAfterOrEqual(itemValue, tokenValue);
+        return result >= 0;
       case '=':
-        return matchDateIsEqual(itemValue, tokenValue);
+        return result === 0;
       case '!=':
-        return matchDateIsNotEqual(itemValue, tokenValue);
+        return result !== 0;
       default:
         return false;
     }
-  }
-
-  if (match) {
+  } else if (typeof match === 'function') {
     return match(itemValue, tokenValue);
+  } else if (match) {
+    throw new Error('Unexpected "match" format.');
   }
 
   switch (operator) {

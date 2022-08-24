@@ -119,7 +119,11 @@ export interface PropertyFilterOperatorExtended {
   [other: string]: unknown;
 }
 
-export type PropertyFilterOperatorMatch = (itemValue: any, tokenValue: any) => boolean;
+export type PropertyFilterOperatorMatch = PropertyFilterOperatorMatchByType | PropertyFilterOperatorMatchCustom;
+
+export type PropertyFilterOperatorMatchByType = 'date' | 'datetime';
+
+export type PropertyFilterOperatorMatchCustom = (itemValue: any, tokenValue: any) => boolean;
 
 export type PropertyFilterOperation = 'and' | 'or';
 export interface PropertyFilterToken {
