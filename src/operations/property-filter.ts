@@ -8,7 +8,6 @@ import {
   UseCollectionOptions,
 } from '../interfaces';
 import { compareDates, compareDateTime } from '../utils/compare-dates.js';
-import { parseIsoDate } from '../utils/parse-iso-date.js';
 
 const filterUsingOperator = (
   itemValue: any,
@@ -18,7 +17,7 @@ const filterUsingOperator = (
 ) => {
   if (match === 'date' || match === 'datetime') {
     const itemDate = itemValue instanceof Date ? itemValue : new Date(NaN);
-    const tokenDate = typeof tokenValue === 'string' ? parseIsoDate(tokenValue) : new Date(NaN);
+    const tokenDate = typeof tokenValue === 'string' ? new Date(tokenValue) : new Date(NaN);
     const result = match === 'date' ? compareDates(itemDate, tokenDate) : compareDateTime(itemDate, tokenDate);
     switch (operator) {
       case '<':

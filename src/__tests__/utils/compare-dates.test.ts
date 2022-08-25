@@ -21,7 +21,7 @@ test.each([
     shiftTimezone(new Date('2020-01-02T00:00:00Z'), localTimezoneOffsetInHours),
     -day,
   ],
-])('compares dates', (date, dateToCompare, compareResult) => {
+])('compares dates %s - %s', (date, dateToCompare, compareResult) => {
   expect(compareDates(date, dateToCompare)).toBe(compareResult);
 });
 
@@ -36,7 +36,7 @@ test.each([
     shiftTimezone(new Date('2020-01-02T00:00:00Z'), localTimezoneOffsetInHours),
     -second,
   ],
-])('compares timestamps', (date, dateToCompare, compareResult) => {
+])('compares timestamps %s %s', (date, dateToCompare, compareResult) => {
   expect(compareDateTime(date, dateToCompare)).toBe(compareResult);
 });
 
@@ -44,7 +44,7 @@ test.each([
   [new Date('2020-01-01'), new Date('xxxx-xx-xx'), NaN],
   [new Date('xxxx-xx-xx'), new Date('2020-01-01'), NaN],
   [new Date('xxxx-xx-xx'), new Date('xxxx-xx-xx'), NaN],
-])('handles invalid dates', (date, dateToCompare, compareResult) => {
+])('handles invalid dates %s %s', (date, dateToCompare, compareResult) => {
   expect(compareDates(date, dateToCompare)).toBe(compareResult);
   expect(compareDateTime(date, dateToCompare)).toBe(compareResult);
 });
