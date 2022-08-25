@@ -7,7 +7,7 @@ import {
   PropertyFilterToken,
   UseCollectionOptions,
 } from '../interfaces';
-import { compareDates, compareDateTime } from '../utils/compare-dates.js';
+import { compareDates, compareTimestamps } from '../date-utils/compare-dates.js';
 
 const filterUsingOperator = (
   itemValue: any,
@@ -16,9 +16,7 @@ const filterUsingOperator = (
   match?: PropertyFilterOperatorMatch<any>
 ) => {
   if (match === 'date' || match === 'datetime') {
-    const itemDate = itemValue instanceof Date ? itemValue : new Date(NaN);
-    const tokenDate = typeof tokenValue === 'string' ? new Date(tokenValue) : new Date(NaN);
-    const result = match === 'date' ? compareDates(itemDate, tokenDate) : compareDateTime(itemDate, tokenDate);
+    const result = match === 'date' ? compareDates(itemValue, tokenValue) : compareTimestamps(itemValue, tokenValue);
     switch (operator) {
       case '<':
         return result < 0;
