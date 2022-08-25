@@ -3,6 +3,9 @@
 
 import { parseIsoDate } from '../../date-utils/parse-iso-date';
 
+const second = 1 * 1000;
+const minute = 60 * second;
+
 test.each([
   '2020-01-01T00:00:00',
   '2020-01-01T23:59:59',
@@ -18,6 +21,6 @@ test.each([
 });
 
 test.each(['2020-01-01', '2020-07-01'])('parses date strings in local timezone', isoDate => {
-  const localTimezoneOffsetInMilliseconds = (0 - new Date(isoDate).getTimezoneOffset()) * 60 * 1000;
-  expect(parseIsoDate(isoDate).getTime()).toBe(new Date(isoDate).getTime() - localTimezoneOffsetInMilliseconds);
+  const localTimezoneOffset = 0 - new Date(isoDate).getTimezoneOffset();
+  expect(parseIsoDate(isoDate).getTime()).toBe(new Date(isoDate).getTime() - localTimezoneOffset * minute);
 });

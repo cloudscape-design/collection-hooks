@@ -58,5 +58,5 @@ describe('compareTimestamps', () => {
 });
 
 function shiftTimezone(date: Date, timezoneOffset: number) {
-  return new Date(date.getTime() - timezoneOffset * 60 * 1000);
+  return new Date(date.getTime() - timezoneOffset * minute);
 }

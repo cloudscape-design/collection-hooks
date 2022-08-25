@@ -8,10 +8,10 @@
   "homepage": "https://cloudscape.design",
   "scripts": {
     "lint": "eslint . --ext .ts,.tsx",
-    "test-8:00": "TZ=America/Los_Angeles jest -o ./src/__tests__/date-utils",
-    "test+8:00": "TZ=Asia/Brunei jest -o ./src/__tests__/date-utils",
+    "test-08:00": "TZ=America/Los_Angeles jest -o ./src/__tests__/date-utils",
+    "test+08:00": "TZ=Asia/Brunei jest -o ./src/__tests__/date-utils",
     "test-local": "jest --coverage",
-    "test": "npm run test-8:00 && npm run test+8:00 && npm run test-local",
+    "test": "npm run test-08:00 && npm run test+08:00 && npm run test-local",
     "clean": "rimraf ./dist",
     "build": "tsc -p ./tsconfig.json && tsc -p ./tsconfig.cjs.json",
     "generate-deep-package": "node ./scripts/generate-deep-package.js",

@@ -153,11 +153,9 @@ function PropertyFilter({
         ))}
       </ul>
       <ul data-testid="filtering-properties">
-        {filteringProperties.map(({ key, groupValuesLabel, propertyLabel, operators }, index) => (
+        {filteringProperties.map(({ key, operators }, index) => (
           <li id={`property-${index}`} key={index}>
             <span className="key">{key}</span>
-            <span className="values-label">{groupValuesLabel}</span>
-            <span className="property-label">{propertyLabel}</span>
             <span className="operators">{operators?.join(',')}</span>
           </li>
         ))}

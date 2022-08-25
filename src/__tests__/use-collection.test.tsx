@@ -327,8 +327,6 @@ describe('Property filtering', () => {
       {
         key: 'id',
         operators: [':', '!:', '=', '!='],
-        groupValuesLabel: 'Id values',
-        propertyLabel: 'Id',
       },
     ],
     empty: 'No items to display',
@@ -433,13 +431,9 @@ describe('Property filtering', () => {
       filteringProperties: [
         {
           key: 'id',
-          groupValuesLabel: 'Id values',
-          propertyLabel: 'Id',
         },
         {
           key: 'date',
-          groupValuesLabel: 'Date values',
-          propertyLabel: 'Date',
         },
       ],
     } as const;
@@ -463,8 +457,6 @@ describe('Property filtering', () => {
         filteringProperties: [
           {
             key: 'property',
-            groupValuesLabel: 'Property values',
-            propertyLabel: 'Property',
           },
         ],
       } as const;
@@ -485,8 +477,6 @@ describe('Property filtering', () => {
         filteringProperties: [
           {
             key: 'falsy',
-            groupValuesLabel: 'Falsy values',
-            propertyLabel: 'Falsy',
           },
         ],
       } as const;
@@ -510,20 +500,18 @@ describe('Property filtering', () => {
   });
 });
 
-describe('Operator matchers', () => {
+describe('Date matchers', () => {
   test('should match values by date when using "date" matcher', () => {
     const allItems = [
-      { id: '1', eventDate: new Date('2020-01-01') },
-      { id: '2', eventDate: new Date('2020-01-02') },
-      { id: '3', eventDate: new Date('2020-01-03') },
-      { id: '4', eventDate: new Date('2020-01-04') },
+      { id: '1', eventDate: new Date('2020-01-01T00:00:00') },
+      { id: '2', eventDate: new Date('2020-01-02T00:00:00') },
+      { id: '3', eventDate: new Date('2020-01-03T00:00:00') },
+      { id: '4', eventDate: new Date('2020-01-04T00:00:00') },
     ];
     const propertyFiltering = {
       filteringProperties: [
         {
           key: 'eventDate',
-          groupValuesLabel: 'group label',
-          propertyLabel: 'property label',
           operators: [
             { value: '=', match: 'date' },
             { value: '!=', match: 'date' },
@@ -561,8 +549,6 @@ describe('Operator matchers', () => {
       filteringProperties: [
         {
           key: 'eventDate',
-          groupValuesLabel: 'group label',
-          propertyLabel: 'property label',
           operators: [
             { value: '=', match: 'datetime' },
             { value: '!=', match: 'datetime' },
@@ -572,19 +558,12 @@ describe('Operator matchers', () => {
             { value: '>=', match: 'datetime' },
           ],
         },
-        {
-          key: 'custom',
-          groupValuesLabel: 'group label',
-          propertyLabel: 'property label',
-          operators: [{ value: '=', match: () => true }],
-        },
       ],
       defaultQuery: {
         operation: 'and',
         tokens: [
           { propertyKey: 'eventDate', operator: '>=', value: '2020-01-01T02:00:00' },
           { propertyKey: 'eventDate', operator: '<', value: '2020-01-01T04:00:00' },
-          { propertyKey: 'custom', operator: '=', value: null },
         ],
       },
     } as const;

@@ -16,27 +16,28 @@ const filterUsingOperator = (
   match?: PropertyFilterOperatorMatch<any>
 ) => {
   if (match === 'date' || match === 'datetime') {
-    const result = match === 'date' ? compareDates(itemValue, tokenValue) : compareTimestamps(itemValue, tokenValue);
+    const comparator = match === 'date' ? compareDates : compareTimestamps;
+    const comparisonResult = comparator(itemValue, tokenValue);
     switch (operator) {
       case '<':
-        return result < 0;
+        return comparisonResult < 0;
       case '<=':
-        return result <= 0;
+        return comparisonResult <= 0;
       case '>':
-        return result > 0;
+        return comparisonResult > 0;
       case '>=':
-        return result >= 0;
+        return comparisonResult >= 0;
       case '=':
-        return result === 0;
+        return comparisonResult === 0;
       case '!=':
-        return result !== 0;
+        return comparisonResult !== 0;
       default:
         return false;
     }
   } else if (typeof match === 'function') {
     return match(itemValue, tokenValue);
   } else if (match) {
-    throw new Error('Unexpected "match" format.');
+    throw new Error('Unexpected `operator.match` format.');
   }
 
   switch (operator) {
