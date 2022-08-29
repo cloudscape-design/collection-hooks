@@ -123,7 +123,7 @@ export type PropertyFilterOperatorMatch<TokenValue> =
 
 export type PropertyFilterOperatorMatchByType = 'date' | 'datetime';
 
-export type PropertyFilterOperatorMatchCustom<TokenValue> = (itemValue: any, tokenValue: TokenValue) => boolean;
+export type PropertyFilterOperatorMatchCustom<TokenValue> = (itemValue: unknown, tokenValue: TokenValue) => boolean;
 
 export type PropertyFilterOperation = 'and' | 'or';
 export interface PropertyFilterToken {
@@ -137,10 +137,10 @@ export interface PropertyFilterQuery {
   tokens: readonly PropertyFilterToken[];
   operation: PropertyFilterOperation;
 }
-export interface PropertyFilterProperty {
+export interface PropertyFilterProperty<TokenValue = any> {
   key: string;
   defaultOperator?: PropertyFilterOperator;
-  operators?: readonly (PropertyFilterOperator | PropertyFilterOperatorExtended<any>)[];
+  operators?: readonly (PropertyFilterOperator | PropertyFilterOperatorExtended<TokenValue>)[];
 }
 export interface PropertyFilterOption {
   propertyKey: string;

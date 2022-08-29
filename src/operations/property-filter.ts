@@ -130,7 +130,7 @@ export function propertyFilter<T>(
         defaultOperator,
       }: NonNullable<UseCollectionOptions<T>['propertyFiltering']>['filteringProperties'][0]
     ) => {
-      const operatorMap: FilteringOperatorsMap = { [defaultOperator ?? '=']: { operator: defaultOperator } };
+      const operatorMap: FilteringOperatorsMap = { [defaultOperator ?? '=']: { operator: defaultOperator ?? '=' } };
       operators?.forEach(op => {
         if (typeof op === 'string') {
           operatorMap[op] = { operator: op };
