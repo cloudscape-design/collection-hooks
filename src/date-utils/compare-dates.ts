@@ -1,7 +1,7 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
 
-import { parseIsoDate } from './parse-iso-date';
+import { parseIsoDate } from './parse-iso-date.js';
 
 /**
  * Compares dates up to a day.
