@@ -301,3 +301,171 @@ describe('filtering function', () => {
     expect(processed).toEqual([]);
   });
 });
+
+describe('extended operators', () => {
+  interface Item {
+    number: number;
+    default: string;
+    date: Date;
+    timestamp: Date;
+  }
+
+  const items = Array.from({ length: 5 }, (_, index) => ({
+    number: index,
+    default: index + '',
+    date: new Date(`2020-01-0${index + 1}T12:00:00.123`),
+    timestamp: new Date(`2020-01-01T0${index}:00:00.123`),
+  })) as readonly Item[];
+
+  test('supports extended operators', () => {
+    const { items: processed } = processItems(
+      items,
+      {
+        propertyFilteringQuery: {
+          tokens: [{ propertyKey: 'number', operator: '=', value: '2' }],
+          operation: 'and',
+        },
+      },
+      {
+        propertyFiltering: {
+          filteringProperties: [
+            {
+              key: 'number',
+              operators: [{ operator: '=' }, { operator: '!=' }],
+            },
+          ],
+        },
+      }
+    );
+    expect(processed).toEqual([items[2]]);
+  });
+
+  test('supports custom match', () => {
+    const { items: processed } = processItems(
+      items,
+      {
+        propertyFilteringQuery: {
+          tokens: [{ propertyKey: 'number', operator: '=', value: new Set([1, 2]) }],
+          operation: 'and',
+        },
+      },
+      {
+        propertyFiltering: {
+          filteringProperties: [
+            {
+              key: 'number',
+              operators: [
+                { operator: '=', match: (value, token) => token.has(value) },
+                { operator: '!=', match: (value, token) => !token.has(value) },
+              ],
+            },
+          ],
+        },
+      }
+    );
+    expect(processed).toEqual([items[1], items[2]]);
+  });
+
+  test.each([
+    ['=', '2020-01-02', [items[1]]],
+    ['!=', '2020-01-02', [items[0], items[2], items[3], items[4]]],
+    ['<', '2020-01-02', [items[0]]],
+    ['<=', '2020-01-02', [items[0], items[1]]],
+    ['>', '2020-01-02', [items[2], items[3], items[4]]],
+    ['>=', '2020-01-02', [items[1], items[2], items[3], items[4]]],
+    [':', '2020-01-02', []],
+  ] as const)('supports date match %s', (operator, value, expectedResult) => {
+    const { items: processed } = processItems(
+      items,
+      {
+        propertyFilteringQuery: {
+          tokens: [{ propertyKey: 'date', operator, value }],
+          operation: 'and',
+        },
+      },
+      {
+        propertyFiltering: {
+          filteringProperties: [
+            {
+              key: 'date',
+              operators: [
+                { operator: '=', match: 'date' },
+                { operator: '!=', match: 'date' },
+                { operator: '<', match: 'date' },
+                { operator: '<=', match: 'date' },
+                { operator: '>', match: 'date' },
+                { operator: '>=', match: 'date' },
+                { operator: ':', match: 'date' }, // unsupported
+              ],
+            },
+          ],
+        },
+      }
+    );
+    expect(processed).toEqual(expectedResult);
+  });
+
+  test.each([
+    ['<', '2020-01-01T01:00:00', [items[0]]],
+    ['<=', '2020-01-01T01:00:00', [items[0]]],
+    ['>', '2020-01-01T01:00:00', [items[1], items[2], items[3], items[4]]],
+    ['>=', '2020-01-01T01:00:00', [items[1], items[2], items[3], items[4]]],
+    [':', '2020-01-01T01:00:00', []],
+  ] as const)('supports datetime match %s', (operator, value, expectedResult) => {
+    const { items: processed } = processItems(
+      items,
+      {
+        propertyFilteringQuery: {
+          tokens: [{ propertyKey: 'timestamp', operator, value }],
+          operation: 'and',
+        },
+      },
+      {
+        propertyFiltering: {
+          filteringProperties: [
+            {
+              key: 'timestamp',
+              operators: [
+                { operator: '=', match: 'datetime' },
+                { operator: '!=', match: 'datetime' },
+                { operator: '<', match: 'datetime' },
+                { operator: '<=', match: 'datetime' },
+                { operator: '>', match: 'datetime' },
+                { operator: '>=', match: 'datetime' },
+                { operator: ':', match: 'datetime' }, // unsupported
+              ],
+            },
+          ],
+        },
+      }
+    );
+    expect(processed).toEqual(expectedResult);
+  });
+
+  test('throws if unexpected operator.match', () => {
+    expect(() =>
+      processItems(
+        items,
+        {
+          propertyFilteringQuery: {
+            tokens: [{ propertyKey: 'timestamp', operator: '=', value: '2020-01-01T01:00:00' }],
+            operation: 'and',
+          },
+        },
+        {
+          propertyFiltering: {
+            filteringProperties: [
+              {
+                key: 'timestamp',
+                operators: [
+                  { operator: '=', match: 'date-time' as any },
+                  { operator: '!=', match: (value, token) => !token.has(value) },
+                ],
+              },
+            ],
+          },
+        }
+      )
+    ).toThrow('Unexpected `operator.match` format.');
+  });
+});
