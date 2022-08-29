@@ -112,7 +112,7 @@ export interface CollectionRef {
 
 export type PropertyFilterOperator = '<' | '<=' | '>' | '>=' | ':' | '!:' | '=' | '!=';
 
-export interface PropertyFilterOperatorExtended<TokenValue = any> {
+export interface PropertyFilterOperatorExtended<TokenValue> {
   value: PropertyFilterOperator;
   match?: PropertyFilterOperatorMatch<TokenValue>;
 }
@@ -140,7 +140,7 @@ export interface PropertyFilterQuery {
 export interface PropertyFilterProperty {
   key: string;
   defaultOperator?: PropertyFilterOperator;
-  operators?: readonly (PropertyFilterOperator | PropertyFilterOperatorExtended)[];
+  operators?: readonly (PropertyFilterOperator | PropertyFilterOperatorExtended<any>)[];
 }
 export interface PropertyFilterOption {
   propertyKey: string;
