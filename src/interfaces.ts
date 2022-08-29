@@ -113,7 +113,7 @@ export interface CollectionRef {
 export type PropertyFilterOperator = '<' | '<=' | '>' | '>=' | ':' | '!:' | '=' | '!=';
 
 export interface PropertyFilterOperatorExtended<TokenValue> {
-  value: PropertyFilterOperator;
+  operator: PropertyFilterOperator;
   match?: PropertyFilterOperatorMatch<TokenValue>;
 }
 
