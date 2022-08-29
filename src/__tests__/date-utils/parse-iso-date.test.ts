@@ -24,3 +24,10 @@ test.each(['2020-01-01', '2020-07-01'])('parses date strings in local timezone',
   const localTimezoneOffset = 0 - new Date(isoDate).getTimezoneOffset();
   expect(parseIsoDate(isoDate).getTime()).toBe(new Date(isoDate).getTime() - localTimezoneOffset * minute);
 });
+
+test.each([0, null, undefined, false, true, {}, Date.now(), Date.now().toString()])(
+  'only accepts valid strings',
+  value => {
+    expect(parseIsoDate(value as any).getTime()).toBeNaN();
+  }
+);

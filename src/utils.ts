@@ -91,7 +91,7 @@ export function createActions<T>({
   };
 }
 
-export function createSyncProps<T, P extends PropertyFilterProperty = PropertyFilterProperty>(
+export function createSyncProps<T, P extends PropertyFilterProperty>(
   options: UseCollectionOptions<T, P>,
   { filteringText, sortingState, selectedItems, currentPageIndex, propertyFilteringQuery }: CollectionState<T>,
   actions: CollectionActions<T>,

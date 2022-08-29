@@ -10,7 +10,7 @@ import {
   PropertyFilterProperty,
 } from './interfaces';
 
-export function useCollectionState<T, P extends PropertyFilterProperty = PropertyFilterProperty>(
+export function useCollectionState<T, P extends PropertyFilterProperty>(
   options: UseCollectionOptions<T, P>,
   collectionRef: React.RefObject<CollectionRef>
 ): readonly [CollectionState<T>, CollectionActions<T>] {

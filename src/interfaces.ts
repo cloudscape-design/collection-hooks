@@ -67,7 +67,7 @@ export interface CollectionActions<T> {
   setPropertyFiltering(query: PropertyFilterQuery): void;
 }
 
-interface UseCollectionResultBase<T, P extends PropertyFilterProperty = PropertyFilterProperty> {
+interface UseCollectionResultBase<T, P extends PropertyFilterProperty> {
   items: ReadonlyArray<T>;
   actions: CollectionActions<T>;
   collectionProps: {
