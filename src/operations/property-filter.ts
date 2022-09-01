@@ -36,7 +36,7 @@ const filterUsingOperator = (
   } else if (typeof match === 'function') {
     return match(itemValue, tokenValue);
   } else if (match) {
-    throw new Error('Unexpected `operator.match` format.');
+    throw new Error('Unsupported `operator.match` type given.');
   }
 
   switch (operator) {
