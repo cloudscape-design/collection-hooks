@@ -10,7 +10,6 @@ import {
   CollectionRef,
   PropertyFilterQuery,
   PropertyFilterOption,
-  PropertyFilterProperty,
 } from './interfaces';
 import { fixupFalsyValues } from './operations/property-filter.js';
 
@@ -91,8 +90,8 @@ export function createActions<T>({
   };
 }
 
-export function createSyncProps<T, P extends PropertyFilterProperty>(
-  options: UseCollectionOptions<T, P>,
+export function createSyncProps<T>(
+  options: UseCollectionOptions<T>,
   { filteringText, sortingState, selectedItems, currentPageIndex, propertyFilteringQuery }: CollectionState<T>,
   actions: CollectionActions<T>,
   collectionRef: React.RefObject<CollectionRef>,
@@ -101,7 +100,7 @@ export function createSyncProps<T, P extends PropertyFilterProperty>(
     actualPageIndex,
     allItems,
   }: { pagesCount?: number; actualPageIndex?: number; allItems: ReadonlyArray<T> }
-): Pick<UseCollectionResult<T, P>, 'collectionProps' | 'filterProps' | 'paginationProps' | 'propertyFilterProps'> {
+): Pick<UseCollectionResult<T>, 'collectionProps' | 'filterProps' | 'paginationProps' | 'propertyFilterProps'> {
   let empty: ReactNode | null = options.filtering
     ? allItems.length
       ? options.filtering.noMatch

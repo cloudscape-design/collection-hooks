@@ -8,29 +8,43 @@ const propertyFiltering = {
     {
       key: 'id',
       operators: [':', '!:'],
+      groupValuesLabel: 'Id values',
+      propertyLabel: 'Id',
     },
     {
       key: 'field',
       operators: [':', '!:'],
+      groupValuesLabel: 'Field values',
+      propertyLabel: 'Field',
     },
     {
       key: 'anotherField',
       operators: [':'],
+      groupValuesLabel: 'Another field values',
+      propertyLabel: 'Another field',
     },
     {
       key: 'number',
       operators: [':', '!:', '=', '!=', '<', '<=', '>', '>='],
+      groupValuesLabel: 'Number values',
+      propertyLabel: 'Number',
     },
     {
       key: 'default',
+      groupValuesLabel: 'Default values',
+      propertyLabel: 'Default',
     },
     {
       key: 'falsy',
       operators: [':', '!:', '=', '!=', '<', '<=', '>', '>='],
+      groupValuesLabel: 'Falsy values',
+      propertyLabel: 'Falsy',
     },
     {
       key: 'bool',
       operators: [':', '!:', '=', '!=', '<', '<=', '>', '>='],
+      groupValuesLabel: 'Boolean values',
+      propertyLabel: 'Boolean',
     },
   ],
 } as const;
