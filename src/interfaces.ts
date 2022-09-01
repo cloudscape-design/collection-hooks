@@ -3,7 +3,7 @@
 import * as React from 'react';
 
 // shim for dom types
-interface CustomEvent<T> {
+interface CustomEventLike<T> {
   detail: T;
 }
 
@@ -28,7 +28,7 @@ export interface SelectionChangeDetail<T> {
 
 export type TrackBy<T> = string | ((item: T) => string);
 
-export interface UseCollectionOptions<T, P extends PropertyFilterProperty = any> {
+export interface UseCollectionOptions<T> {
   filtering?: FilteringOptions<T> & {
     empty?: React.ReactNode;
     noMatch?: React.ReactNode;
@@ -37,7 +37,7 @@ export interface UseCollectionOptions<T, P extends PropertyFilterProperty = any>
   propertyFiltering?: {
     empty?: React.ReactNode;
     noMatch?: React.ReactNode;
-    filteringProperties: readonly P[];
+    filteringProperties: readonly PropertyFilterProperty[];
     // custom filtering function
     filteringFunction?: (item: T, query: PropertyFilterQuery) => boolean;
     defaultQuery?: PropertyFilterQuery;
@@ -67,40 +67,40 @@ export interface CollectionActions<T> {
   setPropertyFiltering(query: PropertyFilterQuery): void;
 }
 
-interface UseCollectionResultBase<T, P extends PropertyFilterProperty> {
+interface UseCollectionResultBase<T> {
   items: ReadonlyArray<T>;
   actions: CollectionActions<T>;
   collectionProps: {
     empty?: React.ReactNode;
-    onSortingChange?(event: CustomEvent<SortingState<T>>): void;
+    onSortingChange?(event: CustomEventLike<SortingState<T>>): void;
     sortingColumn?: SortingColumn<T>;
     sortingDescending?: boolean;
     selectedItems?: ReadonlyArray<T>;
-    onSelectionChange?(event: CustomEvent<SelectionChangeDetail<T>>): void;
+    onSelectionChange?(event: CustomEventLike<SelectionChangeDetail<T>>): void;
     trackBy?: string | ((item: T) => string);
     ref: React.RefObject<CollectionRef>;
   };
   filterProps: {
     disabled?: boolean;
     filteringText: string;
-    onChange(event: CustomEvent<{ filteringText: string }>): void;
+    onChange(event: CustomEventLike<{ filteringText: string }>): void;
   };
   propertyFilterProps: {
     query: PropertyFilterQuery;
-    onChange(event: CustomEvent<PropertyFilterQuery>): void;
-    filteringProperties: readonly P[];
+    onChange(event: CustomEventLike<PropertyFilterQuery>): void;
+    filteringProperties: readonly PropertyFilterProperty[];
     filteringOptions: readonly PropertyFilterOption[];
   };
   paginationProps: {
     disabled?: boolean;
     currentPageIndex: number;
-    onChange(event: CustomEvent<{ currentPageIndex: number }>): void;
+    onChange(event: CustomEventLike<{ currentPageIndex: number }>): void;
   };
 }
 
-export interface UseCollectionResult<T, P extends PropertyFilterProperty = any> extends UseCollectionResultBase<T, P> {
+export interface UseCollectionResult<T> extends UseCollectionResultBase<T> {
   filteredItemsCount: number | undefined;
-  paginationProps: UseCollectionResultBase<T, P>['paginationProps'] & {
+  paginationProps: UseCollectionResultBase<T>['paginationProps'] & {
     pagesCount: number;
   };
 }
@@ -138,8 +138,11 @@ export interface PropertyFilterQuery {
 }
 export interface PropertyFilterProperty<TokenValue = any> {
   key: string;
-  defaultOperator?: PropertyFilterOperator;
+  groupValuesLabel: string;
+  propertyLabel: string;
   operators?: readonly (PropertyFilterOperator | PropertyFilterOperatorExtended<TokenValue>)[];
+  defaultOperator?: PropertyFilterOperator;
+  group?: string;
 }
 export interface PropertyFilterOption {
   propertyKey: string;

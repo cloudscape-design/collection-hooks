@@ -2,16 +2,10 @@
 // SPDX-License-Identifier: Apache-2.0
 import { useReducer } from 'react';
 import { createActions, collectionReducer, CollectionReducer } from './utils.js';
-import {
-  UseCollectionOptions,
-  CollectionState,
-  CollectionActions,
-  CollectionRef,
-  PropertyFilterProperty,
-} from './interfaces';
+import { UseCollectionOptions, CollectionState, CollectionActions, CollectionRef } from './interfaces';
 
-export function useCollectionState<T, P extends PropertyFilterProperty>(
-  options: UseCollectionOptions<T, P>,
+export function useCollectionState<T>(
+  options: UseCollectionOptions<T>,
   collectionRef: React.RefObject<CollectionRef>
 ): readonly [CollectionState<T>, CollectionActions<T>] {
   const [state, dispatch] = useReducer<CollectionReducer<T>>(collectionReducer, {
