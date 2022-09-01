@@ -3,7 +3,7 @@
 import * as React from 'react';
 
 // shim for dom types
-interface CustomEvent<T> {
+interface CustomEventLike<T> {
   detail: T;
 }
 
@@ -72,29 +72,29 @@ interface UseCollectionResultBase<T, P extends PropertyFilterProperty> {
   actions: CollectionActions<T>;
   collectionProps: {
     empty?: React.ReactNode;
-    onSortingChange?(event: CustomEvent<SortingState<T>>): void;
+    onSortingChange?(event: CustomEventLike<SortingState<T>>): void;
     sortingColumn?: SortingColumn<T>;
     sortingDescending?: boolean;
     selectedItems?: ReadonlyArray<T>;
-    onSelectionChange?(event: CustomEvent<SelectionChangeDetail<T>>): void;
+    onSelectionChange?(event: CustomEventLike<SelectionChangeDetail<T>>): void;
     trackBy?: string | ((item: T) => string);
     ref: React.RefObject<CollectionRef>;
   };
   filterProps: {
     disabled?: boolean;
     filteringText: string;
-    onChange(event: CustomEvent<{ filteringText: string }>): void;
+    onChange(event: CustomEventLike<{ filteringText: string }>): void;
   };
   propertyFilterProps: {
     query: PropertyFilterQuery;
-    onChange(event: CustomEvent<PropertyFilterQuery>): void;
+    onChange(event: CustomEventLike<PropertyFilterQuery>): void;
     filteringProperties: readonly P[];
     filteringOptions: readonly PropertyFilterOption[];
   };
   paginationProps: {
     disabled?: boolean;
     currentPageIndex: number;
-    onChange(event: CustomEvent<{ currentPageIndex: number }>): void;
+    onChange(event: CustomEventLike<{ currentPageIndex: number }>): void;
   };
 }
 
