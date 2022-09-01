@@ -6,6 +6,7 @@ import {
   PropertyFilterQuery,
   PropertyFilterToken,
   UseCollectionOptions,
+  PropertyFilterProperty,
 } from '../interfaces';
 import { compareDates, compareTimestamps } from '../date-utils/compare-dates.js';
 
@@ -122,14 +123,7 @@ export function propertyFilter<T>(
   { filteringFunction, filteringProperties }: NonNullable<UseCollectionOptions<T>['propertyFiltering']>
 ): ReadonlyArray<T> {
   const filteringPropertiesMap = filteringProperties.reduce<FilteringPropertiesMap<T>>(
-    (
-      acc: FilteringPropertiesMap<T>,
-      {
-        key,
-        operators,
-        defaultOperator,
-      }: NonNullable<UseCollectionOptions<T>['propertyFiltering']>['filteringProperties'][0]
-    ) => {
+    (acc: FilteringPropertiesMap<T>, { key, operators, defaultOperator }: PropertyFilterProperty) => {
       const operatorMap: FilteringOperatorsMap = { [defaultOperator ?? '=']: { operator: defaultOperator ?? '=' } };
       operators?.forEach(op => {
         if (typeof op === 'string') {
