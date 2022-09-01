@@ -466,6 +466,6 @@ describe('extended operators', () => {
           },
         }
       )
-    ).toThrow('Unexpected `operator.match` format.');
+    ).toThrow('Unsupported `operator.match` type given.');
   });
 });
