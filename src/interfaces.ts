@@ -28,7 +28,7 @@ export interface SelectionChangeDetail<T> {
 
 export type TrackBy<T> = string | ((item: T) => string);
 
-export interface UseCollectionOptions<T, P extends PropertyFilterProperty = PropertyFilterProperty> {
+export interface UseCollectionOptions<T, P extends PropertyFilterProperty = any> {
   filtering?: FilteringOptions<T> & {
     empty?: React.ReactNode;
     noMatch?: React.ReactNode;
@@ -67,7 +67,7 @@ export interface CollectionActions<T> {
   setPropertyFiltering(query: PropertyFilterQuery): void;
 }
 
-interface UseCollectionResultBase<T, P extends PropertyFilterProperty> {
+interface UseCollectionResultBase<T, P> {
   items: ReadonlyArray<T>;
   actions: CollectionActions<T>;
   collectionProps: {
@@ -98,8 +98,7 @@ interface UseCollectionResultBase<T, P extends PropertyFilterProperty> {
   };
 }
 
-export interface UseCollectionResult<T, P extends PropertyFilterProperty = PropertyFilterProperty>
-  extends UseCollectionResultBase<T, P> {
+export interface UseCollectionResult<T, P extends PropertyFilterProperty = any> extends UseCollectionResultBase<T, P> {
   filteredItemsCount: number | undefined;
   paginationProps: UseCollectionResultBase<T, P>['paginationProps'] & {
     pagesCount: number;

@@ -1,5 +1,6 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
+import { PropertyFilterProperty } from '..';
 import { PropertyFilterOperator, PropertyFilterQuery, PropertyFilterToken, UseCollectionOptions } from '../interfaces';
 
 const filterUsingOperator = (itemValue: any, tokenValue: string, operator: PropertyFilterOperator) => {
@@ -85,7 +86,7 @@ export function propertyFilter<T>(
         key,
         operators,
         defaultOperator,
-      }: NonNullable<UseCollectionOptions<T>['propertyFiltering']>['filteringProperties'][0]
+      }: NonNullable<UseCollectionOptions<T, PropertyFilterProperty>['propertyFiltering']>['filteringProperties'][0]
     ) => {
       const operatorSet: { [key: string]: true } = { [defaultOperator ?? '=']: true };
       operators?.forEach(op => (operatorSet[op] = true));
