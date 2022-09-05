@@ -3,6 +3,7 @@
 import { fireEvent, render as testRender } from '@testing-library/react';
 import * as React from 'react';
 import { useCollection } from '../';
+import { PropertyFilterProperty } from '../interfaces';
 import { Demo, Item, render } from './stubs';
 
 const generateItems = (length: number) =>
@@ -507,5 +508,41 @@ describe('Property filtering', () => {
     };
     const { container } = testRender(<MixedOptions />);
     expect(container?.textContent?.split(',')).toEqual(['0', 'false']);
+  });
+});
+
+describe('Custom matchers', () => {
+  test('should match values with a custom matcher', () => {
+    const allItems = [
+      { id: '1', status: 'active' },
+      { id: '2', status: 'activating' },
+      { id: '3', status: 'deactivating' },
+      { id: '4', status: 'inactive' },
+    ];
+    const statusFilter: PropertyFilterProperty<string[]> = {
+      key: 'status',
+      operators: [
+        { operator: '=', match: (value, tokenValue) => typeof value === 'string' && tokenValue.includes(value) },
+        { operator: '!=', match: (value, tokenValue) => typeof value === 'string' && !tokenValue.includes(value) },
+      ],
+      propertyLabel: '',
+      groupValuesLabel: '',
+    };
+    const propertyFiltering = {
+      filteringProperties: [statusFilter],
+      defaultQuery: {
+        operation: 'and',
+        tokens: [
+          { propertyKey: 'status', operator: '=', value: ['active', 'activating', 'deactivating'] },
+          { propertyKey: 'status', operator: '!=', value: ['deactivating'] },
+        ],
+      },
+    } as const;
+    function App() {
+      const result = useCollection<Item>(allItems, { propertyFiltering });
+      return <Demo {...result} />;
+    }
+    const { getVisibleItems } = render(<App />);
+    expect(getVisibleItems()).toHaveLength(2);
   });
 });

@@ -1,8 +1,45 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
-import { PropertyFilterOperator, PropertyFilterQuery, PropertyFilterToken, UseCollectionOptions } from '../interfaces';
+import {
+  PropertyFilterOperator,
+  PropertyFilterOperatorExtended,
+  PropertyFilterQuery,
+  PropertyFilterToken,
+  UseCollectionOptions,
+  PropertyFilterProperty,
+} from '../interfaces';
+import { compareDates, compareTimestamps } from '../date-utils/compare-dates.js';
 
-const filterUsingOperator = (itemValue: any, tokenValue: string, operator: PropertyFilterOperator) => {
+const filterUsingOperator = (
+  itemValue: any,
+  tokenValue: any,
+  { operator, match }: PropertyFilterOperatorExtended<any>
+) => {
+  if (match === 'date' || match === 'datetime') {
+    const comparator = match === 'date' ? compareDates : compareTimestamps;
+    const comparisonResult = comparator(itemValue, tokenValue);
+    switch (operator) {
+      case '<':
+        return comparisonResult < 0;
+      case '<=':
+        return comparisonResult <= 0;
+      case '>':
+        return comparisonResult > 0;
+      case '>=':
+        return comparisonResult >= 0;
+      case '=':
+        return comparisonResult === 0;
+      case '!=':
+        return comparisonResult !== 0;
+      default:
+        return false;
+    }
+  } else if (typeof match === 'function') {
+    return match(itemValue, tokenValue);
+  } else if (match) {
+    throw new Error('Unsupported `operator.match` type given.');
+  }
+
   switch (operator) {
     case '<':
       return itemValue < tokenValue;
@@ -33,7 +70,9 @@ function freeTextFilter<T>(
 ): boolean {
   const matches = Object.keys(filteringPropertiesMap).some(propertyKey => {
     const { operators } = filteringPropertiesMap[propertyKey as keyof typeof filteringPropertiesMap];
-    return !!operators[operator] && filterUsingOperator(item[propertyKey as keyof typeof item], value, ':');
+    return (
+      !!operators[operator] && filterUsingOperator(item[propertyKey as keyof typeof item], value, { operator: ':' })
+    );
   });
   return operator === ':' ? matches : !matches;
 }
@@ -48,7 +87,9 @@ function filterByToken<T>(token: PropertyFilterToken, item: T, filteringProperti
       return false;
     }
     const itemValue: any = fixupFalsyValues(item[token.propertyKey as keyof T]);
-    return filterUsingOperator(itemValue, token.value, token.operator);
+    const operator =
+      filteringPropertiesMap[token.propertyKey as keyof FilteringPropertiesMap<T>].operators[token.operator];
+    return filterUsingOperator(itemValue, token.value, operator ?? { operator: token.operator });
   }
   return freeTextFilter(token.value, item, token.operator, filteringPropertiesMap);
 }
@@ -66,36 +107,39 @@ function defaultFilteringFunction<T extends Record<string, any>>(filteringProper
   };
 }
 
-export type FilteringPropertiesMap<T> = {
+type FilteringPropertiesMap<T> = {
   [key in keyof T]: {
-    operators: {
-      [key in PropertyFilterOperator]?: true;
-    };
+    operators: FilteringOperatorsMap;
   };
 };
+
+type FilteringOperatorsMap = {
+  [key in PropertyFilterOperator]?: PropertyFilterOperatorExtended<any>;
+};
+
 export function propertyFilter<T>(
   items: ReadonlyArray<T>,
   query: PropertyFilterQuery,
   { filteringFunction, filteringProperties }: NonNullable<UseCollectionOptions<T>['propertyFiltering']>
 ): ReadonlyArray<T> {
   const filteringPropertiesMap = filteringProperties.reduce<FilteringPropertiesMap<T>>(
-    (
-      acc: FilteringPropertiesMap<T>,
-      {
-        key,
-        operators,
-        defaultOperator,
-      }: NonNullable<UseCollectionOptions<T>['propertyFiltering']>['filteringProperties'][0]
-    ) => {
-      const operatorSet: { [key: string]: true } = { [defaultOperator ?? '=']: true };
-      operators?.forEach(op => (operatorSet[op] = true));
+    (acc: FilteringPropertiesMap<T>, { key, operators, defaultOperator }: PropertyFilterProperty) => {
+      const operatorMap: FilteringOperatorsMap = { [defaultOperator ?? '=']: { operator: defaultOperator ?? '=' } };
+      operators?.forEach(op => {
+        if (typeof op === 'string') {
+          operatorMap[op] = { operator: op };
+        } else {
+          operatorMap[op.operator] = { operator: op.operator, match: op.match };
+        }
+      });
       acc[key as keyof T] = {
-        operators: operatorSet,
+        operators: operatorMap,
       };
       return acc;
     },
     {} as FilteringPropertiesMap<T>
   );
+
   const filter = filteringFunction || defaultFilteringFunction(filteringPropertiesMap);
   return items.filter(item => filter(item, query));
 }

@@ -111,9 +111,24 @@ export interface CollectionRef {
 
 export type PropertyFilterOperator = '<' | '<=' | '>' | '>=' | ':' | '!:' | '=' | '!=';
 
+export interface PropertyFilterOperatorExtended<TokenValue> {
+  operator: PropertyFilterOperator;
+  match?: PropertyFilterOperatorMatch<TokenValue>;
+}
+
+export type PropertyFilterOperatorMatch<TokenValue> =
+  | PropertyFilterOperatorMatchByType
+  | PropertyFilterOperatorMatchCustom<TokenValue>;
+
+export type PropertyFilterOperatorMatchByType = 'date' | 'datetime';
+
+export type PropertyFilterOperatorMatchCustom<TokenValue> = (itemValue: unknown, tokenValue: TokenValue) => boolean;
+
 export type PropertyFilterOperation = 'and' | 'or';
 export interface PropertyFilterToken {
-  value: string;
+  // By default, the token value is a string.
+  // When a custom property is used, the token value can be any;
+  value: any;
   propertyKey?: string;
   operator: PropertyFilterOperator;
 }
@@ -121,11 +136,11 @@ export interface PropertyFilterQuery {
   tokens: readonly PropertyFilterToken[];
   operation: PropertyFilterOperation;
 }
-export interface PropertyFilterProperty {
+export interface PropertyFilterProperty<TokenValue = any> {
   key: string;
   groupValuesLabel: string;
   propertyLabel: string;
-  operators?: readonly PropertyFilterOperator[];
+  operators?: readonly (PropertyFilterOperator | PropertyFilterOperatorExtended<TokenValue>)[];
   defaultOperator?: PropertyFilterOperator;
   group?: string;
 }
