@@ -114,6 +114,8 @@ export type PropertyFilterOperator = '<' | '<=' | '>' | '>=' | ':' | '!:' | '=' 
 export interface PropertyFilterOperatorExtended<TokenValue> {
   operator: PropertyFilterOperator;
   match?: PropertyFilterOperatorMatch<TokenValue>;
+  form?: PropertyFilterOperatorForm<TokenValue>;
+  format?: PropertyFilterOperatorFormat<TokenValue>;
 }
 
 export type PropertyFilterOperatorMatch<TokenValue> =
@@ -123,6 +125,17 @@ export type PropertyFilterOperatorMatch<TokenValue> =
 export type PropertyFilterOperatorMatchByType = 'date' | 'datetime';
 
 export type PropertyFilterOperatorMatchCustom<TokenValue> = (itemValue: unknown, tokenValue: TokenValue) => boolean;
+
+export interface PropertyFilterOperatorFormProps<TokenValue> {
+  value: null | TokenValue;
+  onChange: (value: null | TokenValue) => void;
+  filter: string;
+  operator: PropertyFilterOperator;
+}
+
+export type PropertyFilterOperatorForm<TokenValue> = React.FC<PropertyFilterOperatorFormProps<TokenValue>>;
+
+export type PropertyFilterOperatorFormat<TokenValue> = (value: TokenValue) => string;
 
 export type PropertyFilterOperation = 'and' | 'or';
 export interface PropertyFilterToken {
