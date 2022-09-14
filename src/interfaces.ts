@@ -129,7 +129,7 @@ export type PropertyFilterOperatorMatchCustom<TokenValue> = (itemValue: unknown,
 export interface PropertyFilterOperatorFormProps<TokenValue> {
   value: null | TokenValue;
   onChange: (value: null | TokenValue) => void;
-  filter: string;
+  filter?: string;
   operator: PropertyFilterOperator;
 }
 
