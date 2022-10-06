@@ -327,6 +327,7 @@ describe('extended operators', () => {
   const items = Array.from({ length: 5 }, (_, index) => ({
     number: index,
     default: index + '',
+    boolean: index % 2 === 0,
     date: new Date(`2020-01-0${index + 1}T12:00:00.123`),
     timestamp: new Date(`2020-01-01T0${index}:00:00.123`),
   })) as readonly Item[];
@@ -382,6 +383,31 @@ describe('extended operators', () => {
       }
     );
     expect(processed).toEqual([items[1], items[2]]);
+  });
+
+  test('preserves falsy item values', () => {
+    const { items: processed } = processItems(
+      items,
+      {
+        propertyFilteringQuery: {
+          tokens: [{ propertyKey: 'boolean', operator: '=', value: true }],
+          operation: 'and',
+        },
+      },
+      {
+        propertyFiltering: {
+          filteringProperties: [
+            {
+              key: 'boolean',
+              operators: [{ operator: '=', match: (itemValue, tokenValue) => itemValue === tokenValue }],
+              propertyLabel: '',
+              groupValuesLabel: '',
+            },
+          ],
+        },
+      }
+    );
+    expect(processed).toEqual([items[0], items[2], items[4]]);
   });
 
   test.each([

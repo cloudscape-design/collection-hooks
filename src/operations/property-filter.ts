@@ -86,9 +86,11 @@ function filterByToken<T>(token: PropertyFilterToken, item: T, filteringProperti
     ) {
       return false;
     }
-    const itemValue: any = fixupFalsyValues(item[token.propertyKey as keyof T]);
     const operator =
       filteringPropertiesMap[token.propertyKey as keyof FilteringPropertiesMap<T>].operators[token.operator];
+    const itemValue: any = operator?.match
+      ? item[token.propertyKey as keyof T]
+      : fixupFalsyValues(item[token.propertyKey as keyof T]);
     return filterUsingOperator(itemValue, token.value, operator ?? { operator: token.operator });
   }
   return freeTextFilter(token.value, item, token.operator, filteringPropertiesMap);
