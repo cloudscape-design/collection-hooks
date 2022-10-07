@@ -69,6 +69,7 @@ export interface CollectionActions<T> {
 
 interface UseCollectionResultBase<T> {
   items: ReadonlyArray<T>;
+  unpaginatedItems: ReadonlyArray<T>;
   actions: CollectionActions<T>;
   collectionProps: {
     empty?: React.ReactNode;
