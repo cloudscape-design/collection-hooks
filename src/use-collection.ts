@@ -9,7 +9,7 @@ import { useCollectionState } from './use-collection-state.js';
 export function useCollection<T>(allItems: ReadonlyArray<T>, options: UseCollectionOptions<T>): UseCollectionResult<T> {
   const collectionRef = useRef<CollectionRef>(null);
   const [state, actions] = useCollectionState(options, collectionRef);
-  const { items, unpaginatedItems, pagesCount, filteredItemsCount, actualPageIndex } = processItems(
+  const { items, allPageItems, pagesCount, filteredItemsCount, actualPageIndex } = processItems(
     allItems,
     state,
     options
@@ -24,7 +24,7 @@ export function useCollection<T>(allItems: ReadonlyArray<T>, options: UseCollect
   }
   return {
     items,
-    unpaginatedItems,
+    allPageItems,
     filteredItemsCount,
     actions,
     ...createSyncProps(options, state, actions, collectionRef, {

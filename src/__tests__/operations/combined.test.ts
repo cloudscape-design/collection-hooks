@@ -17,7 +17,7 @@ test('filtering with pagination', () => {
   ];
   const {
     items: result,
-    unpaginatedItems: unpaginatedResult,
+    allPageItems: allPageResult,
     pagesCount,
     filteredItemsCount,
   } = processItems(
@@ -28,7 +28,7 @@ test('filtering with pagination', () => {
   expect(pagesCount).toEqual(2);
   expect(filteredItemsCount).toEqual(7);
   expect(result).toEqual([items[8], items[9]]);
-  expect(unpaginatedResult).toEqual(items.filter(it => it.value === 'match'));
+  expect(allPageResult).toEqual(items.filter(it => it.value === 'match'));
 });
 
 test('filtering with sorting', () => {

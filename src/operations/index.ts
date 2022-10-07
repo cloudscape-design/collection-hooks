@@ -12,7 +12,7 @@ export function processItems<T>(
   { filtering, sorting, pagination, propertyFiltering }: UseCollectionOptions<T>
 ): {
   items: ReadonlyArray<T>;
-  unpaginatedItems: ReadonlyArray<T>;
+  allPageItems: ReadonlyArray<T>;
   pagesCount: number | undefined;
   actualPageIndex: number | undefined;
   filteredItemsCount: number | undefined;
@@ -36,14 +36,14 @@ export function processItems<T>(
     result = sort(result, sortingState);
   }
 
-  const unpaginatedResult = result;
+  const allPageResult = result;
   if (pagination) {
     pagesCount = getPagesCount(result, pagination.pageSize);
     actualPageIndex = normalizePageIndex(currentPageIndex, pagesCount);
     result = paginate(result, actualPageIndex, pagination.pageSize);
   }
 
-  return { items: result, unpaginatedItems: unpaginatedResult, pagesCount, filteredItemsCount, actualPageIndex };
+  return { items: result, allPageItems: allPageResult, pagesCount, filteredItemsCount, actualPageIndex };
 }
 
 export const getTrackableValue = <T>(trackBy: TrackBy<T> | undefined, item: T) => {
