@@ -9,7 +9,11 @@ import { useCollectionState } from './use-collection-state.js';
 export function useCollection<T>(allItems: ReadonlyArray<T>, options: UseCollectionOptions<T>): UseCollectionResult<T> {
   const collectionRef = useRef<CollectionRef>(null);
   const [state, actions] = useCollectionState(options, collectionRef);
-  const { items, pagesCount, filteredItemsCount, actualPageIndex } = processItems(allItems, state, options);
+  const { items, allPageItems, pagesCount, filteredItemsCount, actualPageIndex } = processItems(
+    allItems,
+    state,
+    options
+  );
   if (options.selection && !options.selection.keepSelection) {
     const newSelectedItems = processSelectedItems(items, state.selectedItems, options.selection.trackBy);
     if (!itemsAreEqual(newSelectedItems, state.selectedItems, options.selection.trackBy)) {
@@ -20,6 +24,7 @@ export function useCollection<T>(allItems: ReadonlyArray<T>, options: UseCollect
   }
   return {
     items,
+    allPageItems,
     filteredItemsCount,
     actions,
     ...createSyncProps(options, state, actions, collectionRef, {
