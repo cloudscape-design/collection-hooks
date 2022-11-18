@@ -161,4 +161,5 @@ export interface PropertyFilterProperty<TokenValue = any> {
 export interface PropertyFilterOption {
   propertyKey: string;
   value: string;
+  label?: string;
 }
