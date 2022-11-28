@@ -20,6 +20,8 @@ export function render(jsx: React.ReactElement) {
     getMatchesCount: () => queries.getByTestId('matches-count').textContent,
     getPagesCount: () => queries.getByTestId('pages-count').textContent,
     getCurrentPage: () => queries.getByTestId('current-page').textContent,
+    getRowIndices: () => queries.queryAllByTestId('item').map(element => element.dataset['rowindex']),
+    getTotalItemsCount: () => queries.getByTestId('total-items-count').textContent,
     findFilterInput: () => queries.getByTestId('input') as HTMLInputElement,
     findPropertyFilterChange: () => queries.getByTestId('property-filtering-change') as HTMLButtonElement,
     findPropertyOptions: () => queries.getByTestId('filtering-options').textContent,
@@ -50,6 +52,8 @@ const Table = React.forwardRef<CollectionRef, TableProps>(
       selectedItems,
       onSelectionChange,
       trackBy,
+      firstIndex,
+      totalItemsCount,
       spy,
     }: TableProps,
     ref: React.Ref<CollectionRef>
@@ -83,11 +87,13 @@ const Table = React.forwardRef<CollectionRef, TableProps>(
         </button>
         {items.length === 0 && <div data-testid="empty">{empty}</div>}
         <span data-testid="selected-items">{selectedItems && selectedItems.length}</span>
+        <span data-testid="total-items-count">{totalItemsCount}</span>
         <ul>
-          {items.map(item => (
+          {items.map((item, i) => (
             <li
               key={item.id}
               data-testid="item"
+              data-rowindex={firstIndex ? firstIndex + i : undefined}
               data-selected={
                 selectedItems &&
                 (selectedItems.indexOf(item) !== -1 ||

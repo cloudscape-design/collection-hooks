@@ -546,3 +546,25 @@ describe('Custom matchers', () => {
     expect(getVisibleItems()).toHaveLength(2);
   });
 });
+
+describe('total items count and page range', () => {
+  test('should return the first index of the page', () => {
+    const allItems = generateItems(4);
+    function App() {
+      const result = useCollection<Item>(allItems, { pagination: { pageSize: 2, defaultPage: 2 } });
+      return <Demo {...result} />;
+    }
+    const { getRowIndices } = render(<App />);
+    expect(getRowIndices()).toEqual(['3', '4']);
+  });
+
+  test('should return the correct totalItems of the collection', () => {
+    const allItems = generateItems(4);
+    function App() {
+      const result = useCollection<Item>(allItems, { pagination: { pageSize: 2, defaultPage: 2 } });
+      return <Demo {...result} />;
+    }
+    const { getTotalItemsCount } = render(<App />);
+    expect(getTotalItemsCount()).toEqual('4');
+  });
+});

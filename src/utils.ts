@@ -99,7 +99,8 @@ export function createSyncProps<T>(
     pagesCount,
     actualPageIndex,
     allItems,
-  }: { pagesCount?: number; actualPageIndex?: number; allItems: ReadonlyArray<T> }
+    allPageItems,
+  }: { pagesCount?: number; actualPageIndex?: number; allItems: ReadonlyArray<T>; allPageItems: ReadonlyArray<T> }
 ): Pick<UseCollectionResult<T>, 'collectionProps' | 'filterProps' | 'paginationProps' | 'propertyFilterProps'> {
   let empty: ReactNode | null = options.filtering
     ? allItems.length
@@ -151,6 +152,12 @@ export function createSyncProps<T>(
           }
         : {}),
       ref: collectionRef,
+      ...(options.pagination?.pageSize
+        ? {
+            totalItemsCount: allPageItems.length,
+            firstIndex: ((actualPageIndex ?? currentPageIndex) - 1) * (options.pagination.pageSize + 1),
+          }
+        : {}),
     },
     filterProps: {
       filteringText,
