@@ -2,18 +2,19 @@
 // SPDX-License-Identifier: Apache-2.0
 import { FilteringOptions } from '../interfaces';
 
-function defaultFilteringFunction<T extends Record<string, any>>(
-  item: T,
-  filteringText: string,
-  filteringFields?: string[]
-) {
+function defaultFilteringFunction<T>(item: T, filteringText: string, filteringFields?: string[]) {
   if (filteringText.length === 0) {
     return true;
   }
-  filteringFields = filteringFields || Object.keys(item);
+  filteringFields = filteringFields || Object.keys(item as Record<string, any>);
   const lowFilteringText = filteringText.toLowerCase();
 
-  return filteringFields.some(key => String(item[key]).toLowerCase().indexOf(lowFilteringText) > -1);
+  return filteringFields.some(
+    key =>
+      String((item as Record<string, any>)[key])
+        .toLowerCase()
+        .indexOf(lowFilteringText) > -1
+  );
 }
 
 export function filter<T>(
