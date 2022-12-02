@@ -96,7 +96,7 @@ function filterByToken<T>(token: PropertyFilterToken, item: T, filteringProperti
   return freeTextFilter(token.value, item, token.operator, filteringPropertiesMap);
 }
 
-function defaultFilteringFunction<T extends Record<string, any>>(filteringPropertiesMap: FilteringPropertiesMap<T>) {
+function defaultFilteringFunction<T>(filteringPropertiesMap: FilteringPropertiesMap<T>) {
   return (item: T, { tokens, operation }: PropertyFilterQuery) => {
     let result = operation === 'and' ? true : !tokens.length;
     for (const token of tokens) {
