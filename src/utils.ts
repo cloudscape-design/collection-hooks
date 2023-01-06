@@ -155,7 +155,7 @@ export function createSyncProps<T>(
       ...(options.pagination?.pageSize
         ? {
             totalItemsCount: allPageItems.length,
-            firstIndex: ((actualPageIndex ?? currentPageIndex) - 1) * (options.pagination.pageSize + 1),
+            firstIndex: ((actualPageIndex ?? currentPageIndex) - 1) * options.pagination.pageSize + 1,
           }
         : {}),
     },

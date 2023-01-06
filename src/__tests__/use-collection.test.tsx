@@ -558,6 +558,16 @@ describe('total items count and page range', () => {
     expect(getRowIndices()).toEqual(['3', '4']);
   });
 
+  test('should return the first index of the page for the first page', () => {
+    const allItems = generateItems(4);
+    function App() {
+      const result = useCollection<Item>(allItems, { pagination: { pageSize: 2, defaultPage: 1 } });
+      return <Demo {...result} />;
+    }
+    const { getRowIndices } = render(<App />);
+    expect(getRowIndices()).toEqual(['1', '2']);
+  });
+
   test('should return the correct totalItems of the collection', () => {
     const allItems = generateItems(4);
     function App() {
