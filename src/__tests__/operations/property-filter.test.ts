@@ -8,43 +8,29 @@ const propertyFiltering = {
     {
       key: 'id',
       operators: [':', '!:'],
-      groupValuesLabel: 'Id values',
-      propertyLabel: 'Id',
     },
     {
       key: 'field',
       operators: [':', '!:'],
-      groupValuesLabel: 'Field values',
-      propertyLabel: 'Field',
     },
     {
       key: 'anotherField',
       operators: [':'],
-      groupValuesLabel: 'Another field values',
-      propertyLabel: 'Another field',
     },
     {
       key: 'number',
       operators: [':', '!:', '=', '!=', '<', '<=', '>', '>='],
-      groupValuesLabel: 'Number values',
-      propertyLabel: 'Number',
     },
     {
       key: 'default',
-      groupValuesLabel: 'Default values',
-      propertyLabel: 'Default',
     },
     {
       key: 'falsy',
       operators: [':', '!:', '=', '!=', '<', '<=', '>', '>='],
-      groupValuesLabel: 'Falsy values',
-      propertyLabel: 'Falsy',
     },
     {
       key: 'bool',
       operators: [':', '!:', '=', '!=', '<', '<=', '>', '>='],
-      groupValuesLabel: 'Boolean values',
-      propertyLabel: 'Boolean',
     },
   ],
 } as const;
@@ -347,8 +333,6 @@ describe('extended operators', () => {
             {
               key: 'number',
               operators: [{ operator: '=' }, { operator: '!=' }],
-              propertyLabel: '',
-              groupValuesLabel: '',
             },
           ],
         },
@@ -375,8 +359,6 @@ describe('extended operators', () => {
                 { operator: '=', match: (value, token) => token.has(value) },
                 { operator: '!=', match: (value, token) => !token.has(value) },
               ],
-              propertyLabel: '',
-              groupValuesLabel: '',
             },
           ],
         },
@@ -400,8 +382,6 @@ describe('extended operators', () => {
             {
               key: 'boolean',
               operators: [{ operator: '=', match: (itemValue, tokenValue) => itemValue === tokenValue }],
-              propertyLabel: '',
-              groupValuesLabel: '',
             },
           ],
         },
@@ -441,8 +421,6 @@ describe('extended operators', () => {
                 { operator: '>=', match: 'date' },
                 { operator: ':', match: 'date' }, // unsupported
               ],
-              propertyLabel: '',
-              groupValuesLabel: '',
             },
           ],
         },
@@ -480,8 +458,6 @@ describe('extended operators', () => {
                 { operator: '>=', match: 'datetime' },
                 { operator: ':', match: 'datetime' }, // unsupported
               ],
-              propertyLabel: '',
-              groupValuesLabel: '',
             },
           ],
         },
@@ -509,8 +485,6 @@ describe('extended operators', () => {
                   { operator: '=', match: 'date-time' as any },
                   { operator: '!=', match: (value, token) => !token.has(value) },
                 ],
-                propertyLabel: '',
-                groupValuesLabel: '',
               },
             ],
           },
