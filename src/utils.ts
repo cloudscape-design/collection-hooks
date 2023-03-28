@@ -53,8 +53,8 @@ export function collectionReducer<T>(state: CollectionState<T>, action: Action<T
       newState.currentPageIndex = action.pageIndex;
       break;
     case 'property-filtering':
-      newState.currentPageIndex = 1;
       newState.propertyFilteringQuery = action.query;
+      newState.currentPageIndex = 1;
       break;
   }
   return newState;
