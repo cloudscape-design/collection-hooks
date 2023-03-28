@@ -39,3 +39,7 @@ export function sort<T>(items: ReadonlyArray<T>, state: SortingState<T> | undefi
 
   return sorted;
 }
+
+export function foo(): number {
+  return 10;
+}
