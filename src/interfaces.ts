@@ -117,7 +117,9 @@ export type PropertyFilterOperator = '<' | '<=' | '>' | '>=' | ':' | '!:' | '=' 
 export interface PropertyFilterOperatorExtended<TokenValue> {
   operator: PropertyFilterOperator;
   match?: PropertyFilterOperatorMatch<TokenValue>;
+  // @deprecated - use property definitions instead.
   form?: PropertyFilterOperatorForm<TokenValue>;
+  // @deprecated - use property definitions instead.
   format?: PropertyFilterOperatorFormat<TokenValue>;
 }
 
@@ -154,14 +156,18 @@ export interface PropertyFilterQuery {
 }
 export interface PropertyFilterProperty<TokenValue = any> {
   key: string;
-  groupValuesLabel: string;
-  propertyLabel: string;
   operators?: readonly (PropertyFilterOperator | PropertyFilterOperatorExtended<TokenValue>)[];
   defaultOperator?: PropertyFilterOperator;
+  // @deprecated - use property definitions instead.
+  groupValuesLabel?: string;
+  // @deprecated - use property definitions instead.
+  propertyLabel?: string;
+  // @deprecated - use property definitions instead.
   group?: string;
 }
 export interface PropertyFilterOption {
   propertyKey: string;
   value: string;
+  // @deprecated - use property definitions instead.
   label?: string;
 }
