@@ -42,6 +42,7 @@ export interface UseCollectionOptions<T> {
     filteringFunction?: (item: T, query: PropertyFilterQuery) => boolean;
     defaultQuery?: PropertyFilterQuery;
   };
+  expandableRows?: ExpandableRowsOptions<T>;
   sorting?: { defaultState?: SortingState<T> };
   pagination?: { defaultPage?: number; pageSize?: number };
   selection?: {
@@ -49,6 +50,17 @@ export interface UseCollectionOptions<T> {
     keepSelection?: boolean;
     trackBy?: TrackBy<T>;
   };
+}
+
+export interface ExpandableRowsOptions<T> {
+  getParent(item: T): null | T;
+  defaultExpanded?: ReadonlyArray<T>;
+  trackBy?: TrackBy<T>;
+}
+
+export interface ItemsTreeNode<T> {
+  item: T;
+  children: ReadonlyArray<ItemsTreeNode<T>>;
 }
 
 export interface CollectionState<T> {
