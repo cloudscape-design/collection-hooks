@@ -795,4 +795,25 @@ describe('expandable items', () => {
     rerender(<App items={allItems} trackBy={item => item.id} />);
     expect(getExpandedItems()).toEqual(['a', 'd', 'f']);
   });
+
+  test('propagates isExpandable to collection result', () => {
+    const allItems = generateItems(50);
+    const isExpandable = (item: Item) => item.id === '1' || item.id.includes('0');
+    function App({ isExpandable }: { isExpandable?: (item: Item) => boolean }) {
+      const result = useCollection(allItems, {
+        pagination: { pageSize: 50 },
+        expandableItems: {
+          getParent: () => null,
+          isExpandable,
+        },
+      });
+      return <Demo {...result} />;
+    }
+
+    const { rerender, getExpandableItems } = render(<App isExpandable={undefined} />);
+    expect(getExpandableItems()).toEqual(allItems.map(item => item.id));
+
+    rerender(<App isExpandable={isExpandable} />);
+    expect(getExpandableItems()).toEqual(['1', '10', '20', '30', '40', '50']);
+  });
 });

@@ -22,6 +22,11 @@ export function render(jsx: React.ReactElement) {
         .queryAllByTestId('item')
         .filter(element => element.dataset['expanded'] === 'true')
         .map(element => element.textContent),
+    getExpandableItems: () =>
+      queries
+        .queryAllByTestId('item')
+        .filter(element => element.dataset['expandable'] === 'true')
+        .map(element => element.textContent),
     getSelectedLength: () => queries.getByTestId('selected-items').textContent,
     getMatchesCount: () => queries.getByTestId('matches-count').textContent,
     getPagesCount: () => queries.getByTestId('pages-count').textContent,
@@ -57,6 +62,7 @@ const Table = React.forwardRef<CollectionRef, TableProps>(
       onSortingChange,
       selectedItems,
       expandedItems,
+      isExpandable,
       onSelectionChange,
       trackBy,
       firstIndex,
@@ -121,6 +127,7 @@ const Table = React.forwardRef<CollectionRef, TableProps>(
                   ? 'true'
                   : 'false'
               }
+              data-expandable={isExpandable ? isExpandable(item) : true}
               onClick={() =>
                 onSelectionChange &&
                 onSelectionChange(new CustomEvent('cloudscape', { detail: { selectedItems: [item] } }))

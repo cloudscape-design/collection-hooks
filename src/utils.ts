@@ -180,6 +180,7 @@ export function createSyncProps<T>(
               actions.setExpandedItems(expandedItems);
             },
             expandedItems,
+            isExpandable: options.expandableItems.isExpandable,
             trackBy: options.expandableItems.trackBy,
           }
         : {}),
