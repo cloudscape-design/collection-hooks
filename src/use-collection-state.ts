@@ -10,6 +10,7 @@ export function useCollectionState<T>(
 ): readonly [CollectionState<T>, CollectionActions<T>] {
   const [state, dispatch] = useReducer<CollectionReducer<T>>(collectionReducer, {
     selectedItems: options.selection?.defaultSelectedItems ?? [],
+    expandedItems: options.expandableItems?.defaultExpandedItems ?? [],
     sortingState: options.sorting?.defaultState,
     currentPageIndex: options.pagination?.defaultPage ?? 1,
     filteringText: options.filtering?.defaultFilteringText ?? '',

@@ -26,6 +26,10 @@ export interface SelectionChangeDetail<T> {
   selectedItems: ReadonlyArray<T>;
 }
 
+export interface ExpandChangeDetail<T> {
+  expandedItems: ReadonlyArray<T>;
+}
+
 export type TrackBy<T> = string | ((item: T) => string);
 
 export interface UseCollectionOptions<T> {
@@ -42,7 +46,6 @@ export interface UseCollectionOptions<T> {
     filteringFunction?: (item: T, query: PropertyFilterQuery) => boolean;
     defaultQuery?: PropertyFilterQuery;
   };
-  expandableRows?: ExpandableRowsOptions<T>;
   sorting?: { defaultState?: SortingState<T> };
   pagination?: { defaultPage?: number; pageSize?: number };
   selection?: {
@@ -50,17 +53,13 @@ export interface UseCollectionOptions<T> {
     keepSelection?: boolean;
     trackBy?: TrackBy<T>;
   };
+  expandableItems?: ExpandableItemsOptions<T>;
 }
 
-export interface ExpandableRowsOptions<T> {
-  getParent(item: T): null | T;
-  defaultExpanded?: ReadonlyArray<T>;
-  trackBy?: TrackBy<T>;
-}
-
-export interface ItemsTreeNode<T> {
-  item: T;
-  children: ReadonlyArray<ItemsTreeNode<T>>;
+export interface ExpandableItemsOptions<ItemType> {
+  getParent(item: ItemType): null | ItemType;
+  defaultExpandedItems?: ReadonlyArray<ItemType>;
+  trackBy?: TrackBy<ItemType>;
 }
 
 export interface CollectionState<T> {
@@ -69,6 +68,7 @@ export interface CollectionState<T> {
   currentPageIndex: number;
   sortingState?: SortingState<T>;
   selectedItems: ReadonlyArray<T>;
+  expandedItems: ReadonlyArray<T>;
 }
 
 export interface CollectionActions<T> {
@@ -76,6 +76,7 @@ export interface CollectionActions<T> {
   setCurrentPage(pageNumber: number): void;
   setSorting(state: SortingState<T>): void;
   setSelectedItems(selectedItems: ReadonlyArray<T>): void;
+  setExpandedItems(expandedItems: ReadonlyArray<T>): void;
   setPropertyFiltering(query: PropertyFilterQuery): void;
 }
 
@@ -90,6 +91,8 @@ interface UseCollectionResultBase<T> {
     sortingDescending?: boolean;
     selectedItems?: ReadonlyArray<T>;
     onSelectionChange?(event: CustomEventLike<SelectionChangeDetail<T>>): void;
+    expandedItems?: ReadonlyArray<T>;
+    onExpandChange?(event: CustomEventLike<ExpandChangeDetail<T>>): void;
     trackBy?: string | ((item: T) => string);
     ref: React.RefObject<CollectionRef>;
     totalItemsCount?: number;

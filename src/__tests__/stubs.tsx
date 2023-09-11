@@ -10,11 +10,17 @@ export type Item = { id: string; date?: Date };
 export function render(jsx: React.ReactElement) {
   const queries = testRender(jsx);
   return {
+    queries,
     getVisibleItems: () => queries.queryAllByTestId('item').map(element => element.textContent),
     getSelectedItems: () =>
       queries
         .queryAllByTestId('item')
         .filter(element => element.dataset['selected'] === 'true')
+        .map(element => element.textContent),
+    getExpandedItems: () =>
+      queries
+        .queryAllByTestId('item')
+        .filter(element => element.dataset['expanded'] === 'true')
         .map(element => element.textContent),
     getSelectedLength: () => queries.getByTestId('selected-items').textContent,
     getMatchesCount: () => queries.getByTestId('matches-count').textContent,
@@ -50,6 +56,7 @@ const Table = React.forwardRef<CollectionRef, TableProps>(
       sortingDescending,
       onSortingChange,
       selectedItems,
+      expandedItems,
       onSelectionChange,
       trackBy,
       firstIndex,
@@ -100,6 +107,16 @@ const Table = React.forwardRef<CollectionRef, TableProps>(
                   (trackBy &&
                     selectedItems.filter(
                       selectedItem => getTrackableValue(trackBy, selectedItem) === getTrackableValue(trackBy, item)
+                    ).length > 0))
+                  ? 'true'
+                  : 'false'
+              }
+              data-expanded={
+                expandedItems &&
+                (expandedItems.indexOf(item) !== -1 ||
+                  (trackBy &&
+                    expandedItems.filter(
+                      expandedItem => getTrackableValue(trackBy, expandedItem) === getTrackableValue(trackBy, item)
                     ).length > 0))
                   ? 'true'
                   : 'false'

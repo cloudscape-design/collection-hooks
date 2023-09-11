@@ -17,6 +17,10 @@ interface SelectionAction<T> {
   type: 'selection';
   selectedItems: ReadonlyArray<T>;
 }
+interface ExpandAction<T> {
+  type: 'expand';
+  expandedItems: ReadonlyArray<T>;
+}
 interface SortingAction<T> {
   type: 'sorting';
   sortingState: SortingState<T>;
@@ -33,13 +37,22 @@ interface PropertyFilteringAction {
   type: 'property-filtering';
   query: PropertyFilterQuery;
 }
-type Action<T> = SelectionAction<T> | SortingAction<T> | PaginationAction | FilteringAction | PropertyFilteringAction;
+type Action<T> =
+  | SelectionAction<T>
+  | ExpandAction<T>
+  | SortingAction<T>
+  | PaginationAction
+  | FilteringAction
+  | PropertyFilteringAction;
 export type CollectionReducer<T> = Reducer<CollectionState<T>, Action<T>>;
 export function collectionReducer<T>(state: CollectionState<T>, action: Action<T>): CollectionState<T> {
   const newState = { ...state };
   switch (action.type) {
     case 'selection':
       newState.selectedItems = action.selectedItems;
+      break;
+    case 'expand':
+      newState.expandedItems = action.expandedItems;
       break;
     case 'filtering':
       newState.currentPageIndex = 1;
@@ -83,6 +96,9 @@ export function createActions<T>({
     setSelectedItems(selectedItems: Array<T>) {
       dispatch({ type: 'selection', selectedItems });
     },
+    setExpandedItems(expandedItems: ReadonlyArray<T>) {
+      dispatch({ type: 'expand', expandedItems });
+    },
     setPropertyFiltering(query: PropertyFilterQuery) {
       dispatch({ type: 'property-filtering', query });
       collectionRef.current && collectionRef.current.scrollToTop();
@@ -92,7 +108,14 @@ export function createActions<T>({
 
 export function createSyncProps<T>(
   options: UseCollectionOptions<T>,
-  { filteringText, sortingState, selectedItems, currentPageIndex, propertyFilteringQuery }: CollectionState<T>,
+  {
+    filteringText,
+    sortingState,
+    selectedItems,
+    expandedItems,
+    currentPageIndex,
+    propertyFilteringQuery,
+  }: CollectionState<T>,
   actions: CollectionActions<T>,
   collectionRef: React.RefObject<CollectionRef>,
   {
@@ -130,6 +153,15 @@ export function createSyncProps<T>(
         return acc;
       }, [])
     : [];
+
+  if (
+    options.expandableItems?.trackBy &&
+    options.selection?.trackBy &&
+    options.expandableItems.trackBy !== options.selection.trackBy
+  ) {
+    throw new Error('Invalid use of `trackBy`: the same function must be used for expandableItems and selection.');
+  }
+
   return {
     collectionProps: {
       empty,
@@ -140,6 +172,15 @@ export function createSyncProps<T>(
             },
             sortingColumn: sortingState?.sortingColumn,
             sortingDescending: sortingState?.isDescending,
+          }
+        : {}),
+      ...(options.expandableItems
+        ? {
+            onExpandChange: ({ detail: { expandedItems } }) => {
+              actions.setExpandedItems(expandedItems);
+            },
+            expandedItems,
+            trackBy: options.expandableItems.trackBy,
           }
         : {}),
       ...(options.selection

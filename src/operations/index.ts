@@ -5,11 +5,12 @@ import { filter } from './filter.js';
 import { propertyFilter } from './property-filter.js';
 import { sort } from './sort.js';
 import { getPagesCount, normalizePageIndex, paginate } from './paginate.js';
+import { hideCollapsed } from './hide-collapsed';
 
 export function processItems<T>(
   items: ReadonlyArray<T>,
-  { filteringText, sortingState, currentPageIndex, propertyFilteringQuery }: Partial<CollectionState<T>>,
-  { filtering, sorting, pagination, propertyFiltering }: UseCollectionOptions<T>
+  { filteringText, sortingState, currentPageIndex, propertyFilteringQuery, expandedItems }: Partial<CollectionState<T>>,
+  { filtering, sorting, pagination, propertyFiltering, expandableItems }: UseCollectionOptions<T>
 ): {
   items: ReadonlyArray<T>;
   allPageItems: ReadonlyArray<T>;
@@ -34,6 +35,10 @@ export function processItems<T>(
 
   if (sorting) {
     result = sort(result, sortingState);
+  }
+
+  if (expandableItems) {
+    result = hideCollapsed(result, expandedItems ?? [], expandableItems);
   }
 
   const allPageResult = result;
