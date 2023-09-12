@@ -61,8 +61,9 @@ const Table = React.forwardRef<CollectionRef, TableProps>(
       sortingDescending,
       onSortingChange,
       selectedItems,
-      expandedItems,
-      isExpandable,
+      getItemParent,
+      getItemExpanded,
+      getItemExpandable,
       onSelectionChange,
       trackBy,
       firstIndex,
@@ -117,17 +118,8 @@ const Table = React.forwardRef<CollectionRef, TableProps>(
                   ? 'true'
                   : 'false'
               }
-              data-expanded={
-                expandedItems &&
-                (expandedItems.indexOf(item) !== -1 ||
-                  (trackBy &&
-                    expandedItems.filter(
-                      expandedItem => getTrackableValue(trackBy, expandedItem) === getTrackableValue(trackBy, item)
-                    ).length > 0))
-                  ? 'true'
-                  : 'false'
-              }
-              data-expandable={isExpandable ? isExpandable(item) : true}
+              data-expanded={getItemExpanded?.(item) ?? false}
+              data-expandable={getItemExpandable?.(item) ?? false}
               onClick={() =>
                 onSelectionChange &&
                 onSelectionChange(new CustomEvent('cloudscape', { detail: { selectedItems: [item] } }))

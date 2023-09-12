@@ -12,6 +12,7 @@ import {
   PropertyFilterOption,
 } from './interfaces';
 import { fixupFalsyValues } from './operations/property-filter.js';
+import { getTrackableValue } from './operations/index.js';
 
 interface SelectionAction<T> {
   type: 'selection';
@@ -154,14 +155,6 @@ export function createSyncProps<T>(
       }, [])
     : [];
 
-  if (
-    options.expandableItems?.trackBy &&
-    options.selection?.trackBy &&
-    options.expandableItems.trackBy !== options.selection.trackBy
-  ) {
-    throw new Error('Invalid use of `trackBy`: the same function must be used for expandableItems and selection.');
-  }
-
   return {
     collectionProps: {
       empty,
@@ -176,12 +169,29 @@ export function createSyncProps<T>(
         : {}),
       ...(options.expandableItems
         ? {
-            onExpandChange: ({ detail: { expandedItems } }) => {
-              actions.setExpandedItems(expandedItems);
+            getItemParent: options.expandableItems.getParent,
+            getItemExpandable: options.expandableItems.isExpandable,
+            getItemExpanded: (item: T) =>
+              !!expandedItems.find(
+                otherItem =>
+                  getTrackableValue(options.expandableItems?.trackBy, item) ===
+                  getTrackableValue(options.expandableItems?.trackBy, otherItem)
+              ),
+            onItemExpandedChange: ({ detail: { item, expanded } }) => {
+              const expandedItemIndex = expandedItems.findIndex(
+                otherItem =>
+                  getTrackableValue(options.expandableItems?.trackBy, item) ===
+                  getTrackableValue(options.expandableItems?.trackBy, otherItem)
+              );
+              const newExpandedItems = [...expandedItems];
+              if (expandedItemIndex !== -1) {
+                newExpandedItems.splice(expandedItemIndex, 1);
+              }
+              if (expanded) {
+                newExpandedItems.push(item);
+              }
+              actions.setExpandedItems(newExpandedItems);
             },
-            expandedItems,
-            isExpandable: options.expandableItems.isExpandable,
-            trackBy: options.expandableItems.trackBy,
           }
         : {}),
       ...(options.selection

@@ -27,7 +27,8 @@ export interface SelectionChangeDetail<T> {
 }
 
 export interface ExpandChangeDetail<T> {
-  expandedItems: ReadonlyArray<T>;
+  item: T;
+  expanded: boolean;
 }
 
 export type TrackBy<T> = string | ((item: T) => string);
@@ -58,7 +59,7 @@ export interface UseCollectionOptions<T> {
 
 export interface ExpandableItemsOptions<ItemType> {
   getParent(item: ItemType): null | ItemType;
-  isExpandable?(item: ItemType): boolean;
+  isExpandable(item: ItemType): boolean;
   defaultExpandedItems?: ReadonlyArray<ItemType>;
   trackBy?: TrackBy<ItemType>;
 }
@@ -92,9 +93,10 @@ interface UseCollectionResultBase<T> {
     sortingDescending?: boolean;
     selectedItems?: ReadonlyArray<T>;
     onSelectionChange?(event: CustomEventLike<SelectionChangeDetail<T>>): void;
-    expandedItems?: ReadonlyArray<T>;
-    onExpandChange?(event: CustomEventLike<ExpandChangeDetail<T>>): void;
-    isExpandable?(item: T): boolean;
+    getItemParent?(item: T): null | T;
+    getItemExpandable?(item: T): boolean;
+    getItemExpanded?(item: T): boolean;
+    onItemExpandedChange?(event: CustomEventLike<ExpandChangeDetail<T>>): void;
     trackBy?: string | ((item: T) => string);
     ref: React.RefObject<CollectionRef>;
     totalItemsCount?: number;
