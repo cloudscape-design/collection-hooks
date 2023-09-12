@@ -580,15 +580,20 @@ describe('total items count and page range', () => {
 });
 
 describe('expandable items', () => {
+  const getGroupKey = (item: Item) => item.id;
+  const getParentGroup = () => null;
+  const isGroupExpandable = () => true;
+
   test('creates default expanded items state with expandableItems.defaultExpandedItems', () => {
     const allItems = generateItems(50);
     function App() {
       const result = useCollection(allItems, {
         pagination: {},
-        expandableItems: {
-          getParent: () => null,
-          isExpandable: () => true,
-          defaultExpandedItems: [allItems[0], allItems[2]],
+        expandableGroups: {
+          getGroupKey,
+          getParentGroup,
+          isGroupExpandable,
+          defaultExpandedGroups: ['1', '3'],
         },
       });
       return <Demo {...result} />;
@@ -606,12 +611,15 @@ describe('expandable items', () => {
     function App() {
       const result = useCollection(allItems, {
         pagination: { pageSize: 25 },
-        expandableItems: { getParent: () => null, isExpandable: () => true },
+        expandableGroups: { getGroupKey: item => item.id, getParentGroup: () => null, isGroupExpandable: () => true },
       });
       return (
         <div>
           <Demo {...result} />
-          <button data-testid="expand-all" onClick={() => result.actions.setExpandedItems(allItems)}></button>
+          <button
+            data-testid="expand-all"
+            onClick={() => result.actions.setExpandedGroups(allItems.map(getGroupKey))}
+          ></button>
         </div>
       );
     }
@@ -627,7 +635,7 @@ describe('expandable items', () => {
     function App() {
       const result = useCollection(allItems, {
         pagination: { pageSize: 25 },
-        expandableItems: { getParent: () => null, isExpandable: () => true },
+        expandableGroups: { getGroupKey, getParentGroup, isGroupExpandable },
       });
       return (
         <div>
@@ -635,7 +643,7 @@ describe('expandable items', () => {
           <button
             data-testid="expand-one"
             onClick={() =>
-              result.collectionProps.onItemExpandedChange?.({ detail: { item: allItems[1], expanded: true } })
+              result.collectionProps.onItemGroupChange?.({ detail: { item: allItems[1], expanded: true } })
             }
           ></button>
         </div>
@@ -648,49 +656,14 @@ describe('expandable items', () => {
     expect(getExpandedItems()).toEqual(['2']);
   });
 
-  test('expanded items use trackBy for custom matching', () => {
-    const allItems = generateItems(50);
-    function App() {
-      const result = useCollection(allItems, {
-        pagination: {},
-        expandableItems: {
-          getParent: () => null,
-          isExpandable: () => true,
-          defaultExpandedItems: [{ id: allItems[0].id }, { id: allItems[2].id }],
-          trackBy: item => item.id,
-        },
-      });
-      return (
-        <div>
-          <Demo {...result} />
-          <button
-            data-testid="expand-all"
-            onClick={() => result.actions.setExpandedItems([{ id: allItems[4].id }])}
-          ></button>
-        </div>
-      );
-    }
-    const { queries, getExpandedItems } = render(<App />);
-    const expandedItems1 = getExpandedItems();
-
-    expect(expandedItems1).toHaveLength(2);
-    expect(expandedItems1[0]).toBe('1');
-    expect(expandedItems1[1]).toBe('3');
-
-    fireEvent.click(queries.getByTestId('expand-all'));
-
-    const expandedItems2 = getExpandedItems();
-    expect(expandedItems2).toHaveLength(1);
-    expect(expandedItems2[0]).toBe('5');
-  });
-
   test('expanded items is used to hide items with non-expanded parents', () => {
     const allItems = generateItems(25);
     function App() {
       const result = useCollection(allItems, {
         pagination: { pageSize: 10 },
-        expandableItems: {
-          getParent: item => {
+        expandableGroups: {
+          getGroupKey,
+          getParentGroup: item => {
             if (allItems.indexOf(item) > 0 && allItems.indexOf(item) < 4) {
               return allItems[0];
             }
@@ -708,8 +681,8 @@ describe('expandable items', () => {
             }
             return null;
           },
-          isExpandable: () => true,
-          defaultExpandedItems: [allItems[14]],
+          isGroupExpandable,
+          defaultExpandedGroups: ['15'],
         },
       });
       return <Demo {...result} />;
@@ -737,14 +710,11 @@ describe('expandable items', () => {
     function App() {
       const result = useCollection(allItems, {
         pagination: { pageSize: 10 },
-        expandableItems: {
-          getParent: item => allItems.find(maybeParent => item.id.slice(0, -2) === maybeParent.id) ?? null,
-          isExpandable: () => true,
-          defaultExpandedItems: [
-            allItems.find(item => item.id === 'a')!,
-            allItems.find(item => item.id === 'a.1')!,
-            allItems.find(item => item.id === 'b')!,
-          ],
+        expandableGroups: {
+          getGroupKey,
+          getParentGroup: item => allItems.find(maybeParent => item.id.slice(0, -2) === maybeParent.id) ?? null,
+          isGroupExpandable: () => true,
+          defaultExpandedGroups: ['a', 'a.1', 'b'],
         },
       });
       return <Demo {...result} />;
@@ -756,14 +726,14 @@ describe('expandable items', () => {
 
   test('expanded items state is updated to remove no-longer present items', () => {
     const allItems = [{ id: 'a' }, { id: 'b' }, { id: 'c' }, { id: 'd' }, { id: 'e' }, { id: 'f' }];
-    function App({ items, trackBy }: { items: Item[]; trackBy?: TrackBy<Item> }) {
+    function App({ items }: { items: Item[] }) {
       const result = useCollection(items, {
         pagination: { pageSize: 10 },
-        expandableItems: {
-          getParent: () => null,
-          isExpandable: () => true,
-          defaultExpandedItems: allItems,
-          trackBy,
+        expandableGroups: {
+          getGroupKey,
+          getParentGroup,
+          isGroupExpandable,
+          defaultExpandedGroups: allItems.map(getGroupKey),
         },
       });
       return <Demo {...result} />;
@@ -777,32 +747,27 @@ describe('expandable items', () => {
 
     rerender(<App items={allItems} />);
     expect(getExpandedItems()).toEqual(['a', 'c', 'd', 'e', 'f']);
-
-    rerender(<App items={[{ id: 'a' }, { id: 'd' }, { id: 'f' }]} trackBy={item => item.id} />);
-    expect(getExpandedItems()).toEqual(['a', 'd', 'f']);
-
-    rerender(<App items={allItems} trackBy={item => item.id} />);
-    expect(getExpandedItems()).toEqual(['a', 'd', 'f']);
   });
 
-  test('propagates isExpandable to collection result', () => {
+  test('propagates isGroupExpandable to collection result', () => {
     const allItems = generateItems(50);
-    const isExpandable = (item: Item) => item.id === '1' || item.id.includes('0');
-    function App({ isExpandable }: { isExpandable: (item: Item) => boolean }) {
+    const isGroupExpandable = (item: Item) => item.id === '1' || item.id.includes('0');
+    function App({ isGroupExpandable }: { isGroupExpandable: (item: Item) => boolean }) {
       const result = useCollection(allItems, {
         pagination: { pageSize: 50 },
-        expandableItems: {
-          getParent: () => null,
-          isExpandable,
+        expandableGroups: {
+          getGroupKey,
+          getParentGroup,
+          isGroupExpandable,
         },
       });
       return <Demo {...result} />;
     }
 
-    const { rerender, getExpandableItems } = render(<App isExpandable={() => true} />);
+    const { rerender, getExpandableItems } = render(<App isGroupExpandable={() => true} />);
     expect(getExpandableItems()).toEqual(allItems.map(item => item.id));
 
-    rerender(<App isExpandable={isExpandable} />);
+    rerender(<App isGroupExpandable={isGroupExpandable} />);
     expect(getExpandableItems()).toEqual(['1', '10', '20', '30', '40', '50']);
   });
 });

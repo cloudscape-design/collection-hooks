@@ -9,8 +9,14 @@ import { hideCollapsed } from './hide-collapsed';
 
 export function processItems<T>(
   items: ReadonlyArray<T>,
-  { filteringText, sortingState, currentPageIndex, propertyFilteringQuery, expandedItems }: Partial<CollectionState<T>>,
-  { filtering, sorting, pagination, propertyFiltering, expandableItems }: UseCollectionOptions<T>
+  {
+    filteringText,
+    sortingState,
+    currentPageIndex,
+    propertyFilteringQuery,
+    expandedGroups,
+  }: Partial<CollectionState<T>>,
+  { filtering, sorting, pagination, propertyFiltering, expandableGroups }: UseCollectionOptions<T>
 ): {
   items: ReadonlyArray<T>;
   allPageItems: ReadonlyArray<T>;
@@ -37,8 +43,8 @@ export function processItems<T>(
     result = sort(result, sortingState);
   }
 
-  if (expandableItems) {
-    result = hideCollapsed(result, expandedItems ?? [], expandableItems);
+  if (expandableGroups) {
+    result = hideCollapsed(result, expandedGroups ?? new Set(), expandableGroups);
   }
 
   const allPageResult = result;

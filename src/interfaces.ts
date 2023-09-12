@@ -26,7 +26,7 @@ export interface SelectionChangeDetail<T> {
   selectedItems: ReadonlyArray<T>;
 }
 
-export interface ExpandChangeDetail<T> {
+export interface ItemGroupChangeDetail<T> {
   item: T;
   expanded: boolean;
 }
@@ -54,14 +54,21 @@ export interface UseCollectionOptions<T> {
     keepSelection?: boolean;
     trackBy?: TrackBy<T>;
   };
-  expandableItems?: ExpandableItemsOptions<T>;
+  expandableGroups?: ExpandableGroupsOptions<T>;
 }
 
-export interface ExpandableItemsOptions<ItemType> {
-  getParent(item: ItemType): null | ItemType;
-  isExpandable(item: ItemType): boolean;
-  defaultExpandedItems?: ReadonlyArray<ItemType>;
-  trackBy?: TrackBy<ItemType>;
+export interface ExpandableGroupsOptions<ItemType> {
+  getGroupKey(item: ItemType): string;
+  getParentGroup(item: ItemType): null | ItemType;
+  isGroupExpandable(item: ItemType): boolean;
+  defaultExpandedGroups?: ReadonlyArray<string>;
+}
+
+export interface ItemExpandableGroupProps<ItemType> {
+  parentGroup: null | ItemType;
+  groupKey: string;
+  expandable: boolean;
+  expanded: boolean;
 }
 
 export interface CollectionState<T> {
@@ -70,7 +77,7 @@ export interface CollectionState<T> {
   currentPageIndex: number;
   sortingState?: SortingState<T>;
   selectedItems: ReadonlyArray<T>;
-  expandedItems: ReadonlyArray<T>;
+  expandedGroups: ReadonlySet<string>;
 }
 
 export interface CollectionActions<T> {
@@ -78,7 +85,7 @@ export interface CollectionActions<T> {
   setCurrentPage(pageNumber: number): void;
   setSorting(state: SortingState<T>): void;
   setSelectedItems(selectedItems: ReadonlyArray<T>): void;
-  setExpandedItems(expandedItems: ReadonlyArray<T>): void;
+  setExpandedGroups(expandedGroups: Iterable<string>): void;
   setPropertyFiltering(query: PropertyFilterQuery): void;
 }
 
@@ -93,10 +100,8 @@ interface UseCollectionResultBase<T> {
     sortingDescending?: boolean;
     selectedItems?: ReadonlyArray<T>;
     onSelectionChange?(event: CustomEventLike<SelectionChangeDetail<T>>): void;
-    getItemParent?(item: T): null | T;
-    getItemExpandable?(item: T): boolean;
-    getItemExpanded?(item: T): boolean;
-    onItemExpandedChange?(event: CustomEventLike<ExpandChangeDetail<T>>): void;
+    getItemGroupProps?(item: T): ItemExpandableGroupProps<T>;
+    onItemGroupChange?(event: CustomEventLike<ItemGroupChangeDetail<T>>): void;
     trackBy?: string | ((item: T) => string);
     ref: React.RefObject<CollectionRef>;
     totalItemsCount?: number;

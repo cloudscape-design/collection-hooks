@@ -1,7 +1,7 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
 import { useRef } from 'react';
-import { processItems, processSelectedItems, itemsAreEqual, getTrackableValue } from './operations/index.js';
+import { processItems, processSelectedItems, itemsAreEqual } from './operations/index.js';
 import { UseCollectionOptions, UseCollectionResult, CollectionRef } from './interfaces';
 import { createSyncProps } from './utils.js';
 import { useCollectionState } from './use-collection-state.js';
@@ -24,19 +24,18 @@ export function useCollection<T>(allItems: ReadonlyArray<T>, options: UseCollect
   }
 
   // Removing expanded items that are no longer present in items.
-  if (options.expandableItems) {
-    const trackBy = options.expandableItems.trackBy;
-    const getItemKey = (item: T) => (trackBy ? getTrackableValue(trackBy, item) : item);
-    const newExpandedItems = new Array<T>();
-    const existingKeys = new Set(state.expandedItems.map(getItemKey));
+  if (options.expandableGroups) {
+    const newExpandedGroups = new Set<string>();
 
     for (const item of items) {
-      if (existingKeys.has(getItemKey(item))) {
-        newExpandedItems.push(item);
+      const itemKey = options.expandableGroups.getGroupKey(item);
+
+      if (state.expandedGroups.has(itemKey)) {
+        newExpandedGroups.add(itemKey);
       }
     }
-    if (newExpandedItems.length !== state.expandedItems.length) {
-      actions.setExpandedItems(newExpandedItems);
+    if (newExpandedGroups.size !== state.expandedGroups.size) {
+      actions.setExpandedGroups(newExpandedGroups);
     }
   }
 

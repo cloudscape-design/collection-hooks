@@ -12,15 +12,14 @@ import {
   PropertyFilterOption,
 } from './interfaces';
 import { fixupFalsyValues } from './operations/property-filter.js';
-import { getTrackableValue } from './operations/index.js';
 
 interface SelectionAction<T> {
   type: 'selection';
   selectedItems: ReadonlyArray<T>;
 }
-interface ExpandAction<T> {
+interface ExpandAction {
   type: 'expand';
-  expandedItems: ReadonlyArray<T>;
+  expandedGroups: Iterable<string>;
 }
 interface SortingAction<T> {
   type: 'sorting';
@@ -40,7 +39,7 @@ interface PropertyFilteringAction {
 }
 type Action<T> =
   | SelectionAction<T>
-  | ExpandAction<T>
+  | ExpandAction
   | SortingAction<T>
   | PaginationAction
   | FilteringAction
@@ -53,7 +52,7 @@ export function collectionReducer<T>(state: CollectionState<T>, action: Action<T
       newState.selectedItems = action.selectedItems;
       break;
     case 'expand':
-      newState.expandedItems = action.expandedItems;
+      newState.expandedGroups = new Set(action.expandedGroups);
       break;
     case 'filtering':
       newState.currentPageIndex = 1;
@@ -97,8 +96,8 @@ export function createActions<T>({
     setSelectedItems(selectedItems: Array<T>) {
       dispatch({ type: 'selection', selectedItems });
     },
-    setExpandedItems(expandedItems: ReadonlyArray<T>) {
-      dispatch({ type: 'expand', expandedItems });
+    setExpandedGroups(expandedGroups: Iterable<string>) {
+      dispatch({ type: 'expand', expandedGroups });
     },
     setPropertyFiltering(query: PropertyFilterQuery) {
       dispatch({ type: 'property-filtering', query });
@@ -113,7 +112,7 @@ export function createSyncProps<T>(
     filteringText,
     sortingState,
     selectedItems,
-    expandedItems,
+    expandedGroups,
     currentPageIndex,
     propertyFilteringQuery,
   }: CollectionState<T>,
@@ -167,30 +166,24 @@ export function createSyncProps<T>(
             sortingDescending: sortingState?.isDescending,
           }
         : {}),
-      ...(options.expandableItems
+      ...(options.expandableGroups
         ? {
-            getItemParent: options.expandableItems.getParent,
-            getItemExpandable: options.expandableItems.isExpandable,
-            getItemExpanded: (item: T) =>
-              !!expandedItems.find(
-                otherItem =>
-                  getTrackableValue(options.expandableItems?.trackBy, item) ===
-                  getTrackableValue(options.expandableItems?.trackBy, otherItem)
-              ),
-            onItemExpandedChange: ({ detail: { item, expanded } }) => {
-              const expandedItemIndex = expandedItems.findIndex(
-                otherItem =>
-                  getTrackableValue(options.expandableItems?.trackBy, item) ===
-                  getTrackableValue(options.expandableItems?.trackBy, otherItem)
-              );
-              const newExpandedItems = [...expandedItems];
-              if (expandedItemIndex !== -1) {
-                newExpandedItems.splice(expandedItemIndex, 1);
+            getItemGroupProps: item => {
+              const groupKey = options.expandableGroups!.getGroupKey(item);
+              const parentGroup = options.expandableGroups!.getParentGroup(item);
+              const expandable = options.expandableGroups!.isGroupExpandable(item);
+              const expanded = expandedGroups.has(groupKey);
+              return { parentGroup, groupKey, expandable, expanded };
+            },
+            onItemGroupChange: ({ detail: { item, expanded } }) => {
+              const itemKey = options.expandableGroups!.getGroupKey(item);
+              const newExpandedGroups = new Set(expandedGroups);
+              if (!expanded) {
+                newExpandedGroups.delete(itemKey);
+              } else {
+                newExpandedGroups.add(itemKey);
               }
-              if (expanded) {
-                newExpandedItems.push(item);
-              }
-              actions.setExpandedItems(newExpandedItems);
+              actions.setExpandedGroups(newExpandedGroups);
             },
           }
         : {}),

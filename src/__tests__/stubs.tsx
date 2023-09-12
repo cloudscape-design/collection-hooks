@@ -61,9 +61,7 @@ const Table = React.forwardRef<CollectionRef, TableProps>(
       sortingDescending,
       onSortingChange,
       selectedItems,
-      getItemParent,
-      getItemExpanded,
-      getItemExpandable,
+      getItemGroupProps,
       onSelectionChange,
       trackBy,
       firstIndex,
@@ -103,31 +101,34 @@ const Table = React.forwardRef<CollectionRef, TableProps>(
         <span data-testid="selected-items">{selectedItems && selectedItems.length}</span>
         <span data-testid="total-items-count">{totalItemsCount}</span>
         <ul>
-          {items.map((item, i) => (
-            <li
-              key={item.id}
-              data-testid="item"
-              data-rowindex={firstIndex ? firstIndex + i : undefined}
-              data-selected={
-                selectedItems &&
-                (selectedItems.indexOf(item) !== -1 ||
-                  (trackBy &&
-                    selectedItems.filter(
-                      selectedItem => getTrackableValue(trackBy, selectedItem) === getTrackableValue(trackBy, item)
-                    ).length > 0))
-                  ? 'true'
-                  : 'false'
-              }
-              data-expanded={getItemExpanded?.(item) ?? false}
-              data-expandable={getItemExpandable?.(item) ?? false}
-              onClick={() =>
-                onSelectionChange &&
-                onSelectionChange(new CustomEvent('cloudscape', { detail: { selectedItems: [item] } }))
-              }
-            >
-              {item.id}
-            </li>
-          ))}
+          {items.map((item, i) => {
+            const itemGroupProps = getItemGroupProps?.(item);
+            return (
+              <li
+                key={item.id}
+                data-testid="item"
+                data-rowindex={firstIndex ? firstIndex + i : undefined}
+                data-selected={
+                  selectedItems &&
+                  (selectedItems.indexOf(item) !== -1 ||
+                    (trackBy &&
+                      selectedItems.filter(
+                        selectedItem => getTrackableValue(trackBy, selectedItem) === getTrackableValue(trackBy, item)
+                      ).length > 0))
+                    ? 'true'
+                    : 'false'
+                }
+                data-expandable={itemGroupProps?.expandable ?? false}
+                data-expanded={itemGroupProps?.expanded ?? false}
+                onClick={() =>
+                  onSelectionChange &&
+                  onSelectionChange(new CustomEvent('cloudscape', { detail: { selectedItems: [item] } }))
+                }
+              >
+                {item.id}
+              </li>
+            );
+          })}
         </ul>
       </div>
     );
