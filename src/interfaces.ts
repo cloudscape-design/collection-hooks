@@ -80,12 +80,21 @@ export interface CollectionState<T> {
   expandedGroups: ReadonlySet<string>;
 }
 
+export interface InternalCollectionActions<T> {
+  setFiltering(filteringText: string): void;
+  setCurrentPage(pageNumber: number): void;
+  setSorting(state: SortingState<T>): void;
+  setSelectedItems(selectedItems: ReadonlyArray<T>): void;
+  setExpandedGroups(expandedGroups: ReadonlySet<string>): void;
+  setPropertyFiltering(query: PropertyFilterQuery): void;
+}
+
 export interface CollectionActions<T> {
   setFiltering(filteringText: string): void;
   setCurrentPage(pageNumber: number): void;
   setSorting(state: SortingState<T>): void;
   setSelectedItems(selectedItems: ReadonlyArray<T>): void;
-  setExpandedGroups(expandedGroups: Iterable<string>): void;
+  setExpandedGroups(expandedGroups: ReadonlyArray<T>): void;
   setPropertyFiltering(query: PropertyFilterQuery): void;
 }
 

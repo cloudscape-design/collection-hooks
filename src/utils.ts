@@ -2,7 +2,6 @@
 // SPDX-License-Identifier: Apache-2.0
 import { Dispatch, Reducer, ReactNode } from 'react';
 import {
-  CollectionActions,
   UseCollectionOptions,
   CollectionState,
   SortingState,
@@ -10,6 +9,7 @@ import {
   CollectionRef,
   PropertyFilterQuery,
   PropertyFilterOption,
+  InternalCollectionActions,
 } from './interfaces';
 import { fixupFalsyValues } from './operations/property-filter.js';
 
@@ -79,7 +79,7 @@ export function createActions<T>({
 }: {
   dispatch: Dispatch<Action<T>>;
   collectionRef: React.RefObject<CollectionRef>;
-}): CollectionActions<T> {
+}): InternalCollectionActions<T> {
   return {
     setFiltering(filteringText) {
       dispatch({ type: 'filtering', filteringText });
@@ -116,7 +116,7 @@ export function createSyncProps<T>(
     currentPageIndex,
     propertyFilteringQuery,
   }: CollectionState<T>,
-  actions: CollectionActions<T>,
+  actions: InternalCollectionActions<T>,
   collectionRef: React.RefObject<CollectionRef>,
   {
     pagesCount,

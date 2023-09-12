@@ -618,7 +618,7 @@ describe('expandable items', () => {
           <Demo {...result} />
           <button
             data-testid="expand-all"
-            onClick={() => result.actions.setExpandedGroups(allItems.map(getGroupKey))}
+            onClick={() => result.actions.setExpandedGroups(allItems.map(item => ({ ...item })))}
           ></button>
         </div>
       );

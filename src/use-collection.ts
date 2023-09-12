@@ -43,7 +43,15 @@ export function useCollection<T>(allItems: ReadonlyArray<T>, options: UseCollect
     items,
     allPageItems,
     filteredItemsCount,
-    actions,
+    actions: {
+      ...actions,
+      setExpandedGroups(expandedGroups) {
+        if (options.expandableGroups) {
+          const itemKeys = expandedGroups.map(options.expandableGroups.getGroupKey);
+          actions.setExpandedGroups(new Set(itemKeys));
+        }
+      },
+    },
     ...createSyncProps(options, state, actions, collectionRef, {
       actualPageIndex,
       pagesCount,
