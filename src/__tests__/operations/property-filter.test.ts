@@ -7,13 +7,13 @@ const propertyFiltering = {
   filteringProperties: [
     {
       key: 'id',
-      operators: [':', '!:'],
+      operators: [':', '!:', '^='],
       groupValuesLabel: 'Id values',
       propertyLabel: 'Id',
     },
     {
       key: 'field',
-      operators: [':', '!:'],
+      operators: [':', '!:', '^='],
       groupValuesLabel: 'Field values',
       propertyLabel: 'Field',
     },
@@ -154,7 +154,7 @@ describe('Supported operators', () => {
     const { items: processed } = processItems(items, { propertyFilteringQuery: operatorQuery }, { propertyFiltering });
     expect(processed).toEqual([items[3]]);
   });
-  test.each<PropertyFilterOperator>(['<', '<=', '>', '>=', ':', '!:', '!='])(
+  test.each<PropertyFilterOperator>(['<', '<=', '>', '>=', ':', '!:', '!=', '^='])(
     '%s operator is not supported by default',
     operator => {
       const operatorQuery = {
@@ -278,6 +278,21 @@ test('"contains" operator is case-insensitive', () => {
   const freeTextQuery = { tokens: [{ operator: ':', value: 'match me' }], operation: 'and' } as const;
   const { items: processed } = processItems(items, { propertyFilteringQuery: freeTextQuery }, { propertyFiltering });
   expect(processed).toEqual([items[0], items[2]]);
+});
+
+test('"starts-with" operator matching', () => {
+  const items = [
+    { id: 1, field: 'match me' },
+    { id: 2, field: 'match mee' },
+    { id: 3, field: 'match ME too' },
+    { id: 4, field: 'match not me' },
+  ];
+  const freeTextQuery = {
+    tokens: [{ propertyKey: 'field', operator: '^=', value: 'match me' }],
+    operation: 'and',
+  } as const;
+  const { items: processed } = processItems(items, { propertyFilteringQuery: freeTextQuery }, { propertyFiltering });
+  expect(processed).toEqual([items[0], items[1], items[2]]);
 });
 
 describe('filtering function', () => {
