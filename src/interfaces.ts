@@ -112,7 +112,7 @@ export interface CollectionRef {
   scrollToTop: () => void;
 }
 
-export type PropertyFilterOperator = '<' | '<=' | '>' | '>=' | ':' | '!:' | '=' | '!=' | '^=';
+export type PropertyFilterOperator = '<' | '<=' | '>' | '>=' | ':' | '!:' | '=' | '!=' | '^';
 
 export interface PropertyFilterOperatorExtended<TokenValue> {
   operator: PropertyFilterOperator;

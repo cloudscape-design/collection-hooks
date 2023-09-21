@@ -59,7 +59,7 @@ const filterUsingOperator = (
       return (itemValue + '').toLowerCase().indexOf((tokenValue + '').toLowerCase()) > -1;
     case '!:':
       return (itemValue + '').toLowerCase().indexOf((tokenValue + '').toLowerCase()) === -1;
-    case '^=':
+    case '^':
       return (itemValue + '').toLowerCase().startsWith((tokenValue + '').toLowerCase());
   }
 };
