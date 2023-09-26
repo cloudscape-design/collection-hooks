@@ -13,7 +13,7 @@ const propertyFiltering = {
     },
     {
       key: 'field',
-      operators: [':', '!:', '^'],
+      operators: [':', '!:', '^', '?'],
       groupValuesLabel: 'Field values',
       propertyLabel: 'Field',
     },
@@ -287,12 +287,31 @@ test('"starts-with" operator matching', () => {
     { id: 3, field: 'match ME too' },
     { id: 4, field: 'match not me' },
   ];
-  const freeTextQuery = {
+  const startsWithQuery = {
     tokens: [{ propertyKey: 'field', operator: '^', value: 'match me' }],
     operation: 'and',
   } as const;
-  const { items: processed } = processItems(items, { propertyFilteringQuery: freeTextQuery }, { propertyFiltering });
+  const { items: processed } = processItems(items, { propertyFilteringQuery: startsWithQuery }, { propertyFiltering });
   expect(processed).toEqual([items[0], items[1], items[2]]);
+});
+
+test('unsupported operator matching', () => {
+  const items = [
+    { id: 1, field: 'match me' },
+    { id: 2, field: 'match mee' },
+    { id: 3, field: 'match ME too' },
+    { id: 4, field: 'match not me' },
+  ];
+  const unsupportedOperatorQuery = {
+    tokens: [{ propertyKey: 'field', operator: '?', value: '???' }],
+    operation: 'and',
+  } as const;
+  const { items: processed } = processItems(
+    items,
+    { propertyFilteringQuery: unsupportedOperatorQuery },
+    { propertyFiltering }
+  );
+  expect(processed).toEqual([items[0], items[1], items[2], items[3]]);
 });
 
 describe('filtering function', () => {
