@@ -40,7 +40,7 @@ const filterUsingOperator = (
     throw new Error('Unsupported `operator.match` type given.');
   }
 
-  switch (operator) {
+  switch (operator as string) {
     case '<':
       return itemValue < tokenValue;
     case '<=':

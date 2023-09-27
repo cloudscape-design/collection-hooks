@@ -28,7 +28,7 @@ export interface SelectionChangeDetail<T> {
 
 export type TrackBy<T> = string | ((item: T) => string);
 
-export interface UseCollectionOptions<T> {
+export interface UseCollectionOptions<T, OperatorType extends string = PropertyFilterOperator> {
   filtering?: FilteringOptions<T> & {
     empty?: React.ReactNode;
     noMatch?: React.ReactNode;
@@ -37,10 +37,10 @@ export interface UseCollectionOptions<T> {
   propertyFiltering?: {
     empty?: React.ReactNode;
     noMatch?: React.ReactNode;
-    filteringProperties: readonly PropertyFilterProperty[];
+    filteringProperties: readonly PropertyFilterProperty<any, OperatorType>[];
     // custom filtering function
-    filteringFunction?: (item: T, query: PropertyFilterQuery) => boolean;
-    defaultQuery?: PropertyFilterQuery;
+    filteringFunction?: (item: T, query: PropertyFilterQuery<OperatorType>) => boolean;
+    defaultQuery?: PropertyFilterQuery<OperatorType>;
   };
   sorting?: { defaultState?: SortingState<T> };
   pagination?: { defaultPage?: number; pageSize?: number };
@@ -51,26 +51,26 @@ export interface UseCollectionOptions<T> {
   };
 }
 
-export interface CollectionState<T> {
+export interface CollectionState<T, OperatorType extends string = PropertyFilterOperator> {
   filteringText: string;
-  propertyFilteringQuery: PropertyFilterQuery;
+  propertyFilteringQuery: PropertyFilterQuery<OperatorType>;
   currentPageIndex: number;
   sortingState?: SortingState<T>;
   selectedItems: ReadonlyArray<T>;
 }
 
-export interface CollectionActions<T> {
+export interface CollectionActions<T, OperatorType extends string = PropertyFilterOperator> {
   setFiltering(filteringText: string): void;
   setCurrentPage(pageNumber: number): void;
   setSorting(state: SortingState<T>): void;
   setSelectedItems(selectedItems: ReadonlyArray<T>): void;
-  setPropertyFiltering(query: PropertyFilterQuery): void;
+  setPropertyFiltering(query: PropertyFilterQuery<OperatorType>): void;
 }
 
-interface UseCollectionResultBase<T> {
+interface UseCollectionResultBase<T, OperatorType extends string = PropertyFilterOperator> {
   items: ReadonlyArray<T>;
   allPageItems: ReadonlyArray<T>;
-  actions: CollectionActions<T>;
+  actions: CollectionActions<T, OperatorType>;
   collectionProps: {
     empty?: React.ReactNode;
     onSortingChange?(event: CustomEventLike<SortingState<T>>): void;
@@ -90,8 +90,8 @@ interface UseCollectionResultBase<T> {
   };
   propertyFilterProps: {
     query: PropertyFilterQuery;
-    onChange(event: CustomEventLike<PropertyFilterQuery>): void;
-    filteringProperties: readonly PropertyFilterProperty[];
+    onChange(event: CustomEventLike<PropertyFilterQuery<OperatorType>>): void;
+    filteringProperties: readonly PropertyFilterProperty<any, OperatorType>[];
     filteringOptions: readonly PropertyFilterOption[];
   };
   paginationProps: {
@@ -101,9 +101,10 @@ interface UseCollectionResultBase<T> {
   };
 }
 
-export interface UseCollectionResult<T> extends UseCollectionResultBase<T> {
+export interface UseCollectionResult<T, OperatorType extends string = PropertyFilterOperator>
+  extends UseCollectionResultBase<T, OperatorType> {
   filteredItemsCount: number | undefined;
-  paginationProps: UseCollectionResultBase<T>['paginationProps'] & {
+  paginationProps: UseCollectionResultBase<T, OperatorType>['paginationProps'] & {
     pagesCount: number;
   };
 }
@@ -112,10 +113,10 @@ export interface CollectionRef {
   scrollToTop: () => void;
 }
 
-export type PropertyFilterOperator = '<' | '<=' | '>' | '>=' | ':' | '!:' | '=' | '!=' | '^' | string;
+export type PropertyFilterOperator = '<' | '<=' | '>' | '>=' | ':' | '!:' | '=' | '!=';
 
-export interface PropertyFilterOperatorExtended<TokenValue> {
-  operator: PropertyFilterOperator;
+export interface PropertyFilterOperatorExtended<TokenValue, OperatorType extends string = PropertyFilterOperator> {
+  operator: OperatorType;
   match?: PropertyFilterOperatorMatch<TokenValue>;
   form?: PropertyFilterOperatorForm<TokenValue>;
   format?: PropertyFilterOperatorFormat<TokenValue>;
@@ -129,11 +130,11 @@ export type PropertyFilterOperatorMatchByType = 'date' | 'datetime';
 
 export type PropertyFilterOperatorMatchCustom<TokenValue> = (itemValue: unknown, tokenValue: TokenValue) => boolean;
 
-export interface PropertyFilterOperatorFormProps<TokenValue> {
+export interface PropertyFilterOperatorFormProps<TokenValue, OperatorType extends string = PropertyFilterOperator> {
   value: null | TokenValue;
   onChange: (value: null | TokenValue) => void;
   filter?: string;
-  operator: PropertyFilterOperator;
+  operator: OperatorType;
 }
 
 export type PropertyFilterOperatorForm<TokenValue> = React.FC<PropertyFilterOperatorFormProps<TokenValue>>;
@@ -141,23 +142,23 @@ export type PropertyFilterOperatorForm<TokenValue> = React.FC<PropertyFilterOper
 export type PropertyFilterOperatorFormat<TokenValue> = (value: TokenValue) => string;
 
 export type PropertyFilterOperation = 'and' | 'or';
-export interface PropertyFilterToken {
+export interface PropertyFilterToken<OperatorType extends string = PropertyFilterOperator> {
   // By default, the token value is a string.
   // When a custom property is used, the token value can be any;
   value: any;
   propertyKey?: string;
-  operator: PropertyFilterOperator;
+  operator: OperatorType;
 }
-export interface PropertyFilterQuery {
-  tokens: readonly PropertyFilterToken[];
+export interface PropertyFilterQuery<OperatorType extends string = PropertyFilterOperator> {
+  tokens: readonly PropertyFilterToken<OperatorType>[];
   operation: PropertyFilterOperation;
 }
-export interface PropertyFilterProperty<TokenValue = any> {
+export interface PropertyFilterProperty<TokenValue = any, OperatorType extends string = PropertyFilterOperator> {
   key: string;
   groupValuesLabel: string;
   propertyLabel: string;
-  operators?: readonly (PropertyFilterOperator | PropertyFilterOperatorExtended<TokenValue>)[];
-  defaultOperator?: PropertyFilterOperator;
+  operators?: readonly (OperatorType | PropertyFilterOperatorExtended<TokenValue, OperatorType>)[];
+  defaultOperator?: OperatorType;
   group?: string;
 }
 export interface PropertyFilterOption {
