@@ -61,9 +61,10 @@ const filterUsingOperator = (
       return (itemValue + '').toLowerCase().indexOf((tokenValue + '').toLowerCase()) === -1;
     case '^':
       return (itemValue + '').toLowerCase().startsWith((tokenValue + '').toLowerCase());
-    // The unsupported operators result in no data being filtered out.
+    // The unsupported operators result in an exception being thrown.
+    // The exception can be avoided if using the match function.
     default:
-      return true;
+      throw new Error('Unsupported operator given.');
   }
 };
 

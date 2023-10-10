@@ -295,23 +295,15 @@ test('"starts-with" operator matching', () => {
   expect(processed).toEqual([items[0], items[1], items[2]]);
 });
 
-test('unsupported operator matching', () => {
-  const items = [
-    { id: 1, field: 'match me' },
-    { id: 2, field: 'match mee' },
-    { id: 3, field: 'match ME too' },
-    { id: 4, field: 'match not me' },
-  ];
+test('unsupported operator results in an exception', () => {
+  const items = [{ id: 1, field: 'match me' }];
   const unsupportedOperatorQuery = {
     tokens: [{ propertyKey: 'field', operator: '?', value: '???' }],
     operation: 'and',
   } as const;
-  const { items: processed } = processItems(
-    items,
-    { propertyFilteringQuery: unsupportedOperatorQuery },
-    { propertyFiltering }
-  );
-  expect(processed).toEqual([items[0], items[1], items[2], items[3]]);
+  expect(() =>
+    processItems(items, { propertyFilteringQuery: unsupportedOperatorQuery }, { propertyFiltering })
+  ).toThrow('Unsupported operator given.');
 });
 
 describe('filtering function', () => {
