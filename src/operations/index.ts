@@ -43,6 +43,15 @@ export function processItems<T>(
     result = sort(result, sortingState);
   }
 
+  if (treeProps) {
+    result = [...result].sort((a, b) => {
+      if (treeProps.getParentId(a) === treeProps.getParentId(b) && itemsTree.getLevel(a) === itemsTree.getLevel(b)) {
+        return 0;
+      }
+      return itemsTree.getOrder(a) - itemsTree.getOrder(b);
+    });
+  }
+
   const allPageResult = result;
   if (pagination) {
     pagesCount = getPagesCount(result, pagination.pageSize);
