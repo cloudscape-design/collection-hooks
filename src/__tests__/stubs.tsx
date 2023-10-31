@@ -61,7 +61,8 @@ const Table = React.forwardRef<CollectionRef, TableProps>(
       sortingDescending,
       onSortingChange,
       selectedItems,
-      getItemGroupProps,
+      getItemLevel,
+      getItemExpandable,
       onSelectionChange,
       trackBy,
       firstIndex,
@@ -102,7 +103,6 @@ const Table = React.forwardRef<CollectionRef, TableProps>(
         <span data-testid="total-items-count">{totalItemsCount}</span>
         <ul>
           {items.map((item, i) => {
-            const itemGroupProps = getItemGroupProps?.(item);
             return (
               <li
                 key={item.id}
@@ -118,8 +118,8 @@ const Table = React.forwardRef<CollectionRef, TableProps>(
                     ? 'true'
                     : 'false'
                 }
-                data-expandable={itemGroupProps?.expandable ?? false}
-                data-expanded={itemGroupProps?.expanded ?? false}
+                data-level={getItemLevel?.(item)}
+                data-expandable={getItemExpandable?.(item)}
                 onClick={() =>
                   onSelectionChange &&
                   onSelectionChange(new CustomEvent('cloudscape', { detail: { selectedItems: [item] } }))

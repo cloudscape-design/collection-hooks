@@ -10,6 +10,7 @@ import {
   PropertyFilterQuery,
   PropertyFilterOption,
   InternalCollectionActions,
+  ItemsTree,
 } from './interfaces';
 import { fixupFalsyValues } from './operations/property-filter.js';
 
@@ -19,7 +20,7 @@ interface SelectionAction<T> {
 }
 interface ExpandAction {
   type: 'expand';
-  expandedGroups: Iterable<string>;
+  expandedItems: Iterable<string>;
 }
 interface SortingAction<T> {
   type: 'sorting';
@@ -52,7 +53,7 @@ export function collectionReducer<T>(state: CollectionState<T>, action: Action<T
       newState.selectedItems = action.selectedItems;
       break;
     case 'expand':
-      newState.expandedGroups = new Set(action.expandedGroups);
+      newState.expandedItems = new Set(action.expandedItems);
       break;
     case 'filtering':
       newState.currentPageIndex = 1;
@@ -96,12 +97,12 @@ export function createActions<T>({
     setSelectedItems(selectedItems: Array<T>) {
       dispatch({ type: 'selection', selectedItems });
     },
-    setExpandedGroups(expandedGroups: Iterable<string>) {
-      dispatch({ type: 'expand', expandedGroups });
-    },
     setPropertyFiltering(query: PropertyFilterQuery) {
       dispatch({ type: 'property-filtering', query });
       collectionRef.current && collectionRef.current.scrollToTop();
+    },
+    setExpandedItems(expandedItems: Iterable<string>) {
+      dispatch({ type: 'expand', expandedItems });
     },
   };
 }
@@ -112,7 +113,7 @@ export function createSyncProps<T>(
     filteringText,
     sortingState,
     selectedItems,
-    expandedGroups,
+    expandedItems,
     currentPageIndex,
     propertyFilteringQuery,
   }: CollectionState<T>,
@@ -123,7 +124,14 @@ export function createSyncProps<T>(
     actualPageIndex,
     allItems,
     allPageItems,
-  }: { pagesCount?: number; actualPageIndex?: number; allItems: ReadonlyArray<T>; allPageItems: ReadonlyArray<T> }
+    itemsTree,
+  }: {
+    pagesCount?: number;
+    actualPageIndex?: number;
+    allItems: ReadonlyArray<T>;
+    allPageItems: ReadonlyArray<T>;
+    itemsTree: ItemsTree<T>;
+  }
 ): Pick<UseCollectionResult<T>, 'collectionProps' | 'filterProps' | 'paginationProps' | 'propertyFilterProps'> {
   let empty: ReactNode | null = options.filtering
     ? allItems.length
@@ -166,24 +174,23 @@ export function createSyncProps<T>(
             sortingDescending: sortingState?.isDescending,
           }
         : {}),
-      ...(options.expandableGroups
+      ...(options.treeProps
         ? {
-            getItemGroupProps: item => {
-              const groupKey = options.expandableGroups!.getGroupKey(item);
-              const parentGroup = options.expandableGroups!.getParentGroup(item);
-              const expandable = options.expandableGroups!.isGroupExpandable(item);
-              const expanded = expandedGroups.has(groupKey);
-              return { parentGroup, groupKey, expandable, expanded };
+            getItemLevel(item: T) {
+              return itemsTree.getLevel(item);
             },
-            onItemGroupChange: ({ detail: { item, expanded } }) => {
-              const itemKey = options.expandableGroups!.getGroupKey(item);
-              const newExpandedGroups = new Set(expandedGroups);
-              if (!expanded) {
-                newExpandedGroups.delete(itemKey);
+            getItemExpandable(item: T) {
+              return itemsTree.hasChildren(item);
+            },
+            onExpandableItemToggle: ({ detail: { item } }) => {
+              const itemKey = options.treeProps!.getId(item);
+              const newExpandedItems = new Set(expandedItems);
+              if (newExpandedItems.has(itemKey)) {
+                newExpandedItems.delete(itemKey);
               } else {
-                newExpandedGroups.add(itemKey);
+                newExpandedItems.add(itemKey);
               }
-              actions.setExpandedGroups(newExpandedGroups);
+              actions.setExpandedItems(newExpandedItems);
             },
           }
         : {}),

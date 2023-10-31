@@ -9,7 +9,7 @@ import { useCollectionState } from './use-collection-state.js';
 export function useCollection<T>(allItems: ReadonlyArray<T>, options: UseCollectionOptions<T>): UseCollectionResult<T> {
   const collectionRef = useRef<CollectionRef>(null);
   const [state, actions] = useCollectionState(options, collectionRef);
-  const { items, allPageItems, pagesCount, filteredItemsCount, actualPageIndex } = processItems(
+  const { items, allPageItems, pagesCount, filteredItemsCount, actualPageIndex, itemsTree } = processItems(
     allItems,
     state,
     options
@@ -24,18 +24,18 @@ export function useCollection<T>(allItems: ReadonlyArray<T>, options: UseCollect
   }
 
   // Removing expanded items that are no longer present in items.
-  if (options.expandableGroups) {
+  if (options.treeProps) {
     const newExpandedGroups = new Set<string>();
 
     for (const item of items) {
-      const itemKey = options.expandableGroups.getGroupKey(item);
+      const itemKey = options.treeProps.getId(item);
 
-      if (state.expandedGroups.has(itemKey)) {
+      if (state.expandedItems.has(itemKey)) {
         newExpandedGroups.add(itemKey);
       }
     }
-    if (newExpandedGroups.size !== state.expandedGroups.size) {
-      actions.setExpandedGroups(newExpandedGroups);
+    if (newExpandedGroups.size !== state.expandedItems.size) {
+      actions.setExpandedItems(newExpandedGroups);
     }
   }
 
@@ -45,10 +45,15 @@ export function useCollection<T>(allItems: ReadonlyArray<T>, options: UseCollect
     filteredItemsCount,
     actions: {
       ...actions,
-      setExpandedGroups(expandedGroups) {
-        if (options.expandableGroups) {
-          const itemKeys = expandedGroups.map(options.expandableGroups.getGroupKey);
-          actions.setExpandedGroups(new Set(itemKeys));
+      setItemExpanded(item, expanded) {
+        if (options.treeProps) {
+          const expandedItems = new Set(state.expandedItems);
+          if (expanded) {
+            expandedItems.add(options.treeProps.getId(item));
+          } else {
+            expandedItems.delete(options.treeProps.getId(item));
+          }
+          actions.setExpandedItems(expandedItems);
         }
       },
     },
@@ -57,6 +62,7 @@ export function useCollection<T>(allItems: ReadonlyArray<T>, options: UseCollect
       pagesCount,
       allItems,
       allPageItems,
+      itemsTree,
     }),
   };
 }
