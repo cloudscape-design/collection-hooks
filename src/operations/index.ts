@@ -102,6 +102,7 @@ export function createItemsTree<T>(
   const itemIdToIndex = new Map<string, number>();
   const itemIdToLevel = new Map<string, number>();
   const itemIdToChildren = new Map<string, number>();
+  const itemToHidden = new Map<string, boolean>();
   const itemIdToOrder = new Map<string, number>();
 
   for (let index = 0; index < items.length; index++) {
@@ -126,16 +127,18 @@ export function createItemsTree<T>(
     }
 
     const parent = itemIdToItem.get(parentId);
-    if (!parent || !expandedItems.has(parentId)) {
-      itemIdToItem.delete(itemId);
-      return;
+    const parentHidden = itemToHidden.get(parentId) ?? false;
+    if (parentHidden || !expandedItems.has(parentId)) {
+      itemToHidden.set(itemId, true);
     }
 
-    if (itemIdToLevel.get(parentId) === undefined) {
-      traverse(parent, fn);
-    }
+    if (parent) {
+      if (itemIdToLevel.get(parentId) === undefined) {
+        traverse(parent, fn);
+      }
 
-    fn(item, parent);
+      fn(item, parent);
+    }
   }
 
   function levelOrder(index: number, level: number) {
@@ -164,7 +167,7 @@ export function createItemsTree<T>(
   }
 
   return {
-    isVisible: (item: T) => Boolean(itemIdToItem.get(getId(item))),
+    isVisible: (item: T) => itemToHidden.get(getId(item)) !== true,
     getLevel: (item: T) => itemIdToLevel.get(getId(item)) ?? 1,
     hasChildren: (item: T) => (itemIdToChildren.get(getId(item)) ?? 0) > 0,
     getOrder: (item: T) => itemIdToOrder.get(getId(item)) ?? 0,
