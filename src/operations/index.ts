@@ -5,7 +5,7 @@ import { createFilter } from './filter.js';
 import { createPropertyFilter } from './property-filter.js';
 import { createComparator } from './sort.js';
 import { getPagesCount, normalizePageIndex, paginate } from './paginate.js';
-import { ItemsTree } from './items-tree';
+import { ItemsTree } from './items-tree.js';
 
 export function processItems<T>(
   items: ReadonlyArray<T>,
