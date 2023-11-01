@@ -176,11 +176,19 @@ export function createSyncProps<T>(
         : {}),
       ...(options.treeProps
         ? {
-            getItemLevel(item: T) {
-              return itemsTree.getLevel(item);
-            },
+            getItemLevel: options.treeProps.alternativeAPI
+              ? undefined
+              : (item: T) => {
+                  return itemsTree.getLevel(item);
+                },
             getItemExpandable(item: T) {
               return itemsTree.hasChildren(item);
+            },
+            getItemChildren(item: T) {
+              return itemsTree.getChildren(item);
+            },
+            getItemExpanded(item: T) {
+              return expandedItems.has(options.treeProps!.getId(item));
             },
             onExpandableItemToggle: ({ detail: { item } }) => {
               const itemKey = options.treeProps!.getId(item);

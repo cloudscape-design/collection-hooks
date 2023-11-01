@@ -62,9 +62,18 @@ export class ItemsTree<T> {
     if (this.treeProps && this.tree) {
       const itemId = this.treeProps.getId(item);
       const node = this.tree.idToNode.get(itemId);
-      return Boolean(node && node.children.length > 0);
+      return node ? node.children.length > 0 : false;
     }
     return false;
+  }
+
+  getChildren(item: T): T[] {
+    if (this.treeProps && this.tree) {
+      const itemId = this.treeProps.getId(item);
+      const node = this.tree.idToNode.get(itemId);
+      return node ? node.children.map(c => c.item) : [];
+    }
+    return [];
   }
 
   getLevel(item: T): number {
@@ -77,8 +86,8 @@ export class ItemsTree<T> {
   }
 
   toItems(): ReadonlyArray<T> {
-    if (this.tree) {
-      return flattenTree(this.tree);
+    if (this.treeProps && this.tree) {
+      return this.treeProps.alternativeAPI ? this.tree.roots.map(n => n.item) : flattenTree(this.tree);
     }
     return this.items;
   }
