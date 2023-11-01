@@ -1,9 +1,9 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
 import { UseCollectionOptions, CollectionState, TrackBy, TreeProps, ItemsTree } from '../interfaces';
-import { filter } from './filter.js';
-import { propertyFilter } from './property-filter.js';
-import { sort } from './sort.js';
+import { createFilter } from './filter.js';
+import { createPropertyFilter } from './property-filter.js';
+import { createComparator } from './sort.js';
 import { getPagesCount, normalizePageIndex, paginate } from './paginate.js';
 
 export function processItems<T>(
@@ -33,24 +33,20 @@ export function processItems<T>(
     // convert tree into a plain array once all operations are completed
   }
 
-  if (propertyFiltering) {
-    result = propertyFilter(result, propertyFilteringQuery || { tokens: [], operation: 'and' }, propertyFiltering);
+  const filter = composeFilters([
+    propertyFiltering
+      ? createPropertyFilter(propertyFilteringQuery || { tokens: [], operation: 'and' }, propertyFiltering)
+      : null,
+    filtering ? createFilter(filteringText, filtering) : null,
+  ]);
+  if (filter) {
+    result = result.filter(filter);
     filteredItemsCount = result.length;
   }
 
-  // TODO: join filter functions
-  if (filtering) {
-    result = filter(result, filteringText, filtering);
-    filteredItemsCount = result.length;
-  }
-
-  // TODO: join filters and find rem items
-  // TODO: use rem items to keep items and their parents
-
-  // TODO: create comparator
-  // TODO: enhance comparator with tree comparator
-  if (sorting) {
-    result = sort(result, sortingState);
+  const comparator = sorting ? createComparator(sortingState) : null;
+  if (comparator) {
+    result = result.slice().sort(comparator);
   }
 
   const allPageResult = result;
@@ -168,4 +164,22 @@ export function createItemsTree<T>(
     getLevel: (item: T) => itemIdToLevel.get(getId(item)) ?? 1,
     hasChildren: (item: T) => (itemIdToChildren.get(getId(item)) ?? 0) > 0,
   };
+}
+
+type Filter<T> = (item: T) => boolean;
+
+function composeFilters<T>(filters: Array<null | Filter<T>>): null | Filter<T> {
+  const definedFilters: Filter<T>[] = [];
+  for (const filter of filters) {
+    if (filter) {
+      definedFilters.push(filter);
+    }
+  }
+  if (definedFilters.length === 0) {
+    return null;
+  }
+  return definedFilters.reduce(
+    (composedFilter, filter) => (item: T) => composedFilter(item) || filter(item),
+    () => true
+  );
 }

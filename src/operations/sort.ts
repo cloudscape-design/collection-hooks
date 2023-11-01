@@ -18,9 +18,9 @@ function getSorter<T>(sortingField: keyof T) {
   };
 }
 
-export function sort<T>(items: ReadonlyArray<T>, state: SortingState<T> | undefined): ReadonlyArray<T> {
+export function createComparator<T>(state: SortingState<T> | undefined): null | ((a: T, b: T) => number) {
   if (!state) {
-    return items;
+    return null;
   }
   const { sortingColumn } = state;
 
@@ -31,11 +31,21 @@ export function sort<T>(items: ReadonlyArray<T>, state: SortingState<T> | undefi
       ? getSorter(sortingColumn.sortingField as keyof T)
       : undefined;
   if (!comparator) {
+    return null;
+  }
+  const direction = state.isDescending ? -1 : 1;
+  return (a, b) => comparator(a, b) * direction;
+}
+
+export function sort<T>(items: ReadonlyArray<T>, state: SortingState<T> | undefined): ReadonlyArray<T> {
+  const comparator = createComparator(state);
+
+  if (!comparator) {
     return items;
   }
   const sorted = items.slice();
-  const direction = state.isDescending ? -1 : 1;
-  sorted.sort((a, b) => comparator(a, b) * direction);
+
+  sorted.sort(comparator);
 
   return sorted;
 }

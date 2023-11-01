@@ -125,11 +125,10 @@ type FilteringOperatorsMap = {
   [key in PropertyFilterOperator]?: PropertyFilterOperatorExtended<any>;
 };
 
-export function propertyFilter<T>(
-  items: ReadonlyArray<T>,
+export function createPropertyFilter<T>(
   query: PropertyFilterQuery,
   { filteringFunction, filteringProperties }: NonNullable<UseCollectionOptions<T>['propertyFiltering']>
-): ReadonlyArray<T> {
+): (item: T) => boolean {
   const filteringPropertiesMap = filteringProperties.reduce<FilteringPropertiesMap<T>>(
     (acc: FilteringPropertiesMap<T>, { key, operators, defaultOperator }: PropertyFilterProperty) => {
       const operatorMap: FilteringOperatorsMap = { [defaultOperator ?? '=']: { operator: defaultOperator ?? '=' } };
@@ -149,7 +148,17 @@ export function propertyFilter<T>(
   );
 
   const filter = filteringFunction || defaultFilteringFunction(filteringPropertiesMap);
-  return items.filter(item => filter(item, query));
+
+  return item => filter(item, query);
+}
+
+export function propertyFilter<T>(
+  items: ReadonlyArray<T>,
+  query: PropertyFilterQuery,
+  options: NonNullable<UseCollectionOptions<T>['propertyFiltering']>
+): ReadonlyArray<T> {
+  const filter = createPropertyFilter(query, options);
+  return items.filter(filter);
 }
 
 export const fixupFalsyValues = <T>(value: T): T | string => {

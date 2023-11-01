@@ -17,10 +17,14 @@ function defaultFilteringFunction<T>(item: T, filteringText: string, filteringFi
   );
 }
 
-export function filter<T>(
-  items: ReadonlyArray<T>,
+export function createFilter<T>(
   filteringText = '',
   { filteringFunction = defaultFilteringFunction, fields }: FilteringOptions<T>
-): ReadonlyArray<T> {
-  return items.filter(item => filteringFunction(item, filteringText, fields));
+): (item: T) => boolean {
+  return item => filteringFunction(item, filteringText, fields);
+}
+
+export function filter<T>(items: ReadonlyArray<T>, filteringText = '', options: FilteringOptions<T>): ReadonlyArray<T> {
+  const filter = createFilter(filteringText, options);
+  return items.filter(filter);
 }
