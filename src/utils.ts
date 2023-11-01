@@ -10,9 +10,9 @@ import {
   PropertyFilterQuery,
   PropertyFilterOption,
   InternalCollectionActions,
-  ItemsTree,
 } from './interfaces';
 import { fixupFalsyValues } from './operations/property-filter.js';
+import { ItemsTree } from './operations/items-tree';
 
 interface SelectionAction<T> {
   type: 'selection';

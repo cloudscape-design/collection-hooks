@@ -63,12 +63,6 @@ export interface TreeProps<ItemType> {
   defaultExpandedItems?: ReadonlyArray<ItemType>;
 }
 
-export interface ItemsTree<ItemType> {
-  isVisible: (item: ItemType) => boolean;
-  getLevel: (item: ItemType) => number;
-  hasChildren: (item: ItemType) => boolean;
-}
-
 export interface CollectionState<T> {
   filteringText: string;
   propertyFilteringQuery: PropertyFilterQuery;
