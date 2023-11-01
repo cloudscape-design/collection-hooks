@@ -67,7 +67,6 @@ export interface ItemsTree<ItemType> {
   isVisible: (item: ItemType) => boolean;
   getLevel: (item: ItemType) => number;
   hasChildren: (item: ItemType) => boolean;
-  getOrder: (item: ItemType) => number;
 }
 
 export interface CollectionState<T> {

@@ -27,6 +27,10 @@ export function processItems<T>(
 
   if (treeProps) {
     result = result.filter(item => itemsTree.isVisible(item));
+
+    // TODO: create actual tree structure with support for filter and sort operations
+    // run filtering and sorting on the tree instead of items array when the API is used
+    // convert tree into a plain array once all operations are completed
   }
 
   if (propertyFiltering) {
@@ -34,22 +38,19 @@ export function processItems<T>(
     filteredItemsCount = result.length;
   }
 
+  // TODO: join filter functions
   if (filtering) {
     result = filter(result, filteringText, filtering);
     filteredItemsCount = result.length;
   }
 
+  // TODO: join filters and find rem items
+  // TODO: use rem items to keep items and their parents
+
+  // TODO: create comparator
+  // TODO: enhance comparator with tree comparator
   if (sorting) {
     result = sort(result, sortingState);
-  }
-
-  if (treeProps) {
-    result = [...result].sort((a, b) => {
-      if (treeProps.getParentId(a) === treeProps.getParentId(b) && itemsTree.getLevel(a) === itemsTree.getLevel(b)) {
-        return 0;
-      }
-      return itemsTree.getOrder(a) - itemsTree.getOrder(b);
-    });
   }
 
   const allPageResult = result;
@@ -101,18 +102,15 @@ export function createItemsTree<T>(
       isVisible: () => true,
       getLevel: () => 1,
       hasChildren: () => false,
-      getOrder: () => 0,
     };
   }
   const { getId, getParentId } = treeProps;
 
   const rootItems: T[] = [];
   const itemIdToItem = new Map<string, T>();
-  const itemIdToIndex = new Map<string, number>();
   const itemIdToLevel = new Map<string, number>();
   const itemIdToChildren = new Map<string, number>();
   const itemToHidden = new Map<string, boolean>();
-  const itemIdToOrder = new Map<string, number>();
 
   for (let index = 0; index < items.length; index++) {
     const item = items[index];
@@ -123,7 +121,6 @@ export function createItemsTree<T>(
       rootItems.push(item);
     }
     itemIdToItem.set(itemId, item);
-    itemIdToIndex.set(itemId, index);
   }
 
   function traverse(item: T, fn: (item: T, parent: null | T) => void) {
@@ -150,27 +147,18 @@ export function createItemsTree<T>(
     }
   }
 
-  function levelOrder(index: number, level: number) {
-    const pov = 10 ** (12 - level);
-    return index * pov;
-  }
-
   for (const rootItem of items) {
     traverse(rootItem, (item, parent) => {
       const itemId = getId(item);
-      const itemIndex = itemIdToIndex.get(itemId)!;
 
       if (!parent) {
         itemIdToLevel.set(itemId, 1);
-        itemIdToOrder.set(itemId, levelOrder(itemIndex, 1));
       } else {
         const parentId = getId(parent);
         const parentLevel = itemIdToLevel.get(parentId)!;
-        const parentOrder = itemIdToOrder.get(parentId)!;
 
         itemIdToLevel.set(itemId, parentLevel + 1);
         itemIdToChildren.set(parentId, (itemIdToChildren.get(parentId) ?? 0) + 1);
-        itemIdToOrder.set(itemId, parentOrder + levelOrder(itemIndex, parentLevel + 1));
       }
     });
   }
@@ -179,6 +167,5 @@ export function createItemsTree<T>(
     isVisible: (item: T) => itemToHidden.get(getId(item)) !== true,
     getLevel: (item: T) => itemIdToLevel.get(getId(item)) ?? 1,
     hasChildren: (item: T) => (itemIdToChildren.get(getId(item)) ?? 0) > 0,
-    getOrder: (item: T) => itemIdToOrder.get(getId(item)) ?? 0,
   };
 }
