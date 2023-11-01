@@ -24,20 +24,20 @@ export function useCollection<T>(allItems: ReadonlyArray<T>, options: UseCollect
   }
 
   // Removing expanded items that are no longer present in items.
-  if (options.treeProps) {
-    const newExpandedGroups = new Set<string>();
+  // if (options.treeProps) {
+  //   const newExpandedGroups = new Set<string>();
 
-    for (const item of items) {
-      const itemKey = options.treeProps.getId(item);
+  //   for (const item of items) {
+  //     const itemKey = options.treeProps.getId(item);
 
-      if (state.expandedItems.has(itemKey)) {
-        newExpandedGroups.add(itemKey);
-      }
-    }
-    if (newExpandedGroups.size !== state.expandedItems.size) {
-      actions.setExpandedItems(newExpandedGroups);
-    }
-  }
+  //     if (state.expandedItems.has(itemKey)) {
+  //       newExpandedGroups.add(itemKey);
+  //     }
+  //   }
+  //   if (newExpandedGroups.size !== state.expandedItems.size) {
+  //     actions.setExpandedItems(newExpandedGroups);
+  //   }
+  // }
 
   return {
     items,
