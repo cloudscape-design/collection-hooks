@@ -9,7 +9,7 @@ import { ItemsTree } from './items-tree.js';
 
 export function processItems<T>(
   items: ReadonlyArray<T>,
-  { filteringText, sortingState, currentPageIndex, propertyFilteringQuery, expandedItems }: Partial<CollectionState<T>>,
+  { filteringText, sortingState, currentPageIndex, propertyFilteringQuery }: Partial<CollectionState<T>>,
   { filtering, sorting, pagination, propertyFiltering, treeProps }: UseCollectionOptions<T>
 ): {
   items: ReadonlyArray<T>;
@@ -19,7 +19,7 @@ export function processItems<T>(
   filteredItemsCount: number | undefined;
   itemsTree: ItemsTree<T>;
 } {
-  const itemsTree = new ItemsTree(items, expandedItems ?? new Set(), treeProps);
+  const itemsTree = new ItemsTree(items, treeProps);
 
   const filter = composeFilters([
     propertyFiltering

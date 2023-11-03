@@ -5,14 +5,16 @@ import { TreeProps } from '../interfaces';
 
 export class ItemsTree<T> {
   private items: ReadonlyArray<T>;
+  private treeProps?: TreeProps<T>;
   private hasNesting = false;
   private roots = new Array<T>();
   private idToItem = new Map<string, T>();
-  private itemToChildren = new Map<T, Array<T>>();
+  private idToChildren = new Map<string, Array<T>>();
   private itemToLevel = new Map<T, number>();
 
-  constructor(items: ReadonlyArray<T>, expandedItems: ReadonlySet<string>, treeProps?: TreeProps<T>) {
+  constructor(items: ReadonlyArray<T>, treeProps?: TreeProps<T>) {
     this.items = items;
+    this.treeProps = treeProps;
 
     if (!treeProps) {
       return;
@@ -28,9 +30,9 @@ export class ItemsTree<T> {
       if (parentId === null) {
         this.roots.push(item);
       } else {
-        const children = this.itemToChildren.get(item) ?? [];
+        const children = this.idToChildren.get(parentId) ?? [];
         children.push(item);
-        this.itemToChildren.set(item, children);
+        this.idToChildren.set(parentId, children);
         this.hasNesting = true;
       }
     }
@@ -38,7 +40,7 @@ export class ItemsTree<T> {
     // Assign item levels.
     const traverse = (item: T, level = 1) => {
       this.itemToLevel.set(item, level);
-      for (const child of this.itemToChildren.get(item) ?? []) {
+      for (const child of this.idToChildren.get(treeProps.getId(item)) ?? []) {
         traverse(child, level + 1);
       }
     };
@@ -64,7 +66,10 @@ export class ItemsTree<T> {
   };
 
   getChildren = (item: T): T[] => {
-    return this.itemToChildren.get(item) ?? [];
+    if (this.treeProps) {
+      return this.idToChildren.get(this.treeProps.getId(item)) ?? [];
+    }
+    return [];
   };
 
   getItems = (): ReadonlyArray<T> => {
@@ -74,10 +79,16 @@ export class ItemsTree<T> {
     return this.items;
   };
 
+  private setChildren(item: T, children: T[]) {
+    if (this.treeProps) {
+      this.idToChildren.set(this.treeProps.getId(item), children);
+    }
+  }
+
   private filterTree = (predicate: (item: T) => boolean): void => {
     const filterNode = (item: T): boolean => {
       const children = this.getChildren(item).filter(filterNode);
-      this.itemToChildren.set(item, children);
+      this.setChildren(item, children);
       return predicate(item) || children.length > 0;
     };
     this.roots = this.roots.filter(filterNode);
