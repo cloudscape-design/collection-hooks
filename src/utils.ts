@@ -176,13 +176,8 @@ export function createSyncProps<T>(
         : {}),
       ...(options.treeProps
         ? {
-            getItemLevel: options.treeProps.alternativeAPI
-              ? undefined
-              : (item: T) => {
-                  return itemsTree.getLevel(item);
-                },
             getItemExpandable(item: T) {
-              return itemsTree.hasChildren(item);
+              return itemsTree.getChildren(item).length > 0;
             },
             getItemChildren(item: T) {
               return itemsTree.getChildren(item);

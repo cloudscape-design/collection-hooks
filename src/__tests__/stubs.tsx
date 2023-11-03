@@ -61,7 +61,7 @@ const Table = React.forwardRef<CollectionRef, TableProps>(
       sortingDescending,
       onSortingChange,
       selectedItems,
-      getItemLevel,
+      getItemExpanded,
       getItemExpandable,
       onSelectionChange,
       trackBy,
@@ -118,7 +118,7 @@ const Table = React.forwardRef<CollectionRef, TableProps>(
                     ? 'true'
                     : 'false'
                 }
-                data-level={getItemLevel?.(item)}
+                data-expanded={getItemExpanded?.(item)}
                 data-expandable={getItemExpandable?.(item)}
                 onClick={() =>
                   onSelectionChange &&

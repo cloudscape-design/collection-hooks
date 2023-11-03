@@ -36,7 +36,7 @@ export function processItems<T>(
     itemsTree.sort(comparator);
   }
 
-  const allPageItems = itemsTree.toItems();
+  const allPageItems = itemsTree.getItems();
   const filteredItemsCount = filter ? allPageItems.length : undefined;
 
   if (pagination) {

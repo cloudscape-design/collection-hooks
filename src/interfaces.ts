@@ -61,7 +61,6 @@ export interface TreeProps<ItemType> {
   getId(item: ItemType): string;
   getParentId(item: ItemType): null | string;
   defaultExpandedItems?: ReadonlyArray<ItemType>;
-  alternativeAPI?: boolean;
 }
 
 export interface CollectionState<T> {
@@ -102,10 +101,8 @@ interface UseCollectionResultBase<T> {
     sortingDescending?: boolean;
     selectedItems?: ReadonlyArray<T>;
     onSelectionChange?(event: CustomEventLike<SelectionChangeDetail<T>>): void;
-    getItemLevel?: (item: T) => number;
-    getItemExpandable?: (item: T) => boolean;
-    // Alternative API
     getItemChildren?: (item: T) => T[];
+    getItemExpandable?: (item: T) => boolean;
     getItemExpanded?: (item: T) => boolean;
     onExpandableItemToggle?(event: CustomEventLike<{ item: T }>): void;
     trackBy?: string | ((item: T) => string);
