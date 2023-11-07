@@ -37,7 +37,7 @@ export function processItems<T>(
   }
 
   const allPageItems = itemsTree.getItems();
-  const filteredItemsCount = filter ? allPageItems.length : undefined;
+  const filteredItemsCount = filter ? itemsTree.getSize() : undefined;
 
   if (pagination) {
     const pagesCount = getPagesCount(allPageItems, pagination.pageSize);

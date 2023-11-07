@@ -4,6 +4,7 @@
 import { TreeProps } from '../interfaces';
 
 export class ItemsTree<T> {
+  private size = 0;
   private items: ReadonlyArray<T>;
   private treeProps?: TreeProps<T>;
   private hasNesting = false;
@@ -13,6 +14,7 @@ export class ItemsTree<T> {
   private itemToLevel = new Map<T, number>();
 
   constructor(items: ReadonlyArray<T>, treeProps?: TreeProps<T>) {
+    this.size = items.length;
     this.items = items;
     this.treeProps = treeProps;
 
@@ -50,6 +52,7 @@ export class ItemsTree<T> {
   filter = (predicate: (item: T) => boolean): ItemsTree<T> => {
     if (!this.hasNesting) {
       this.items = this.items.filter(predicate);
+      this.size = this.items.length;
     } else {
       this.filterTree(predicate);
     }
@@ -79,6 +82,10 @@ export class ItemsTree<T> {
     return this.items;
   };
 
+  getSize = (): number => {
+    return this.size;
+  };
+
   private setChildren(item: T, children: T[]) {
     if (this.treeProps) {
       this.idToChildren.set(this.treeProps.getId(item), children);
@@ -87,11 +94,15 @@ export class ItemsTree<T> {
 
   private filterTree = (predicate: (item: T) => boolean): void => {
     const filterNode = (item: T): boolean => {
-      const children = this.getChildren(item).filter(filterNode);
-      this.setChildren(item, children);
-      return predicate(item) || children.length > 0;
+      const children = this.getChildren(item);
+      const filteredChildren = children.filter(filterNode);
+      this.size -= children.length - filteredChildren.length;
+      this.setChildren(item, filteredChildren);
+      return predicate(item) || filteredChildren.length > 0;
     };
+    const roots = this.roots;
     this.roots = this.roots.filter(filterNode);
+    this.size -= roots.length - this.roots.length;
   };
 
   private sortTree = (comparator: (a: T, b: T) => number): void => {
