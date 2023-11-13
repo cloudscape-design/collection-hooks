@@ -17,6 +17,7 @@ export function useCollectionState<T>(
     currentPageIndex: options.pagination?.defaultPage ?? 1,
     filteringText: options.filtering?.defaultFilteringText ?? '',
     propertyFilteringQuery: options.propertyFiltering?.defaultQuery ?? { tokens: [], operation: 'and' },
+    groupPages: new Map(),
   });
   return [
     state,
