@@ -12,8 +12,6 @@ export class ItemsTree<T> {
   private idToItem = new Map<string, T>();
   private idToChildren = new Map<string, Array<T>>();
   private itemToLevel = new Map<T, number>();
-  public incompleteRoot = false;
-  public incompleteItems = new Set<string>();
 
   constructor(items: ReadonlyArray<T>, treeProps?: TreeProps<T>) {
     this.size = items.length;
