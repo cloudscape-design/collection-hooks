@@ -9,6 +9,7 @@ import {
   PropertyFilterProperty,
 } from '../interfaces';
 import { compareDates, compareTimestamps } from '../date-utils/compare-dates.js';
+import { Predicate } from './compose-filters';
 
 const filterUsingOperator = (
   itemValue: any,
@@ -125,12 +126,14 @@ type FilteringOperatorsMap = {
   [key in PropertyFilterOperator]?: PropertyFilterOperatorExtended<any>;
 };
 
-export function propertyFilter<T>(
-  items: ReadonlyArray<T>,
-  query: PropertyFilterQuery,
-  { filteringFunction, filteringProperties }: NonNullable<UseCollectionOptions<T>['propertyFiltering']>
-): ReadonlyArray<T> {
-  const filteringPropertiesMap = filteringProperties.reduce<FilteringPropertiesMap<T>>(
+export function createPropertyFilterPredicate<T>(
+  propertyFiltering: UseCollectionOptions<T>['propertyFiltering'],
+  query: PropertyFilterQuery = { tokens: [], operation: 'and' }
+): null | Predicate<T> {
+  if (!propertyFiltering) {
+    return null;
+  }
+  const filteringPropertiesMap = propertyFiltering.filteringProperties.reduce<FilteringPropertiesMap<T>>(
     (acc: FilteringPropertiesMap<T>, { key, operators, defaultOperator }: PropertyFilterProperty) => {
       const operatorMap: FilteringOperatorsMap = { [defaultOperator ?? '=']: { operator: defaultOperator ?? '=' } };
       operators?.forEach(op => {
@@ -147,9 +150,8 @@ export function propertyFilter<T>(
     },
     {} as FilteringPropertiesMap<T>
   );
-
-  const filter = filteringFunction || defaultFilteringFunction(filteringPropertiesMap);
-  return items.filter(item => filter(item, query));
+  const filteringFunction = propertyFiltering.filteringFunction || defaultFilteringFunction(filteringPropertiesMap);
+  return (item: T) => filteringFunction(item, query);
 }
 
 export const fixupFalsyValues = <T>(value: T): T | string => {

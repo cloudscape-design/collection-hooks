@@ -1,10 +1,11 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
 import { UseCollectionOptions, CollectionState, TrackBy } from '../interfaces';
-import { filter } from './filter.js';
-import { propertyFilter } from './property-filter.js';
+import { createFilterPredicate } from './filter.js';
+import { createPropertyFilterPredicate } from './property-filter.js';
 import { sort } from './sort.js';
 import { getPagesCount, normalizePageIndex, paginate } from './paginate.js';
+import { composeFilters } from './compose-filters';
 
 export function processItems<T>(
   items: ReadonlyArray<T>,
@@ -22,13 +23,13 @@ export function processItems<T>(
   let actualPageIndex: number | undefined;
   let filteredItemsCount: number | undefined;
 
-  if (propertyFiltering) {
-    result = propertyFilter(result, propertyFilteringQuery || { tokens: [], operation: 'and' }, propertyFiltering);
-    filteredItemsCount = result.length;
-  }
+  const filterPredicate = composeFilters(
+    createPropertyFilterPredicate(propertyFiltering, propertyFilteringQuery),
+    createFilterPredicate(filtering, filteringText)
+  );
 
-  if (filtering) {
-    result = filter(result, filteringText, filtering);
+  if (filterPredicate) {
+    result = result.filter(filterPredicate);
     filteredItemsCount = result.length;
   }
 

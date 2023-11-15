@@ -1,6 +1,7 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
-import { FilteringOptions } from '../interfaces';
+import { UseCollectionOptions } from '../interfaces';
+import { Predicate } from './compose-filters';
 
 function defaultFilteringFunction<T>(item: T, filteringText: string, filteringFields?: string[]) {
   if (filteringText.length === 0) {
@@ -17,10 +18,13 @@ function defaultFilteringFunction<T>(item: T, filteringText: string, filteringFi
   );
 }
 
-export function filter<T>(
-  items: ReadonlyArray<T>,
-  filteringText = '',
-  { filteringFunction = defaultFilteringFunction, fields }: FilteringOptions<T>
-): ReadonlyArray<T> {
-  return items.filter(item => filteringFunction(item, filteringText, fields));
+export function createFilterPredicate<T>(
+  filtering: UseCollectionOptions<T>['filtering'],
+  filteringText = ''
+): null | Predicate<T> {
+  if (!filtering) {
+    return null;
+  }
+  const filteringFunction = filtering.filteringFunction ?? defaultFilteringFunction;
+  return (item: T) => filteringFunction(item, filteringText, filtering.fields);
 }
