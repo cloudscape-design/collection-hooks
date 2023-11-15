@@ -5,7 +5,7 @@ import { createFilterPredicate } from './filter.js';
 import { createPropertyFilterPredicate } from './property-filter.js';
 import { createComparator } from './sort.js';
 import { getPagesCount, normalizePageIndex, paginate } from './paginate.js';
-import { composeFilters } from './compose-filters';
+import { composeFilters } from './compose-filters.js';
 
 export function processItems<T>(
   items: ReadonlyArray<T>,
