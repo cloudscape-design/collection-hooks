@@ -15,14 +15,16 @@ export function paginate<T>(
   pagesCount: undefined | number;
   actualPageIndex: undefined | number;
 } {
-  if (!pagination) {
-    return { items, allPageItems: items, pagesCount: undefined, actualPageIndex: undefined };
+  const allPageItems = items;
+  let pagesCount: undefined | number = undefined;
+  let actualPageIndex: undefined | number = undefined;
+  if (pagination) {
+    const pageSize = pagination.pageSize ?? DEFAULT_PAGE_SIZE;
+    pagesCount = getPagesCount(items, pageSize);
+    actualPageIndex = normalizePageIndex(currentPageIndex, pagesCount);
+    items = items.slice((actualPageIndex - 1) * pageSize, actualPageIndex * pageSize);
   }
-  const pageSize = pagination.pageSize ?? DEFAULT_PAGE_SIZE;
-  const pagesCount = getPagesCount(items, pageSize);
-  const actualPageIndex = normalizePageIndex(currentPageIndex, pagesCount);
-  const paginatedItems = items.slice((actualPageIndex - 1) * pageSize, actualPageIndex * pageSize);
-  return { items: paginatedItems, allPageItems: items, pagesCount, actualPageIndex };
+  return { items, allPageItems, pagesCount, actualPageIndex };
 }
 
 function normalizePageIndex(currentIndex: number | undefined, pagesCount: number): number {
