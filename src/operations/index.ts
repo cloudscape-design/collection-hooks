@@ -3,7 +3,7 @@
 import { UseCollectionOptions, CollectionState, TrackBy } from '../interfaces';
 import { createFilterPredicate } from './filter.js';
 import { createPropertyFilterPredicate } from './property-filter.js';
-import { sort } from './sort.js';
+import { createComparator } from './sort.js';
 import { getPagesCount, normalizePageIndex, paginate } from './paginate.js';
 import { composeFilters } from './compose-filters';
 
@@ -18,33 +18,29 @@ export function processItems<T>(
   actualPageIndex: number | undefined;
   filteredItemsCount: number | undefined;
 } {
-  let result = items;
-  let pagesCount: number | undefined;
-  let actualPageIndex: number | undefined;
-  let filteredItemsCount: number | undefined;
-
   const filterPredicate = composeFilters(
     createPropertyFilterPredicate(propertyFiltering, propertyFilteringQuery),
     createFilterPredicate(filtering, filteringText)
   );
-
   if (filterPredicate) {
-    result = result.filter(filterPredicate);
-    filteredItemsCount = result.length;
+    items = items.filter(filterPredicate);
+  }
+  const filteredItemsCount = filterPredicate ? items.length : undefined;
+
+  const comparator = createComparator(sorting, sortingState);
+  if (comparator) {
+    items = items.slice().sort(comparator);
   }
 
-  if (sorting) {
-    result = sort(result, sortingState);
-  }
-
-  const allPageResult = result;
   if (pagination) {
-    pagesCount = getPagesCount(result, pagination.pageSize);
-    actualPageIndex = normalizePageIndex(currentPageIndex, pagesCount);
-    result = paginate(result, actualPageIndex, pagination.pageSize);
+    const allPageItems = items;
+    const pagesCount = getPagesCount(items, pagination.pageSize);
+    const actualPageIndex = normalizePageIndex(currentPageIndex, pagesCount);
+    items = paginate(items, actualPageIndex, pagination.pageSize);
+    return { items, allPageItems, pagesCount, actualPageIndex, filteredItemsCount };
   }
 
-  return { items: result, allPageItems: allPageResult, pagesCount, filteredItemsCount, actualPageIndex };
+  return { items, allPageItems: items, pagesCount: undefined, actualPageIndex: undefined, filteredItemsCount };
 }
 
 export const getTrackableValue = <T>(trackBy: TrackBy<T> | undefined, item: T) => {

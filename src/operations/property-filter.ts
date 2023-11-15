@@ -151,7 +151,7 @@ export function createPropertyFilterPredicate<T>(
     {} as FilteringPropertiesMap<T>
   );
   const filteringFunction = propertyFiltering.filteringFunction || defaultFilteringFunction(filteringPropertiesMap);
-  return (item: T) => filteringFunction(item, query);
+  return item => filteringFunction(item, query);
 }
 
 export const fixupFalsyValues = <T>(value: T): T | string => {

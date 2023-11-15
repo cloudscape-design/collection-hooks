@@ -26,5 +26,5 @@ export function createFilterPredicate<T>(
     return null;
   }
   const filteringFunction = filtering.filteringFunction ?? defaultFilteringFunction;
-  return (item: T) => filteringFunction(item, filteringText, filtering.fields);
+  return item => filteringFunction(item, filteringText, filtering.fields);
 }
