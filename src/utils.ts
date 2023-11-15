@@ -38,19 +38,13 @@ interface PropertyFilteringAction {
   type: 'property-filtering';
   query: PropertyFilterQuery;
 }
-interface GroupPaginationAction {
-  type: 'group-pagination';
-  group: string;
-  pageIndex: number;
-}
 type Action<T> =
   | SelectionAction<T>
   | ExpandAction
   | SortingAction<T>
   | PaginationAction
   | FilteringAction
-  | PropertyFilteringAction
-  | GroupPaginationAction;
+  | PropertyFilteringAction;
 export type CollectionReducer<T> = Reducer<CollectionState<T>, Action<T>>;
 export function collectionReducer<T>(state: CollectionState<T>, action: Action<T>): CollectionState<T> {
   const newState = { ...state };
@@ -71,9 +65,6 @@ export function collectionReducer<T>(state: CollectionState<T>, action: Action<T
       break;
     case 'pagination':
       newState.currentPageIndex = action.pageIndex;
-      break;
-    case 'group-pagination':
-      newState.groupPages = new Map([...Array.from(newState.groupPages.entries()), [action.group, action.pageIndex]]);
       break;
     case 'property-filtering':
       newState.currentPageIndex = 1;
@@ -113,13 +104,6 @@ export function createActions<T>({
     setExpandedItems(expandedItems: Iterable<string>) {
       dispatch({ type: 'expand', expandedItems });
     },
-    setGroupPage(group: null | string, pageIndex: number) {
-      if (group) {
-        dispatch({ type: 'group-pagination', group, pageIndex });
-      } else {
-        dispatch({ type: 'pagination', pageIndex });
-      }
-    },
   };
 }
 
@@ -132,7 +116,6 @@ export function createSyncProps<T>(
     expandedItems,
     currentPageIndex,
     propertyFilteringQuery,
-    groupPages,
   }: CollectionState<T>,
   actions: InternalCollectionActions<T>,
   collectionRef: React.RefObject<CollectionRef>,
@@ -211,21 +194,6 @@ export function createSyncProps<T>(
                 newExpandedItems.add(itemKey);
               }
               actions.setExpandedItems(newExpandedItems);
-            },
-            getGroupIncomplete(group) {
-              if (!group) {
-                return itemsTree.incompleteRoot;
-              }
-              const groupId = options.treeProps!.getId(group);
-              return itemsTree.incompleteItems.has(groupId);
-            },
-            onGroupShowMore(event) {
-              if (!event.detail.item) {
-                actions.setCurrentPage(currentPageIndex + 1);
-              } else {
-                const groupId = options.treeProps!.getId(event.detail.item);
-                actions.setGroupPage(groupId, (groupPages.get(groupId) ?? 1) + 1);
-              }
             },
           }
         : {}),

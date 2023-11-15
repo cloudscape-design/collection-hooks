@@ -70,13 +70,6 @@ export class ItemsTree<T> {
     return this;
   };
 
-  paginate = (getPageItems: (item: null | T) => number): ItemsTree<T> => {
-    if (this.hasNesting) {
-      this.paginateTree(getPageItems);
-    }
-    return this;
-  };
-
   getChildren = (item: T): T[] => {
     if (this.treeProps) {
       return this.idToChildren.get(this.treeProps.getId(item)) ?? [];
@@ -122,25 +115,5 @@ export class ItemsTree<T> {
       }
     };
     sortLevel(this.roots);
-  };
-
-  private paginateTree = (getPageItems: (item: null | T) => number) => {
-    const paginateLevel = (items: T[], pageSize: number) => {
-      const sliced = items.slice(0, pageSize);
-      for (const item of items) {
-        const levelItems = this.getChildren(item);
-        const updatedLevel = paginateLevel(levelItems, getPageItems(item));
-        this.setChildren(item, updatedLevel);
-        if (updatedLevel.length < levelItems.length) {
-          this.incompleteItems.add(this.treeProps?.getId(item) ?? '');
-        }
-      }
-      return sliced;
-    };
-    const roots = this.roots;
-    this.roots = paginateLevel(this.roots, getPageItems(null));
-    if (this.roots.length < roots.length) {
-      this.incompleteRoot = true;
-    }
   };
 }

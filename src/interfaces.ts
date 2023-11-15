@@ -49,10 +49,6 @@ export interface UseCollectionOptions<T> {
   };
   sorting?: { defaultState?: SortingState<T> };
   pagination?: { defaultPage?: number; pageSize?: number };
-  groupPagination?: {
-    pageSize: (item: T) => number;
-    defaultPages?: (item: T) => number;
-  };
   selection?: {
     defaultSelectedItems?: ReadonlyArray<T>;
     keepSelection?: boolean;
@@ -74,7 +70,6 @@ export interface CollectionState<T> {
   sortingState?: SortingState<T>;
   selectedItems: ReadonlyArray<T>;
   expandedItems: ReadonlySet<string>;
-  groupPages: ReadonlyMap<string, number>;
 }
 
 export interface InternalCollectionActions<T> {
@@ -84,7 +79,6 @@ export interface InternalCollectionActions<T> {
   setSelectedItems(selectedItems: ReadonlyArray<T>): void;
   setPropertyFiltering(query: PropertyFilterQuery): void;
   setExpandedItems(expandedItems: ReadonlySet<string>): void;
-  setGroupPage(group: null | string, page: number): void;
 }
 
 export interface CollectionActions<T> {
@@ -111,8 +105,6 @@ interface UseCollectionResultBase<T> {
     getItemExpandable?: (item: T) => boolean;
     getItemExpanded?: (item: T) => boolean;
     onExpandableItemToggle?(event: CustomEventLike<{ item: T }>): void;
-    getGroupIncomplete?(item: null | T): boolean;
-    onGroupShowMore?(event: CustomEventLike<{ item: null | T }>): void;
     trackBy?: string | ((item: T) => string);
     ref: React.RefObject<CollectionRef>;
     totalItemsCount?: number;
