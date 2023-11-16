@@ -1,10 +1,11 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
 import { UseCollectionOptions, CollectionState, TrackBy } from '../interfaces';
-import { filter } from './filter.js';
-import { propertyFilter } from './property-filter.js';
-import { sort } from './sort.js';
-import { getPagesCount, normalizePageIndex, paginate } from './paginate.js';
+import { createFilterPredicate } from './filter.js';
+import { createPropertyFilterPredicate } from './property-filter.js';
+import { createComparator } from './sort.js';
+import { createPageProps } from './pagination.js';
+import { composeFilters } from './compose-filters.js';
 
 export function processItems<T>(
   items: ReadonlyArray<T>,
@@ -17,33 +18,33 @@ export function processItems<T>(
   actualPageIndex: number | undefined;
   filteredItemsCount: number | undefined;
 } {
-  let result = items;
-  let pagesCount: number | undefined;
-  let actualPageIndex: number | undefined;
-  let filteredItemsCount: number | undefined;
+  const filterPredicate = composeFilters(
+    createPropertyFilterPredicate(propertyFiltering, propertyFilteringQuery),
+    createFilterPredicate(filtering, filteringText)
+  );
+  if (filterPredicate) {
+    items = items.filter(filterPredicate);
+  }
+  const filteredItemsCount = filterPredicate ? items.length : undefined;
 
-  if (propertyFiltering) {
-    result = propertyFilter(result, propertyFilteringQuery || { tokens: [], operation: 'and' }, propertyFiltering);
-    filteredItemsCount = result.length;
+  const comparator = createComparator(sorting, sortingState);
+  if (comparator) {
+    items = items.slice().sort(comparator);
   }
 
-  if (filtering) {
-    result = filter(result, filteringText, filtering);
-    filteredItemsCount = result.length;
+  const allPageItems = items;
+  const pageProps = createPageProps(pagination, currentPageIndex, items);
+  if (pageProps) {
+    items = items.slice((pageProps.pageIndex - 1) * pageProps.pageSize, pageProps.pageIndex * pageProps.pageSize);
   }
 
-  if (sorting) {
-    result = sort(result, sortingState);
-  }
-
-  const allPageResult = result;
-  if (pagination) {
-    pagesCount = getPagesCount(result, pagination.pageSize);
-    actualPageIndex = normalizePageIndex(currentPageIndex, pagesCount);
-    result = paginate(result, actualPageIndex, pagination.pageSize);
-  }
-
-  return { items: result, allPageItems: allPageResult, pagesCount, filteredItemsCount, actualPageIndex };
+  return {
+    items,
+    allPageItems,
+    filteredItemsCount,
+    pagesCount: pageProps?.pagesCount,
+    actualPageIndex: pageProps?.pageIndex,
+  };
 }
 
 export const getTrackableValue = <T>(trackBy: TrackBy<T> | undefined, item: T) => {
