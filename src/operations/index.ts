@@ -4,7 +4,7 @@ import { UseCollectionOptions, CollectionState, TrackBy } from '../interfaces';
 import { createFilterPredicate } from './filter.js';
 import { createPropertyFilterPredicate } from './property-filter.js';
 import { createComparator } from './sort.js';
-import { paginate } from './paginate.js';
+import { createPageProps } from './pagination.js';
 import { composeFilters } from './compose-filters.js';
 
 export function processItems<T>(
@@ -32,9 +32,19 @@ export function processItems<T>(
     items = items.slice().sort(comparator);
   }
 
-  const paginated = paginate(pagination, currentPageIndex, items);
+  const allPageItems = items;
+  const pageProps = createPageProps(pagination, currentPageIndex, items);
+  if (pageProps) {
+    items = items.slice((pageProps.pageIndex - 1) * pageProps.pageSize, pageProps.pageIndex * pageProps.pageSize);
+  }
 
-  return { ...paginated, filteredItemsCount };
+  return {
+    items,
+    allPageItems,
+    filteredItemsCount,
+    pagesCount: pageProps?.pagesCount,
+    actualPageIndex: pageProps?.pageIndex,
+  };
 }
 
 export const getTrackableValue = <T>(trackBy: TrackBy<T> | undefined, item: T) => {
