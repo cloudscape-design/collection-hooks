@@ -26,11 +26,6 @@ export interface SelectionChangeDetail<T> {
   selectedItems: ReadonlyArray<T>;
 }
 
-export interface ItemGroupChangeDetail<T> {
-  item: T;
-  expanded: boolean;
-}
-
 export type TrackBy<T> = string | ((item: T) => string);
 
 export interface UseCollectionOptions<T> {
