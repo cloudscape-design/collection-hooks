@@ -56,6 +56,15 @@ export function useCollection<T>(allItems: ReadonlyArray<T>, options: UseCollect
           actions.setExpandedItems(expandedItems);
         }
       },
+      setAllExpanded(expanded) {
+        if (options.treeProps) {
+          if (expanded) {
+            actions.setExpandedItems(new Set(allItems.map(item => options.treeProps!.getId(item))));
+          } else {
+            actions.setExpandedItems(new Set());
+          }
+        }
+      },
     },
     ...createSyncProps(options, state, actions, collectionRef, {
       actualPageIndex,
