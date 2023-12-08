@@ -108,7 +108,7 @@ interface UseCollectionResultBase<T> {
     getItemExpandable?: (item: T) => boolean;
     getItemExpanded?: (item: T) => boolean;
     onExpandableItemToggle?(event: CustomEventLike<{ item: T }>): void;
-    getGroupIncomplete?(item: null | T): boolean;
+    getGroupStatus?(item: null | T): 'null' | 'empty' | 'has-more' | 'has-no-more';
     onGroupShowMore?(event: CustomEventLike<{ item: null | T }>): void;
     trackBy?: string | ((item: T) => string);
     ref: React.RefObject<CollectionRef>;

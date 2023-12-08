@@ -212,12 +212,32 @@ export function createSyncProps<T>(
               }
               actions.setExpandedItems(newExpandedItems);
             },
-            getGroupIncomplete(group) {
+            getGroupStatus(group): 'null' | 'empty' | 'has-more' | 'has-no-more' {
+              let incomplete = false;
+              let groupPage = 1;
+              let itemsCount = 0;
+
               if (!group) {
-                return itemsTree.incompleteRoot;
+                incomplete = itemsTree.incompleteRoot;
+                groupPage = actualPageIndex ?? 1;
+                itemsCount = itemsTree.getItems().length;
+              } else {
+                const groupId = options.treeProps!.getId(group);
+                incomplete = itemsTree.incompleteItems.has(groupId);
+                groupPage = groupPages.get(groupId) ?? 1;
+                itemsCount = itemsTree.getChildren(group).length;
               }
-              const groupId = options.treeProps!.getId(group);
-              return itemsTree.incompleteItems.has(groupId);
+
+              if (groupPage === 1 && itemsCount === 0) {
+                return 'empty';
+              }
+              if (incomplete) {
+                return 'has-more';
+              }
+              if (groupPage > 1) {
+                return 'has-no-more';
+              }
+              return 'null';
             },
             onGroupShowMore(event) {
               if (!event.detail.item) {
