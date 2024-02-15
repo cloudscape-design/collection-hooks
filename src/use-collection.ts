@@ -27,7 +27,7 @@ export function useCollection<T>(allItems: ReadonlyArray<T>, options: UseCollect
   if (options.expandableRows) {
     const newExpandedGroups = new Set<string>();
 
-    for (const item of items) {
+    for (const item of allItems) {
       const itemKey = options.expandableRows.getId(item);
 
       if (state.expandedItems.has(itemKey)) {
