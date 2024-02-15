@@ -38,19 +38,13 @@ interface PropertyFilteringAction {
   type: 'property-filtering';
   query: PropertyFilterQuery;
 }
-interface GroupPaginationAction {
-  type: 'group-pagination';
-  group: string;
-  pageIndex: number;
-}
 type Action<T> =
   | SelectionAction<T>
   | ExpandAction
   | SortingAction<T>
   | PaginationAction
   | FilteringAction
-  | PropertyFilteringAction
-  | GroupPaginationAction;
+  | PropertyFilteringAction;
 export type CollectionReducer<T> = Reducer<CollectionState<T>, Action<T>>;
 export function collectionReducer<T>(state: CollectionState<T>, action: Action<T>): CollectionState<T> {
   const newState = { ...state };
@@ -71,9 +65,6 @@ export function collectionReducer<T>(state: CollectionState<T>, action: Action<T
       break;
     case 'pagination':
       newState.currentPageIndex = action.pageIndex;
-      break;
-    case 'group-pagination':
-      newState.groupPages = new Map([...Array.from(newState.groupPages.entries()), [action.group, action.pageIndex]]);
       break;
     case 'property-filtering':
       newState.currentPageIndex = 1;
@@ -113,13 +104,6 @@ export function createActions<T>({
     setExpandedItems(expandedItems: Iterable<string>) {
       dispatch({ type: 'expand', expandedItems });
     },
-    setGroupPage(group: null | string, pageIndex: number) {
-      if (group) {
-        dispatch({ type: 'group-pagination', group, pageIndex });
-      } else {
-        dispatch({ type: 'pagination', pageIndex });
-      }
-    },
   };
 }
 
@@ -132,7 +116,6 @@ export function createSyncProps<T>(
     expandedItems,
     currentPageIndex,
     propertyFilteringQuery,
-    groupPages,
   }: CollectionState<T>,
   actions: InternalCollectionActions<T>,
   collectionRef: React.RefObject<CollectionRef>,
@@ -191,7 +174,7 @@ export function createSyncProps<T>(
             sortingDescending: sortingState?.isDescending,
           }
         : {}),
-      ...(options.treeProps
+      ...(options.expandableRows
         ? {
             getItemExpandable(item: T) {
               return itemsTree.getChildren(item).length > 0;
@@ -200,10 +183,10 @@ export function createSyncProps<T>(
               return itemsTree.getChildren(item);
             },
             getItemExpanded(item: T) {
-              return expandedItems.has(options.treeProps!.getId(item));
+              return expandedItems.has(options.expandableRows!.getId(item));
             },
             onExpandableItemToggle: ({ detail: { item } }) => {
-              const itemKey = options.treeProps!.getId(item);
+              const itemKey = options.expandableRows!.getId(item);
               const newExpandedItems = new Set(expandedItems);
               if (newExpandedItems.has(itemKey)) {
                 newExpandedItems.delete(itemKey);
@@ -211,41 +194,6 @@ export function createSyncProps<T>(
                 newExpandedItems.add(itemKey);
               }
               actions.setExpandedItems(newExpandedItems);
-            },
-            getGroupStatus(group): 'null' | 'empty' | 'has-more' | 'has-no-more' {
-              let incomplete = false;
-              let groupPage = 1;
-              let itemsCount = 0;
-
-              if (!group) {
-                incomplete = itemsTree.incompleteRoot;
-                groupPage = actualPageIndex ?? 1;
-                itemsCount = itemsTree.getItems().length;
-              } else {
-                const groupId = options.treeProps!.getId(group);
-                incomplete = itemsTree.incompleteItems.has(groupId);
-                groupPage = groupPages.get(groupId) ?? 1;
-                itemsCount = itemsTree.getChildren(group).length;
-              }
-
-              if (groupPage === 1 && itemsCount === 0) {
-                return 'empty';
-              }
-              if (incomplete) {
-                return 'has-more';
-              }
-              if (groupPage > 1) {
-                return 'has-no-more';
-              }
-              return 'null';
-            },
-            onGroupShowMore(event) {
-              if (!event.detail.item) {
-                actions.setCurrentPage(currentPageIndex + 1);
-              } else {
-                const groupId = options.treeProps!.getId(event.detail.item);
-                actions.setGroupPage(groupId, (groupPages.get(groupId) ?? 1) + 1);
-              }
             },
           }
         : {}),

@@ -9,8 +9,8 @@ import { ItemsTree } from './items-tree.js';
 
 export function processItems<T>(
   items: ReadonlyArray<T>,
-  { filteringText, sortingState, currentPageIndex, propertyFilteringQuery, groupPages }: Partial<CollectionState<T>>,
-  { filtering, sorting, pagination, groupPagination, propertyFiltering, treeProps }: UseCollectionOptions<T>
+  { filteringText, sortingState, currentPageIndex, propertyFilteringQuery }: Partial<CollectionState<T>>,
+  { filtering, sorting, pagination, groupPagination, propertyFiltering, expandableRows }: UseCollectionOptions<T>
 ): {
   items: ReadonlyArray<T>;
   allPageItems: ReadonlyArray<T>;
@@ -19,7 +19,7 @@ export function processItems<T>(
   filteredItemsCount: number | undefined;
   itemsTree: ItemsTree<T>;
 } {
-  const itemsTree = new ItemsTree(items, treeProps);
+  const itemsTree = new ItemsTree(items, expandableRows);
 
   const filter = composeFilters([
     propertyFiltering
@@ -42,34 +42,7 @@ export function processItems<T>(
   if (pagination) {
     const pagesCount = getPagesCount(allPageItems, pagination.pageSize);
     const actualPageIndex = normalizePageIndex(currentPageIndex, pagesCount);
-    const getPageSize = (item: null | T): number => {
-      if (!item) {
-        return pagination.pageSize ?? Number.POSITIVE_INFINITY;
-      }
-      if (groupPagination) {
-        return groupPagination.pageSize(item);
-      }
-      return Number.POSITIVE_INFINITY;
-    };
-    const getPageItems = (item: null | T): number => {
-      let page = 1;
-
-      if (item && groupPages) {
-        const itemId = treeProps?.getId(item);
-        if (itemId) {
-          page = groupPages.get(itemId) ?? 1;
-        }
-      }
-
-      if (!item) {
-        page = currentPageIndex ?? 1;
-      }
-
-      return page * getPageSize(item);
-    };
-    const paginatedItems = groupPagination
-      ? itemsTree.paginate(getPageItems).getItems()
-      : paginate(allPageItems, actualPageIndex, pagination.pageSize);
+    const paginatedItems = paginate(allPageItems, actualPageIndex, pagination.pageSize);
     return {
       items: paginatedItems,
       allPageItems: allPageItems,

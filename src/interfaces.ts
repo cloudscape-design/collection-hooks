@@ -53,14 +53,13 @@ export interface UseCollectionOptions<T> {
     keepSelection?: boolean;
     trackBy?: TrackBy<T>;
   };
-  treeProps?: TreeProps<T>;
+  expandableRows?: ExpandableRowsProps<T>;
 }
 
-export interface TreeProps<ItemType> {
+export interface ExpandableRowsProps<ItemType> {
   getId(item: ItemType): string;
   getParentId(item: ItemType): null | string;
   defaultExpandedItems?: ReadonlyArray<ItemType>;
-  keepAllChildrenWhenParentMatched?: boolean;
 }
 
 export interface CollectionState<T> {
@@ -70,7 +69,6 @@ export interface CollectionState<T> {
   sortingState?: SortingState<T>;
   selectedItems: ReadonlyArray<T>;
   expandedItems: ReadonlySet<string>;
-  groupPages: ReadonlyMap<string, number>;
 }
 
 export interface InternalCollectionActions<T> {
@@ -80,7 +78,6 @@ export interface InternalCollectionActions<T> {
   setSelectedItems(selectedItems: ReadonlyArray<T>): void;
   setPropertyFiltering(query: PropertyFilterQuery): void;
   setExpandedItems(expandedItems: ReadonlySet<string>): void;
-  setGroupPage(group: null | string, page: number): void;
 }
 
 export interface CollectionActions<T> {
@@ -90,7 +87,7 @@ export interface CollectionActions<T> {
   setSelectedItems(selectedItems: ReadonlyArray<T>): void;
   setPropertyFiltering(query: PropertyFilterQuery): void;
   setItemExpanded(item: T, expanded: boolean): void;
-  setAllExpanded(expanded: boolean): void;
+  setExpandedItems(items: ReadonlyArray<T>): void;
 }
 
 interface UseCollectionResultBase<T> {
@@ -108,8 +105,6 @@ interface UseCollectionResultBase<T> {
     getItemExpandable?: (item: T) => boolean;
     getItemExpanded?: (item: T) => boolean;
     onExpandableItemToggle?(event: CustomEventLike<{ item: T }>): void;
-    getGroupStatus?(item: null | T): 'null' | 'empty' | 'has-more' | 'has-no-more';
-    onGroupShowMore?(event: CustomEventLike<{ item: null | T }>): void;
     trackBy?: string | ((item: T) => string);
     ref: React.RefObject<CollectionRef>;
     totalItemsCount?: number;

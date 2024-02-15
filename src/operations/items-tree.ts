@@ -1,12 +1,12 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
 
-import { TreeProps } from '../interfaces';
+import { ExpandableRowsProps } from '../interfaces';
 
 export class ItemsTree<T> {
   private size = 0;
   private items: ReadonlyArray<T>;
-  private treeProps?: TreeProps<T>;
+  private treeProps?: ExpandableRowsProps<T>;
   private hasNesting = false;
   private roots = new Array<T>();
   private idToItem = new Map<string, T>();
@@ -15,7 +15,7 @@ export class ItemsTree<T> {
   public incompleteRoot = false;
   public incompleteItems = new Set<string>();
 
-  constructor(items: ReadonlyArray<T>, treeProps?: TreeProps<T>) {
+  constructor(items: ReadonlyArray<T>, treeProps?: ExpandableRowsProps<T>) {
     this.size = items.length;
     this.items = items;
     this.treeProps = treeProps;
@@ -70,13 +70,6 @@ export class ItemsTree<T> {
     return this;
   };
 
-  paginate = (getPageItems: (item: null | T) => number): ItemsTree<T> => {
-    if (this.hasNesting) {
-      this.paginateTree(getPageItems);
-    }
-    return this;
-  };
-
   getChildren = (item: T): T[] => {
     if (this.treeProps) {
       return this.idToChildren.get(this.treeProps.getId(item)) ?? [];
@@ -103,9 +96,11 @@ export class ItemsTree<T> {
 
   private filterTree = (predicate: (item: T) => boolean): void => {
     const filterNode = (item: T): boolean => {
-      if (this.treeProps?.keepAllChildrenWhenParentMatched && predicate(item)) {
+      // Keeping all children when parent matched.
+      if (predicate(item)) {
         return true;
       }
+      // Alternative filtering logic (unsupported).
       const children = this.getChildren(item);
       const filteredChildren = children.filter(filterNode);
       this.size -= children.length - filteredChildren.length;
@@ -125,25 +120,5 @@ export class ItemsTree<T> {
       }
     };
     sortLevel(this.roots);
-  };
-
-  private paginateTree = (getPageItems: (item: null | T) => number) => {
-    const paginateLevel = (items: T[], pageSize: number) => {
-      const sliced = items.slice(0, pageSize);
-      for (const item of items) {
-        const levelItems = this.getChildren(item);
-        const updatedLevel = paginateLevel(levelItems, getPageItems(item));
-        this.setChildren(item, updatedLevel);
-        if (updatedLevel.length < levelItems.length) {
-          this.incompleteItems.add(this.treeProps?.getId(item) ?? '');
-        }
-      }
-      return sliced;
-    };
-    const roots = this.roots;
-    this.roots = paginateLevel(this.roots, getPageItems(null));
-    if (this.roots.length < roots.length) {
-      this.incompleteRoot = true;
-    }
   };
 }

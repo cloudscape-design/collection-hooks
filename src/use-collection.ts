@@ -24,20 +24,20 @@ export function useCollection<T>(allItems: ReadonlyArray<T>, options: UseCollect
   }
 
   // Removing expanded items that are no longer present in items.
-  // if (options.treeProps) {
-  //   const newExpandedGroups = new Set<string>();
+  if (options.expandableRows) {
+    const newExpandedGroups = new Set<string>();
 
-  //   for (const item of items) {
-  //     const itemKey = options.treeProps.getId(item);
+    for (const item of items) {
+      const itemKey = options.expandableRows.getId(item);
 
-  //     if (state.expandedItems.has(itemKey)) {
-  //       newExpandedGroups.add(itemKey);
-  //     }
-  //   }
-  //   if (newExpandedGroups.size !== state.expandedItems.size) {
-  //     actions.setExpandedItems(newExpandedGroups);
-  //   }
-  // }
+      if (state.expandedItems.has(itemKey)) {
+        newExpandedGroups.add(itemKey);
+      }
+    }
+    if (newExpandedGroups.size !== state.expandedItems.size) {
+      actions.setExpandedItems(newExpandedGroups);
+    }
+  }
 
   return {
     items,
@@ -46,23 +46,23 @@ export function useCollection<T>(allItems: ReadonlyArray<T>, options: UseCollect
     actions: {
       ...actions,
       setItemExpanded(item, expanded) {
-        if (options.treeProps) {
+        if (options.expandableRows) {
           const expandedItems = new Set(state.expandedItems);
           if (expanded) {
-            expandedItems.add(options.treeProps.getId(item));
+            expandedItems.add(options.expandableRows.getId(item));
           } else {
-            expandedItems.delete(options.treeProps.getId(item));
+            expandedItems.delete(options.expandableRows.getId(item));
           }
           actions.setExpandedItems(expandedItems);
         }
       },
-      setAllExpanded(expanded) {
-        if (options.treeProps) {
-          if (expanded) {
-            actions.setExpandedItems(new Set(allItems.map(item => options.treeProps!.getId(item))));
-          } else {
-            actions.setExpandedItems(new Set());
+      setExpandedItems(items) {
+        if (options.expandableRows) {
+          const expandedItems = new Set<string>();
+          for (const item of items) {
+            expandedItems.add(options.expandableRows.getId(item));
           }
+          actions.setExpandedItems(expandedItems);
         }
       },
     },
