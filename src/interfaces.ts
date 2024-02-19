@@ -44,10 +44,6 @@ export interface UseCollectionOptions<T> {
   };
   sorting?: { defaultState?: SortingState<T> };
   pagination?: { defaultPage?: number; pageSize?: number };
-  groupPagination?: {
-    pageSize: (item: T) => number;
-    defaultPages?: (item: T) => number;
-  };
   selection?: {
     defaultSelectedItems?: ReadonlyArray<T>;
     keepSelection?: boolean;

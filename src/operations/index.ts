@@ -10,7 +10,7 @@ import { ItemsTree } from './items-tree.js';
 export function processItems<T>(
   items: ReadonlyArray<T>,
   { filteringText, sortingState, currentPageIndex, propertyFilteringQuery }: Partial<CollectionState<T>>,
-  { filtering, sorting, pagination, groupPagination, propertyFiltering, expandableRows }: UseCollectionOptions<T>
+  { filtering, sorting, pagination, propertyFiltering, expandableRows }: UseCollectionOptions<T>
 ): {
   items: ReadonlyArray<T>;
   allPageItems: ReadonlyArray<T>;
