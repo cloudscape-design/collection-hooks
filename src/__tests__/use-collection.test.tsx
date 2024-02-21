@@ -588,7 +588,7 @@ describe('expandable items', () => {
     function App() {
       const result = useCollection(allItems, {
         pagination: {},
-        treeProps: {
+        expandableRows: {
           getId,
           getParentId,
           defaultExpandedItems: [allItems[0], allItems[2]],
@@ -609,14 +609,16 @@ describe('expandable items', () => {
     function App() {
       const result = useCollection(allItems, {
         pagination: { pageSize: 25 },
-        treeProps: { getId, getParentId },
+        expandableRows: { getId, getParentId },
       });
       return (
         <div>
           <Demo {...result} />
           <button
             data-testid="expand-one"
-            onClick={() => result.collectionProps.onExpandableItemToggle?.({ detail: { item: allItems[1] } })}
+            onClick={() =>
+              result.collectionProps.onExpandableItemToggle?.({ detail: { item: allItems[1], expanded: true } })
+            }
           ></button>
         </div>
       );
@@ -633,7 +635,7 @@ describe('expandable items', () => {
     function App() {
       const result = useCollection(allItems, {
         pagination: { pageSize: 10 },
-        treeProps: {
+        expandableRows: {
           getId,
           getParentId: item => {
             if (allItems.indexOf(item) > 0 && allItems.indexOf(item) < 4) {
@@ -681,7 +683,7 @@ describe('expandable items', () => {
     function App() {
       const result = useCollection(allItems, {
         pagination: { pageSize: 10 },
-        treeProps: {
+        expandableRows: {
           getId,
           getParentId: item => allItems.find(maybeParent => item.id.slice(0, -2) === maybeParent.id)?.id ?? null,
           defaultExpandedItems: [allItems[0], allItems[1], allItems[4]],
@@ -699,7 +701,7 @@ describe('expandable items', () => {
     function App({ items }: { items: Item[] }) {
       const result = useCollection(items, {
         pagination: { pageSize: 10 },
-        treeProps: {
+        expandableRows: {
           getId,
           getParentId,
           defaultExpandedItems: allItems,

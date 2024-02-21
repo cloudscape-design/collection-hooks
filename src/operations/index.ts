@@ -39,12 +39,12 @@ export function processItems<T>(
   const filteredItemsCount = filterFn ? itemsTree.getSize() : undefined;
 
   if (pagination) {
-    const pageProps = createPageProps(pagination, currentPageIndex, items);
-    if (pageProps) {
-      items = items.slice((pageProps.pageIndex - 1) * pageProps.pageSize, pageProps.pageIndex * pageProps.pageSize);
-    }
+    const pageProps = createPageProps(pagination, currentPageIndex, allPageItems);
+    const paginatedItems = pageProps
+      ? allPageItems.slice((pageProps.pageIndex - 1) * pageProps.pageSize, pageProps.pageIndex * pageProps.pageSize)
+      : allPageItems;
     return {
-      items,
+      items: paginatedItems,
       allPageItems: allPageItems,
       filteredItemsCount,
       pagesCount: pageProps?.pagesCount,
