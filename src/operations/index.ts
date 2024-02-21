@@ -4,7 +4,7 @@ import { UseCollectionOptions, CollectionState, TrackBy } from '../interfaces';
 import { createFilterPredicate } from './filter.js';
 import { createPropertyFilterPredicate } from './property-filter.js';
 import { createComparator } from './sort.js';
-import { getPagesCount, normalizePageIndex, paginate } from './pagination.js';
+import { createPageProps } from './pagination.js';
 import { ItemsTree } from './items-tree.js';
 
 export function processItems<T>(
@@ -40,15 +40,16 @@ export function processItems<T>(
   const filteredItemsCount = filter ? itemsTree.getSize() : undefined;
 
   if (pagination) {
-    const pagesCount = getPagesCount(allPageItems, pagination.pageSize);
-    const actualPageIndex = normalizePageIndex(currentPageIndex, pagesCount);
-    const paginatedItems = paginate(allPageItems, actualPageIndex, pagination.pageSize);
+    const pageProps = createPageProps(pagination, currentPageIndex, items);
+    if (pageProps) {
+      items = items.slice((pageProps.pageIndex - 1) * pageProps.pageSize, pageProps.pageIndex * pageProps.pageSize);
+    }
     return {
-      items: paginatedItems,
+      items,
       allPageItems: allPageItems,
       filteredItemsCount,
-      pagesCount,
-      actualPageIndex,
+      pagesCount: pageProps?.pagesCount,
+      actualPageIndex: pageProps?.pageIndex,
       itemsTree,
     };
   }
