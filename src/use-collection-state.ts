@@ -10,9 +10,7 @@ export function useCollectionState<T>(
 ): readonly [CollectionState<T>, InternalCollectionActions<T>] {
   const [state, dispatch] = useReducer<CollectionReducer<T>>(collectionReducer, {
     selectedItems: options.selection?.defaultSelectedItems ?? [],
-    expandedItems: options.expandableRows
-      ? new Set((options.expandableRows.defaultExpandedItems ?? []).map(item => options.expandableRows!.getId(item)))
-      : new Set(),
+    expandedItems: transformExpandedItems(options),
     sortingState: options.sorting?.defaultState,
     currentPageIndex: options.pagination?.defaultPage ?? 1,
     filteringText: options.filtering?.defaultFilteringText ?? '',
@@ -25,4 +23,14 @@ export function useCollectionState<T>(
       collectionRef,
     }),
   ] as const;
+}
+
+function transformExpandedItems<T>(options: UseCollectionOptions<T>): ReadonlySet<string> {
+  const expandableRows = new Set<string>();
+  if (options.expandableRows && options.expandableRows.defaultExpandedItems) {
+    for (const item of options.expandableRows.defaultExpandedItems) {
+      expandableRows.add(options.expandableRows.getId(item));
+    }
+  }
+  return expandableRows;
 }
