@@ -82,8 +82,8 @@ export interface CollectionActions<T> {
   setSorting(state: SortingState<T>): void;
   setSelectedItems(selectedItems: ReadonlyArray<T>): void;
   setPropertyFiltering(query: PropertyFilterQuery): void;
-  setItemExpanded(item: T, expanded: boolean): void;
   setExpandedItems(items: ReadonlyArray<T>): void;
+  setItemExpanded(item: T, expanded: boolean): void;
 }
 
 interface UseCollectionResultBase<T> {
@@ -100,7 +100,7 @@ interface UseCollectionResultBase<T> {
     getItemChildren?: (item: T) => T[];
     getItemExpandable?: (item: T) => boolean;
     getItemExpanded?: (item: T) => boolean;
-    onExpandableItemToggle?(event: CustomEventLike<{ item: T }>): void;
+    onExpandableItemToggle?(event: CustomEventLike<{ item: T; expanded: boolean }>): void;
     trackBy?: string | ((item: T) => string);
     ref: React.RefObject<CollectionRef>;
     totalItemsCount?: number;
