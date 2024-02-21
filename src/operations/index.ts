@@ -21,14 +21,13 @@ export function processItems<T>(
 } {
   const itemsTree = new ItemsTree(items, expandableRows);
 
-  const filter = composeFilters([
-    propertyFiltering
-      ? createPropertyFilterPredicate(propertyFiltering, propertyFilteringQuery || { tokens: [], operation: 'and' })
-      : null,
-    filtering ? createFilterPredicate(filtering, filteringText) : null,
-  ]);
-  if (filter) {
-    itemsTree.filter(filter);
+  const propertyFilterFn = propertyFiltering
+    ? createPropertyFilterPredicate(propertyFiltering, propertyFilteringQuery ?? { tokens: [], operation: 'and' })
+    : null;
+  const textFilterFn = filtering ? createFilterPredicate(filtering, filteringText) : null;
+  const filterFn = composeFilters([propertyFilterFn, textFilterFn]);
+  if (filterFn) {
+    itemsTree.filter(filterFn);
   }
 
   const comparator = sorting ? createComparator(sorting, sortingState) : null;
@@ -37,7 +36,7 @@ export function processItems<T>(
   }
 
   const allPageItems = itemsTree.getItems();
-  const filteredItemsCount = filter ? itemsTree.getSize() : undefined;
+  const filteredItemsCount = filterFn ? itemsTree.getSize() : undefined;
 
   if (pagination) {
     const pageProps = createPageProps(pagination, currentPageIndex, items);
