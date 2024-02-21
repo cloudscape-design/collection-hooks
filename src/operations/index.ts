@@ -22,30 +22,29 @@ export function processItems<T>(
 } {
   const itemsTree = new ItemsTree(items, expandableRows);
 
-  const propertyFilterFn = propertyFiltering
-    ? createPropertyFilterPredicate(propertyFiltering, propertyFilteringQuery ?? { tokens: [], operation: 'and' })
-    : null;
-  const textFilterFn = filtering ? createFilterPredicate(filtering, filteringText) : null;
-  const filterFn = composeFilters(propertyFilterFn, textFilterFn);
-  if (filterFn) {
-    itemsTree.filter(filterFn);
+  const filterPredicate = composeFilters(
+    createPropertyFilterPredicate(propertyFiltering, propertyFilteringQuery),
+    createFilterPredicate(filtering, filteringText)
+  );
+  if (filterPredicate) {
+    itemsTree.filter(filterPredicate);
   }
 
-  const comparator = sorting ? createComparator(sorting, sortingState) : null;
+  const comparator = createComparator(sorting, sortingState);
   if (comparator) {
     itemsTree.sort(comparator);
   }
 
   const allPageItems = itemsTree.getItems();
-  const filteredItemsCount = filterFn ? itemsTree.getSize() : undefined;
+  const filteredItemsCount = filterPredicate ? itemsTree.getSize() : undefined;
 
-  if (pagination) {
-    const pageProps = createPageProps(pagination, currentPageIndex, allPageItems);
-    const paginatedItems = pageProps
-      ? allPageItems.slice((pageProps.pageIndex - 1) * pageProps.pageSize, pageProps.pageIndex * pageProps.pageSize)
-      : allPageItems;
+  const pageProps = createPageProps(pagination, currentPageIndex, allPageItems);
+  if (pageProps) {
     return {
-      items: paginatedItems,
+      items: allPageItems.slice(
+        (pageProps.pageIndex - 1) * pageProps.pageSize,
+        pageProps.pageIndex * pageProps.pageSize
+      ),
       allPageItems: allPageItems,
       filteredItemsCount,
       pagesCount: pageProps?.pagesCount,
