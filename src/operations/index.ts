@@ -1,10 +1,10 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
 import { UseCollectionOptions, CollectionState, TrackBy } from '../interfaces';
-import { createFilter } from './filter.js';
-import { createPropertyFilter } from './property-filter.js';
+import { createFilterPredicate } from './filter.js';
+import { createPropertyFilterPredicate } from './property-filter.js';
 import { createComparator } from './sort.js';
-import { getPagesCount, normalizePageIndex, paginate } from './paginate.js';
+import { getPagesCount, normalizePageIndex, paginate } from './pagination.js';
 import { ItemsTree } from './items-tree.js';
 
 export function processItems<T>(
@@ -23,15 +23,15 @@ export function processItems<T>(
 
   const filter = composeFilters([
     propertyFiltering
-      ? createPropertyFilter(propertyFilteringQuery || { tokens: [], operation: 'and' }, propertyFiltering)
+      ? createPropertyFilterPredicate(propertyFiltering, propertyFilteringQuery || { tokens: [], operation: 'and' })
       : null,
-    filtering ? createFilter(filteringText, filtering) : null,
+    filtering ? createFilterPredicate(filtering, filteringText) : null,
   ]);
   if (filter) {
     itemsTree.filter(filter);
   }
 
-  const comparator = sorting ? createComparator(sortingState) : null;
+  const comparator = sorting ? createComparator(sorting, sortingState) : null;
   if (comparator) {
     itemsTree.sort(comparator);
   }

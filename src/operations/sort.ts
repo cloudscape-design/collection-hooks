@@ -1,8 +1,11 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
-import { SortingState } from '../interfaces';
+import { SortingState, UseCollectionOptions } from '../interfaces';
 
-function getSorter<T>(sortingField: keyof T) {
+function getSorter<T>(sortingField?: keyof T) {
+  if (!sortingField) {
+    return null;
+  }
   return (row1: T, row2: T) => {
     // Use empty string as a default value, because it works well to compare with both strings and numbers:
     // Every number can be casted to a string, but not every string can be casted to a meaningful number,
@@ -18,34 +21,20 @@ function getSorter<T>(sortingField: keyof T) {
   };
 }
 
-export function createComparator<T>(state: SortingState<T> | undefined): null | ((a: T, b: T) => number) {
-  if (!state) {
-    return null;
-  }
-  const { sortingColumn } = state;
-
-  const comparator =
-    'sortingComparator' in sortingColumn
-      ? sortingColumn.sortingComparator
-      : sortingColumn.sortingField
-      ? getSorter(sortingColumn.sortingField as keyof T)
-      : undefined;
-  if (!comparator) {
+export function createComparator<T>(
+  sorting: UseCollectionOptions<T>['sorting'],
+  state: SortingState<T> | undefined
+): null | ((a: T, b: T) => number) {
+  if (!sorting || !state) {
     return null;
   }
   const direction = state.isDescending ? -1 : 1;
-  return (a, b) => comparator(a, b) * direction;
+  const comparator = state.sortingColumn.sortingComparator ?? getSorter(state.sortingColumn.sortingField as keyof T);
+  return comparator ? (a, b) => comparator(a, b) * direction : null;
 }
 
+// Keeping this function as there are customers depending on it.
 export function sort<T>(items: ReadonlyArray<T>, state: SortingState<T> | undefined): ReadonlyArray<T> {
-  const comparator = createComparator(state);
-
-  if (!comparator) {
-    return items;
-  }
-  const sorted = items.slice();
-
-  sorted.sort(comparator);
-
-  return sorted;
+  const comparator = createComparator({}, state);
+  return comparator ? items.slice().sort(comparator) : items;
 }

@@ -9,6 +9,7 @@ import {
   PropertyFilterProperty,
 } from '../interfaces';
 import { compareDates, compareTimestamps } from '../date-utils/compare-dates.js';
+import { Predicate } from './compose-filters';
 
 const filterUsingOperator = (
   itemValue: any,
@@ -125,11 +126,14 @@ type FilteringOperatorsMap = {
   [key in PropertyFilterOperator]?: PropertyFilterOperatorExtended<any>;
 };
 
-export function createPropertyFilter<T>(
-  query: PropertyFilterQuery,
-  { filteringFunction, filteringProperties }: NonNullable<UseCollectionOptions<T>['propertyFiltering']>
-): (item: T) => boolean {
-  const filteringPropertiesMap = filteringProperties.reduce<FilteringPropertiesMap<T>>(
+export function createPropertyFilterPredicate<T>(
+  propertyFiltering: UseCollectionOptions<T>['propertyFiltering'],
+  query: PropertyFilterQuery = { tokens: [], operation: 'and' }
+): null | Predicate<T> {
+  if (!propertyFiltering) {
+    return null;
+  }
+  const filteringPropertiesMap = propertyFiltering.filteringProperties.reduce<FilteringPropertiesMap<T>>(
     (acc: FilteringPropertiesMap<T>, { key, operators, defaultOperator }: PropertyFilterProperty) => {
       const operatorMap: FilteringOperatorsMap = { [defaultOperator ?? '=']: { operator: defaultOperator ?? '=' } };
       operators?.forEach(op => {
@@ -146,19 +150,8 @@ export function createPropertyFilter<T>(
     },
     {} as FilteringPropertiesMap<T>
   );
-
-  const filter = filteringFunction || defaultFilteringFunction(filteringPropertiesMap);
-
-  return item => filter(item, query);
-}
-
-export function propertyFilter<T>(
-  items: ReadonlyArray<T>,
-  query: PropertyFilterQuery,
-  options: NonNullable<UseCollectionOptions<T>['propertyFiltering']>
-): ReadonlyArray<T> {
-  const filter = createPropertyFilter(query, options);
-  return items.filter(filter);
+  const filteringFunction = propertyFiltering.filteringFunction || defaultFilteringFunction(filteringPropertiesMap);
+  return item => filteringFunction(item, query);
 }
 
 export const fixupFalsyValues = <T>(value: T): T | string => {
@@ -170,3 +163,13 @@ export const fixupFalsyValues = <T>(value: T): T | string => {
   }
   return '';
 };
+
+// Keeping this function as there are customers depending on it.
+export function propertyFilter<T>(
+  items: ReadonlyArray<T>,
+  query: PropertyFilterQuery,
+  propertyFiltering: NonNullable<UseCollectionOptions<T>['propertyFiltering']>
+): ReadonlyArray<T> {
+  const predicate = createPropertyFilterPredicate(propertyFiltering, query);
+  return predicate ? items.filter(predicate) : items;
+}
