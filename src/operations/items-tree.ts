@@ -63,10 +63,7 @@ export class ItemsTree<T> {
   };
 
   getChildren = (item: T): T[] => {
-    if (this.treeProps) {
-      return this.idToChildren.get(this.treeProps.getId(item)) ?? [];
-    }
-    return [];
+    return (this.treeProps && this.idToChildren.get(this.treeProps.getId(item))) ?? [];
   };
 
   getItems = (): ReadonlyArray<T> => {
