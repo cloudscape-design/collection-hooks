@@ -7,27 +7,30 @@ import { getTrackableValue } from '../operations/index.js';
 
 export type Item = { id: string; date?: Date };
 
+function getItemTextContent(itemElement: HTMLElement) {
+  return itemElement.querySelector('[data-testid="content"]')!.textContent;
+}
+
 export function render(jsx: React.ReactElement) {
   const queries = testRender(jsx);
   return {
     queries,
-    getVisibleItems: () =>
-      queries.queryAllByTestId('item').map(element => element.querySelector('[data-testid="content"]')!.textContent),
+    getVisibleItems: () => queries.queryAllByTestId('item').map(getItemTextContent),
     getSelectedItems: () =>
       queries
         .queryAllByTestId('item')
         .filter(element => element.dataset['selected'] === 'true')
-        .map(element => element.textContent),
+        .map(getItemTextContent),
     getExpandedItems: () =>
       queries
         .queryAllByTestId('item')
         .filter(element => element.dataset['expanded'] === 'true')
-        .map(element => element.textContent),
+        .map(getItemTextContent),
     getExpandableItems: () =>
       queries
         .queryAllByTestId('item')
         .filter(element => element.dataset['expandable'] === 'true')
-        .map(element => element.textContent),
+        .map(getItemTextContent),
     getSelectedLength: () => queries.getByTestId('selected-items').textContent,
     getMatchesCount: () => queries.getByTestId('matches-count').textContent,
     getPagesCount: () => queries.getByTestId('pages-count').textContent,
@@ -44,6 +47,8 @@ export function render(jsx: React.ReactElement) {
     findSortBy: () => queries.getByTestId('sortby'),
     findSortedBy: () => queries.getByTestId('sortedby'),
     findItem: (index: number) => queries.queryAllByTestId('item')[index],
+    findExpandToggle: (index: number) =>
+      queries.queryAllByTestId('item')[index].querySelector('[data-testid="expand-toggle"]'),
     rerender: queries.rerender,
   };
 }

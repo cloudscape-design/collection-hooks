@@ -88,11 +88,9 @@ export class ItemsTree<T> {
 
   private filterTree = (predicate: (item: T) => boolean): void => {
     const filterNode = (item: T): boolean => {
-      // Keeping all children when parent matched.
-      if (predicate(item)) {
+      if (this.treeProps?.keepAllChildrenWhenParentMatched && predicate(item)) {
         return true;
       }
-      // Alternative filtering logic (unsupported).
       const children = this.getChildren(item);
       const filteredChildren = children.filter(filterNode);
       this.size -= children.length - filteredChildren.length;

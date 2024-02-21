@@ -6,6 +6,7 @@ import { createPropertyFilterPredicate } from './property-filter.js';
 import { createComparator } from './sort.js';
 import { createPageProps } from './pagination.js';
 import { ItemsTree } from './items-tree.js';
+import { composeFilters } from './compose-filters';
 
 export function processItems<T>(
   items: ReadonlyArray<T>,
@@ -25,7 +26,7 @@ export function processItems<T>(
     ? createPropertyFilterPredicate(propertyFiltering, propertyFilteringQuery ?? { tokens: [], operation: 'and' })
     : null;
   const textFilterFn = filtering ? createFilterPredicate(filtering, filteringText) : null;
-  const filterFn = composeFilters([propertyFilterFn, textFilterFn]);
+  const filterFn = composeFilters(propertyFilterFn, textFilterFn);
   if (filterFn) {
     itemsTree.filter(filterFn);
   }
@@ -91,21 +92,3 @@ export const itemsAreEqual = <T>(items1: ReadonlyArray<T>, items2: ReadonlyArray
   items1.forEach(item => set1.add(getTrackableValue(trackBy, item)));
   return items2.every(item => set1.has(getTrackableValue(trackBy, item)));
 };
-
-type Filter<T> = (item: T) => boolean;
-
-function composeFilters<T>(filters: Array<null | Filter<T>>): null | Filter<T> {
-  const definedFilters: Filter<T>[] = [];
-  for (const filter of filters) {
-    if (filter) {
-      definedFilters.push(filter);
-    }
-  }
-  if (definedFilters.length === 0) {
-    return null;
-  }
-  return definedFilters.reduce(
-    (composedFilter, filter) => (item: T) => composedFilter(item) && filter(item),
-    () => true
-  );
-}
