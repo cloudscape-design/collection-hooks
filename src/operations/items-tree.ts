@@ -9,11 +9,7 @@ export class ItemsTree<T> {
   private treeProps?: ExpandableRowsProps<T>;
   private hasNesting = false;
   private roots = new Array<T>();
-  private idToItem = new Map<string, T>();
   private idToChildren = new Map<string, Array<T>>();
-  private itemToLevel = new Map<T, number>();
-  public incompleteRoot = false;
-  public incompleteItems = new Set<string>();
 
   constructor(items: ReadonlyArray<T>, treeProps?: ExpandableRowsProps<T>) {
     this.size = items.length;
@@ -26,10 +22,7 @@ export class ItemsTree<T> {
 
     // Assign item children.
     for (const item of items) {
-      const itemId = treeProps.getId(item);
       const parentId = treeProps.getParentId(item);
-
-      this.idToItem.set(itemId, item);
 
       if (parentId === null) {
         this.roots.push(item);
@@ -43,7 +36,6 @@ export class ItemsTree<T> {
 
     // Assign item levels.
     const traverse = (item: T, level = 1) => {
-      this.itemToLevel.set(item, level);
       for (const child of this.idToChildren.get(treeProps.getId(item)) ?? []) {
         traverse(child, level + 1);
       }
