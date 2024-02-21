@@ -1,7 +1,7 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
-import { fireEvent } from '@testing-library/react';
-import * as React from 'react';
+import { fireEvent, screen } from '@testing-library/react';
+import React from 'react';
 import { useCollection } from '..';
 import { Demo, Item, render } from './stubs';
 
@@ -114,6 +114,40 @@ test('updates expanded items when collectionProps.onExpandableItemToggle is call
   expect(getExpandedItems()).toEqual(['5']);
 
   fireEvent.click(findExpandToggle(1)!);
+  expect(getExpandedItems()).toEqual([]);
+});
+
+test('updates expanded items with actions', () => {
+  const allItems = [{ id: 'a' }, { id: 'b' }, { id: 'c' }];
+  function App() {
+    const result = useCollection(allItems, {
+      expandableRows: { getId, getParentId },
+    });
+    const { setExpandedItems, setItemExpanded } = result.actions;
+    return (
+      <div>
+        <Demo {...result} />
+        <button data-testid="expand-all" onClick={() => setExpandedItems(allItems)}></button>
+        <button data-testid="collapse-all" onClick={() => setExpandedItems([])}></button>
+        <button data-testid="expand-first" onClick={() => setItemExpanded(allItems[0], true)}></button>
+        <button data-testid="collapse-first" onClick={() => setItemExpanded(allItems[0], false)}></button>
+      </div>
+    );
+  }
+
+  const { getExpandedItems } = render(<App />);
+  expect(getExpandedItems()).toEqual([]);
+
+  fireEvent.click(screen.getByTestId('expand-all'));
+  expect(getExpandedItems()).toEqual(['a', 'b', 'c']);
+
+  fireEvent.click(screen.getByTestId('collapse-all'));
+  expect(getExpandedItems()).toEqual([]);
+
+  fireEvent.click(screen.getByTestId('expand-first'));
+  expect(getExpandedItems()).toEqual(['a']);
+
+  fireEvent.click(screen.getByTestId('collapse-first'));
   expect(getExpandedItems()).toEqual([]);
 });
 
