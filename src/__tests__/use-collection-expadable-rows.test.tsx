@@ -273,7 +273,7 @@ test.each([false, true])('expanded rows with selection and keepSelection=%s', ke
       expandableRows: {
         getId,
         getParentId: getDeepTreeParentId,
-        defaultExpandedItems: deepTreeItems,
+        defaultExpandedItems: [deepTreeItems[0], deepTreeItems[1], deepTreeItems[4], deepTreeItems[5]],
       },
       selection: {
         keepSelection,
@@ -282,7 +282,7 @@ test.each([false, true])('expanded rows with selection and keepSelection=%s', ke
           deepTreeItems[1],
           deepTreeItems[2],
           deepTreeItems[3],
-          deepTreeItems[6],
+          deepTreeItems[5],
         ],
       },
     });
@@ -290,14 +290,17 @@ test.each([false, true])('expanded rows with selection and keepSelection=%s', ke
   }
 
   const { getSelectedItems, findMultiSelect, findExpandToggle } = render(<App items={items} />);
-  expect(getSelectedItems()).toEqual(['a', 'a.1', 'a.1.1', 'a.1.2', 'b.1.1']);
+  expect(getSelectedItems()).toEqual(['a', 'a.1', 'a.1.1', 'a.1.2', 'b.1']);
+
+  fireEvent.click(findMultiSelect(7)!);
+  expect(getSelectedItems()).toEqual(['a', 'a.1', 'a.1.1', 'a.1.2', 'b.1', 'b.1.2']);
 
   fireEvent.click(findMultiSelect(1)!);
-  expect(getSelectedItems()).toEqual(['a', 'a.1.1', 'a.1.2', 'b.1.1']);
+  expect(getSelectedItems()).toEqual(['a', 'a.1.1', 'a.1.2', 'b.1', 'b.1.2']);
 
   fireEvent.click(findExpandToggle(1)!);
-  expect(getSelectedItems()).toEqual(['a', 'b.1.1']);
+  expect(getSelectedItems()).toEqual(['a', 'b.1', 'b.1.2']);
 
   fireEvent.click(findExpandToggle(1)!);
-  expect(getSelectedItems()).toEqual(keepSelection ? ['a', 'a.1.1', 'a.1.2', 'b.1.1'] : ['a', 'b.1.1']);
+  expect(getSelectedItems()).toEqual(keepSelection ? ['a', 'a.1.1', 'a.1.2', 'b.1', 'b.1.2'] : ['a', 'b.1', 'b.1.2']);
 });

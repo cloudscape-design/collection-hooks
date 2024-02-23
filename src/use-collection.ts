@@ -28,8 +28,8 @@ export function useCollection<T>(allItems: ReadonlyArray<T>, options: UseCollect
     const getId = options.expandableRows.getId;
     const traverse = (items: readonly T[]) => {
       for (const item of items) {
+        flatItems.push(item);
         if (state.expandedItems.has(getId(item))) {
-          flatItems.push(item);
           traverse(itemsTree.getChildren(item));
         }
       }
