@@ -7,7 +7,7 @@
     "moduleResolution": "Node",
     "lib": ["es5", "es2015.collection"],
     "strict": true,
-    "outDir": "dist/mjs",
+    "outDir": "lib/mjs",
     "rootDir": "src"
   },
   "include": ["src/**/*.ts"],
