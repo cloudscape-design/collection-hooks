@@ -47,6 +47,10 @@ export function render(jsx: React.ReactElement) {
     findSortBy: () => queries.getByTestId('sortby'),
     findSortedBy: () => queries.getByTestId('sortedby'),
     findItem: (index: number) => queries.queryAllByTestId('item')[index],
+    findSingleSelect: (index: number) =>
+      queries.queryAllByTestId('item')[index].querySelector('[data-testid="single-select"]'),
+    findMultiSelect: (index: number) =>
+      queries.queryAllByTestId('item')[index].querySelector('[data-testid="multi-select"]'),
     findExpandToggle: (index: number) =>
       queries.queryAllByTestId('item')[index].querySelector('[data-testid="expand-toggle"]'),
     rerender: queries.rerender,
@@ -109,10 +113,19 @@ const Table = React.forwardRef<CollectionRef, TableProps>(
           data-expandable={isExpandable}
           data-expanded={isExpanded}
           data-children={nestedItems}
-          onClick={() =>
-            onSelectionChange && onSelectionChange(new CustomEvent('cloudscape', { detail: { selectedItems: [item] } }))
-          }
         >
+          <button
+            data-testid="single-select"
+            onClick={() => onSelectionChange?.(new CustomEvent('cloudscape', { detail: { selectedItems: [item] } }))}
+          ></button>
+          <button
+            data-testid="multi-select"
+            onClick={() =>
+              onSelectionChange?.(
+                new CustomEvent('cloudscape', { detail: { selectedItems: toggleSelection(item, selectedItems) } })
+              )
+            }
+          ></button>
           {isExpandable && (
             <button
               data-testid="expand-toggle"
@@ -274,4 +287,8 @@ export function Demo({
       <Pagination {...paginationProps} />
     </>
   );
+}
+
+function toggleSelection<T>(item: T, selectedItems: readonly T[] = []): T[] {
+  return selectedItems.includes(item) ? selectedItems.filter(selected => selected !== item) : [...selectedItems, item];
 }

@@ -95,7 +95,7 @@ test('displays root items and expanded items children only in a deep tree', () =
     return <Demo {...result} />;
   }
 
-  const { getVisibleItems: getVisibleItems } = render(<App />);
+  const { getVisibleItems } = render(<App />);
   expect(getVisibleItems()).toEqual(['a', 'a.1', 'a.1.1', 'a.1.2', 'b', 'b.1', 'c']);
 });
 
@@ -196,29 +196,6 @@ test('expanded rows with text filtering', () => {
   expect(getVisibleItems()).toEqual(['a', 'a.1']);
 });
 
-test('expanded rows with text filtering and keepAllChildrenWhenParentMatched', () => {
-  const deepTreeItemsWithValues: (Item & { value?: string })[] = [...deepTreeItems];
-  deepTreeItemsWithValues.find(item => item.id === 'a.1')!.value = 'match';
-
-  function App() {
-    const result = useCollection(deepTreeItemsWithValues, {
-      expandableRows: {
-        getId,
-        getParentId: getDeepTreeParentId,
-        defaultExpandedItems: deepTreeItemsWithValues,
-        keepAllChildrenWhenParentMatched: true,
-      },
-      filtering: {
-        defaultFilteringText: 'match',
-      },
-    });
-    return <Demo {...result} />;
-  }
-  const { getVisibleItems } = render(<App />);
-
-  expect(getVisibleItems()).toEqual(['a', 'a.1', 'a.1.1', 'a.1.2']);
-});
-
 test('expanded rows with property filtering', () => {
   const deepTreeItemsWithValues: (Item & { value?: string })[] = [...deepTreeItems];
   deepTreeItemsWithValues.find(item => item.id === 'a.1')!.value = 'match';
@@ -284,6 +261,43 @@ test('expanded rows with sorting', () => {
     return <Demo {...result} />;
   }
 
-  const { getVisibleItems: getVisibleItems } = render(<App />);
+  const { getVisibleItems } = render(<App />);
   expect(getVisibleItems()).toEqual(deepTreeItems.map(item => item.id));
+});
+
+test.each([false, true])('expanded rows with selection and keepSelection=%s', keepSelection => {
+  const items = [...deepTreeItems];
+
+  function App({ items }: { items: Item[] }) {
+    const result = useCollection(items, {
+      expandableRows: {
+        getId,
+        getParentId: getDeepTreeParentId,
+        defaultExpandedItems: deepTreeItems,
+      },
+      selection: {
+        keepSelection,
+        defaultSelectedItems: [
+          deepTreeItems[0],
+          deepTreeItems[1],
+          deepTreeItems[2],
+          deepTreeItems[3],
+          deepTreeItems[6],
+        ],
+      },
+    });
+    return <Demo {...result} />;
+  }
+
+  const { getSelectedItems, findMultiSelect, findExpandToggle } = render(<App items={items} />);
+  expect(getSelectedItems()).toEqual(['a', 'a.1', 'a.1.1', 'a.1.2', 'b.1.1']);
+
+  fireEvent.click(findMultiSelect(1)!);
+  expect(getSelectedItems()).toEqual(['a', 'a.1.1', 'a.1.2', 'b.1.1']);
+
+  fireEvent.click(findExpandToggle(1)!);
+  expect(getSelectedItems()).toEqual(['a', 'b.1.1']);
+
+  fireEvent.click(findExpandToggle(1)!);
+  expect(getSelectedItems()).toEqual(keepSelection ? ['a', 'a.1.1', 'a.1.2', 'b.1.1'] : ['a', 'b.1.1']);
 });

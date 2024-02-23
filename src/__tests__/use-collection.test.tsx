@@ -207,14 +207,13 @@ describe('keepSelection = false', () => {
       });
       return <Demo {...result} />;
     }
-    const { findNextPage, findPreviousPage, findCurrentPage, findItem, getSelectedItems, getSelectedLength } = render(
-      <App />
-    );
+    const { findNextPage, findPreviousPage, findCurrentPage, findSingleSelect, getSelectedItems, getSelectedLength } =
+      render(<App />);
     expect(getSelectedItems()).toEqual(['1']);
     fireEvent.click(findNextPage());
     expect(getSelectedLength()).toEqual('0');
     fireEvent.click(findPreviousPage());
-    fireEvent.click(findItem(0));
+    fireEvent.click(findSingleSelect(0)!);
     expect(getSelectedItems()).toEqual(['1']);
     fireEvent.click(findCurrentPage());
     expect(getSelectedItems()).toEqual(['1']);
@@ -292,9 +291,9 @@ describe('keepSelection = false', () => {
       });
       return <Demo {...result} />;
     }
-    const { findItem, getSelectedItems } = render(<App />);
+    const { findSingleSelect, getSelectedItems } = render(<App />);
     expect(getSelectedItems()).toEqual(['1']);
-    fireEvent.click(findItem(1));
+    fireEvent.click(findSingleSelect(1)!);
     expect(getSelectedItems()).toEqual(['2']);
   });
 });

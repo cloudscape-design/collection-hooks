@@ -56,7 +56,6 @@ export interface ExpandableRowsProps<ItemType> {
   getId(item: ItemType): string;
   getParentId(item: ItemType): null | string;
   defaultExpandedItems?: ReadonlyArray<ItemType>;
-  keepAllChildrenWhenParentMatched?: boolean;
 }
 
 export interface CollectionState<T> {

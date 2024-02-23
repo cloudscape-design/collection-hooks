@@ -21,8 +21,26 @@ export function useCollection<T>(allItems: ReadonlyArray<T>, options: UseCollect
     state,
     options
   );
+
+  let visibleItems = items;
+  if (options.expandableRows) {
+    const flatItems = new Array<T>();
+    const getId = options.expandableRows.getId;
+    const traverse = (items: readonly T[]) => {
+      for (const item of items) {
+        if (state.expandedItems.has(getId(item))) {
+          flatItems.push(item);
+          traverse(itemsTree.getChildren(item));
+        }
+      }
+    };
+    traverse(items);
+    visibleItems = flatItems;
+  }
+
+  // Removing selected items that are no longer present in items unless keepSelection=true.
   if (options.selection && !options.selection.keepSelection) {
-    const newSelectedItems = processSelectedItems(items, state.selectedItems, options.selection.trackBy);
+    const newSelectedItems = processSelectedItems(visibleItems, state.selectedItems, options.selection.trackBy);
     if (!itemsAreEqual(newSelectedItems, state.selectedItems, options.selection.trackBy)) {
       // This is a recommended pattern for how to handle the state, dependent on the incoming props
       // https://reactjs.org/docs/hooks-faq.html#how-do-i-implement-getderivedstatefromprops
@@ -34,10 +52,10 @@ export function useCollection<T>(allItems: ReadonlyArray<T>, options: UseCollect
   useEffect(() => {
     if (options.expandableRows) {
       const newExpandedRows = new Set<string>();
-      for (const item of allItems) {
-        const itemKey = options.expandableRows.getId(item);
-        if (state.expandedItems.has(itemKey)) {
-          newExpandedRows.add(itemKey);
+      for (const item of visibleItems) {
+        const itemId = options.expandableRows.getId(item);
+        if (state.expandedItems.has(itemId)) {
+          newExpandedRows.add(itemId);
         }
       }
       if (newExpandedRows.size !== state.expandedItems.size) {
