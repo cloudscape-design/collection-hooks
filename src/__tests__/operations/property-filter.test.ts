@@ -7,13 +7,13 @@ const propertyFiltering = {
   filteringProperties: [
     {
       key: 'id',
-      operators: [':', '!:', '^'],
+      operators: [':', '!:', '^', '!^'],
       groupValuesLabel: 'Id values',
       propertyLabel: 'Id',
     },
     {
       key: 'field',
-      operators: [':', '!:', '^', '?'],
+      operators: [':', '!:', '^', '!^', '?'],
       groupValuesLabel: 'Field values',
       propertyLabel: 'Field',
     },
@@ -154,7 +154,7 @@ describe('Supported operators', () => {
     const { items: processed } = processItems(items, { propertyFilteringQuery: operatorQuery }, { propertyFiltering });
     expect(processed).toEqual([items[3]]);
   });
-  test.each<PropertyFilterOperator>(['<', '<=', '>', '>=', ':', '!:', '!=', '^'])(
+  test.each<PropertyFilterOperator>(['<', '<=', '>', '>=', ':', '!:', '!=', '^', '!^'])(
     '%s operator is not supported by default',
     operator => {
       const operatorQuery = {
@@ -293,6 +293,28 @@ test('"starts-with" operator matching', () => {
   } as const;
   const { items: processed } = processItems(items, { propertyFilteringQuery: startsWithQuery }, { propertyFiltering });
   expect(processed).toEqual([items[0], items[1], items[2]]);
+});
+
+test('"not-starts-with" operator matching', () => {
+  const items = [
+    { id: 1, field: 'a' },
+    { id: 2, field: 'ab' },
+    { id: 3, field: 'bc' },
+    { id: 4, field: 'bcd' },
+    { id: 5, field: 'b' },
+    { id: 6, field: 'c' },
+    { id: 7, field: 'd' },
+    { id: 8, field: '' },
+    { id: 9, field: 'abc' },
+    { id: 10, field: 'abcd' },
+    { id: 11, field: 'abCd' },
+  ];
+  const startsWithQuery = {
+    tokens: [{ propertyKey: 'field', operator: '!^', value: 'abc' }],
+    operation: 'and',
+  } as const;
+  const { items: processed } = processItems(items, { propertyFilteringQuery: startsWithQuery }, { propertyFiltering });
+  expect(processed).toEqual([items[0], items[1], items[2], items[3], items[4], items[5], items[6], items[7]]);
 });
 
 test('unsupported operator results in an exception', () => {
