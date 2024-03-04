@@ -123,14 +123,12 @@ test('updates expanded items with actions', () => {
     const result = useCollection(allItems, {
       expandableRows: { getId, getParentId },
     });
-    const { setExpandedItems, setItemExpanded } = result.actions;
+    const { setExpandedItems } = result.actions;
     return (
       <div>
         <Demo {...result} />
         <button data-testid="expand-all" onClick={() => setExpandedItems(allItems)}></button>
         <button data-testid="collapse-all" onClick={() => setExpandedItems([])}></button>
-        <button data-testid="expand-first" onClick={() => setItemExpanded(allItems[0], true)}></button>
-        <button data-testid="collapse-first" onClick={() => setItemExpanded(allItems[0], false)}></button>
       </div>
     );
   }
@@ -142,12 +140,6 @@ test('updates expanded items with actions', () => {
   expect(getExpandedItems()).toEqual(['a', 'b', 'c']);
 
   fireEvent.click(screen.getByTestId('collapse-all'));
-  expect(getExpandedItems()).toEqual([]);
-
-  fireEvent.click(screen.getByTestId('expand-first'));
-  expect(getExpandedItems()).toEqual(['a']);
-
-  fireEvent.click(screen.getByTestId('collapse-first'));
   expect(getExpandedItems()).toEqual([]);
 });
 

@@ -83,7 +83,6 @@ export interface CollectionActions<T> {
   setSelectedItems(selectedItems: ReadonlyArray<T>): void;
   setPropertyFiltering(query: PropertyFilterQuery): void;
   setExpandedItems(items: ReadonlyArray<T>): void;
-  setItemExpanded(item: T, expanded: boolean): void;
 }
 
 interface UseCollectionResultBase<T> {

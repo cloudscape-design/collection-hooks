@@ -8,7 +8,6 @@ import {
   CollectionRef,
   InternalCollectionActions,
   CollectionActions,
-  CollectionState,
 } from './interfaces';
 import { createSyncProps } from './utils.js';
 import { useCollectionState } from './use-collection-state.js';
@@ -68,7 +67,7 @@ export function useCollection<T>(allItems: ReadonlyArray<T>, options: UseCollect
     items,
     allPageItems,
     filteredItemsCount,
-    actions: transformInternalActions(actions, options, state),
+    actions: transformInternalActions(actions, options),
     ...createSyncProps(options, state, actions, collectionRef, {
       actualPageIndex,
       pagesCount,
@@ -81,22 +80,10 @@ export function useCollection<T>(allItems: ReadonlyArray<T>, options: UseCollect
 
 function transformInternalActions<T>(
   actions: InternalCollectionActions<T>,
-  options: UseCollectionOptions<T>,
-  state: CollectionState<T>
+  options: UseCollectionOptions<T>
 ): CollectionActions<T> {
   return {
     ...actions,
-    setItemExpanded(item, expanded) {
-      if (options.expandableRows) {
-        const expandedItems = new Set(state.expandedItems);
-        if (expanded) {
-          expandedItems.add(options.expandableRows.getId(item));
-        } else {
-          expandedItems.delete(options.expandableRows.getId(item));
-        }
-        actions.setExpandedItems(expandedItems);
-      }
-    },
     setExpandedItems(items) {
       if (options.expandableRows) {
         const expandedItems = new Set<string>();
