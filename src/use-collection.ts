@@ -2,13 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 import { useEffect, useRef } from 'react';
 import { processItems, processSelectedItems, itemsAreEqual } from './operations/index.js';
-import {
-  UseCollectionOptions,
-  UseCollectionResult,
-  CollectionRef,
-  InternalCollectionActions,
-  CollectionActions,
-} from './interfaces';
+import { UseCollectionOptions, UseCollectionResult, CollectionRef } from './interfaces';
 import { createSyncProps } from './utils.js';
 import { useCollectionState } from './use-collection-state.js';
 
@@ -21,6 +15,13 @@ export function useCollection<T>(allItems: ReadonlyArray<T>, options: UseCollect
     options
   );
 
+  const expandedItemsSet = new Set<string>();
+  if (options.expandableRows) {
+    for (const item of state.expandedItems) {
+      expandedItemsSet.add(options.expandableRows.getId(item));
+    }
+  }
+
   let visibleItems = items;
   if (options.expandableRows) {
     const flatItems = new Array<T>();
@@ -28,7 +29,7 @@ export function useCollection<T>(allItems: ReadonlyArray<T>, options: UseCollect
     const traverse = (items: readonly T[]) => {
       for (const item of items) {
         flatItems.push(item);
-        if (state.expandedItems.has(getId(item))) {
+        if (expandedItemsSet.has(getId(item))) {
           traverse(itemsTree.getChildren(item));
         }
       }
@@ -50,15 +51,14 @@ export function useCollection<T>(allItems: ReadonlyArray<T>, options: UseCollect
   // Removing expanded items that are no longer present in items.
   useEffect(() => {
     if (options.expandableRows) {
-      const newExpandedRows = new Set<string>();
+      const newExpandedItems = new Array<T>();
       for (const item of visibleItems) {
-        const itemId = options.expandableRows.getId(item);
-        if (state.expandedItems.has(itemId)) {
-          newExpandedRows.add(itemId);
+        if (expandedItemsSet.has(options.expandableRows.getId(item))) {
+          newExpandedItems.push(item);
         }
       }
-      if (newExpandedRows.size !== state.expandedItems.size) {
-        actions.setExpandedItems(newExpandedRows);
+      if (newExpandedItems.length !== state.expandedItems.length) {
+        actions.setExpandedItems(newExpandedItems);
       }
     }
   });
@@ -67,7 +67,7 @@ export function useCollection<T>(allItems: ReadonlyArray<T>, options: UseCollect
     items,
     allPageItems,
     filteredItemsCount,
-    actions: transformInternalActions(actions, options),
+    actions,
     ...createSyncProps(options, state, actions, collectionRef, {
       actualPageIndex,
       pagesCount,
@@ -75,23 +75,5 @@ export function useCollection<T>(allItems: ReadonlyArray<T>, options: UseCollect
       allPageItems,
       itemsTree,
     }),
-  };
-}
-
-function transformInternalActions<T>(
-  actions: InternalCollectionActions<T>,
-  options: UseCollectionOptions<T>
-): CollectionActions<T> {
-  return {
-    ...actions,
-    setExpandedItems(items) {
-      if (options.expandableRows) {
-        const expandedItems = new Set<string>();
-        for (const item of items) {
-          expandedItems.add(options.expandableRows.getId(item));
-        }
-        actions.setExpandedItems(expandedItems);
-      }
-    },
   };
 }

@@ -9,7 +9,7 @@ import {
   CollectionRef,
   PropertyFilterQuery,
   PropertyFilterOption,
-  InternalCollectionActions,
+  CollectionActions,
 } from './interfaces';
 import { fixupFalsyValues } from './operations/property-filter.js';
 import { ItemsTree } from './operations/items-tree';
@@ -18,9 +18,9 @@ interface SelectionAction<T> {
   type: 'selection';
   selectedItems: ReadonlyArray<T>;
 }
-interface ExpandAction {
+interface ExpandAction<T> {
   type: 'expand';
-  expandedItems: Iterable<string>;
+  expandedItems: ReadonlyArray<T>;
 }
 interface SortingAction<T> {
   type: 'sorting';
@@ -40,7 +40,7 @@ interface PropertyFilteringAction {
 }
 type Action<T> =
   | SelectionAction<T>
-  | ExpandAction
+  | ExpandAction<T>
   | SortingAction<T>
   | PaginationAction
   | FilteringAction
@@ -53,7 +53,7 @@ export function collectionReducer<T>(state: CollectionState<T>, action: Action<T
       newState.selectedItems = action.selectedItems;
       break;
     case 'expand':
-      newState.expandedItems = new Set(action.expandedItems);
+      newState.expandedItems = action.expandedItems;
       break;
     case 'filtering':
       newState.currentPageIndex = 1;
@@ -80,7 +80,7 @@ export function createActions<T>({
 }: {
   dispatch: Dispatch<Action<T>>;
   collectionRef: React.RefObject<CollectionRef>;
-}): InternalCollectionActions<T> {
+}): CollectionActions<T> {
   return {
     setFiltering(filteringText) {
       dispatch({ type: 'filtering', filteringText });
@@ -101,7 +101,7 @@ export function createActions<T>({
       dispatch({ type: 'property-filtering', query });
       collectionRef.current && collectionRef.current.scrollToTop();
     },
-    setExpandedItems(expandedItems: Iterable<string>) {
+    setExpandedItems(expandedItems: ReadonlyArray<T>) {
       dispatch({ type: 'expand', expandedItems });
     },
   };
@@ -117,7 +117,7 @@ export function createSyncProps<T>(
     currentPageIndex,
     propertyFilteringQuery,
   }: CollectionState<T>,
-  actions: InternalCollectionActions<T>,
+  actions: CollectionActions<T>,
   collectionRef: React.RefObject<CollectionRef>,
   {
     pagesCount,
@@ -183,20 +183,26 @@ export function createSyncProps<T>(
               getItemExpandable(item: T) {
                 return itemsTree.getChildren(item).length > 0;
               },
-              getItemExpanded(item: T) {
-                return expandedItems.has(options.expandableRows!.getId(item));
-              },
+              expandedItems,
               onExpandableItemToggle: ({ detail: { item, expanded } }) => {
-                const itemKey = options.expandableRows!.getId(item);
-                const newExpandedItems = new Set(expandedItems);
+                const getId = options.expandableRows!.getId;
                 if (expanded) {
-                  newExpandedItems.add(itemKey);
+                  for (const stateItem of expandedItems) {
+                    if (getId(stateItem) === getId(item)) {
+                      return;
+                    }
+                  }
+                  actions.setExpandedItems([...expandedItems, item]);
                 } else {
-                  newExpandedItems.delete(itemKey);
+                  actions.setExpandedItems(expandedItems.filter(stateItem => getId(stateItem) !== getId(item)));
                 }
-                actions.setExpandedItems(newExpandedItems);
               },
             },
+            // The trackBy property is used to match expanded items by ID and not by object reference.
+            // The property can be overridden by the explicitly provided selection.trackBy.
+            // If that is the case, we assume both selection.trackBy and expandableRows.getId have the same result.
+            // If not, the expandable state won't be matched correctly by the table.
+            trackBy: options.expandableRows.getId,
           }
         : {}),
       ...(options.selection

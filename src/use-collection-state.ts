@@ -2,15 +2,15 @@
 // SPDX-License-Identifier: Apache-2.0
 import { useReducer } from 'react';
 import { createActions, collectionReducer, CollectionReducer } from './utils.js';
-import { UseCollectionOptions, CollectionState, InternalCollectionActions, CollectionRef } from './interfaces';
+import { UseCollectionOptions, CollectionState, CollectionRef, CollectionActions } from './interfaces';
 
 export function useCollectionState<T>(
   options: UseCollectionOptions<T>,
   collectionRef: React.RefObject<CollectionRef>
-): readonly [CollectionState<T>, InternalCollectionActions<T>] {
+): readonly [CollectionState<T>, CollectionActions<T>] {
   const [state, dispatch] = useReducer<CollectionReducer<T>>(collectionReducer, {
     selectedItems: options.selection?.defaultSelectedItems ?? [],
-    expandedItems: transformExpandedItems(options),
+    expandedItems: options.expandableRows?.defaultExpandedItems ?? [],
     sortingState: options.sorting?.defaultState,
     currentPageIndex: options.pagination?.defaultPage ?? 1,
     filteringText: options.filtering?.defaultFilteringText ?? '',
@@ -23,14 +23,4 @@ export function useCollectionState<T>(
       collectionRef,
     }),
   ] as const;
-}
-
-function transformExpandedItems<T>(options: UseCollectionOptions<T>): ReadonlySet<string> {
-  const expandableRows = new Set<string>();
-  if (options.expandableRows && options.expandableRows.defaultExpandedItems) {
-    for (const item of options.expandableRows.defaultExpandedItems) {
-      expandableRows.add(options.expandableRows.getId(item));
-    }
-  }
-  return expandableRows;
 }

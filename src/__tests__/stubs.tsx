@@ -86,11 +86,11 @@ const Table = React.forwardRef<CollectionRef, TableProps>(
     React.useImperativeHandle(ref, () => ({
       scrollToTop,
     }));
-    const { getItemExpandable, getItemExpanded, getItemChildren, onExpandableItemToggle } = expandableRows ?? {};
+    const { getItemExpandable, expandedItems = [], getItemChildren, onExpandableItemToggle } = expandableRows ?? {};
 
     function TableItem({ item, itemIndex, parentIndex }: { item: Item; itemIndex: number; parentIndex?: string }) {
       const isExpandable = getItemExpandable?.(item) ?? false;
-      const isExpanded = getItemExpanded?.(item) ?? false;
+      const isExpanded = expandedItems.some(it => getTrackableValue(trackBy, it) === getTrackableValue(trackBy, item));
       const nestedItems = getItemChildren?.(item) ?? [];
       const dataIndex = firstIndex ? (!parentIndex ? `${firstIndex + itemIndex}` : `${parentIndex}-${itemIndex}`) : '';
       return (

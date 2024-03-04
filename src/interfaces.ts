@@ -64,16 +64,7 @@ export interface CollectionState<T> {
   currentPageIndex: number;
   sortingState?: SortingState<T>;
   selectedItems: ReadonlyArray<T>;
-  expandedItems: ReadonlySet<string>;
-}
-
-export interface InternalCollectionActions<T> {
-  setFiltering(filteringText: string): void;
-  setCurrentPage(pageNumber: number): void;
-  setSorting(state: SortingState<T>): void;
-  setSelectedItems(selectedItems: ReadonlyArray<T>): void;
-  setPropertyFiltering(query: PropertyFilterQuery): void;
-  setExpandedItems(expandedItems: ReadonlySet<string>): void;
+  expandedItems: ReadonlyArray<T>;
 }
 
 export interface CollectionActions<T> {
@@ -99,7 +90,7 @@ interface UseCollectionResultBase<T> {
     expandableRows?: {
       getItemChildren: (item: T) => T[];
       getItemExpandable: (item: T) => boolean;
-      getItemExpanded: (item: T) => boolean;
+      expandedItems: ReadonlyArray<T>;
       onExpandableItemToggle(event: CustomEventLike<{ item: T; expanded: boolean }>): void;
     };
     trackBy?: string | ((item: T) => string);

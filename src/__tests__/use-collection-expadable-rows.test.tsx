@@ -104,7 +104,19 @@ test('updates expanded items when collectionProps.onExpandableItemToggle is call
     const result = useCollection(treeItems, {
       expandableRows: { getId, getParentId: getTreeParentId },
     });
-    return <Demo {...result} />;
+    return (
+      <>
+        <Demo {...result} />
+        <button
+          data-testid="expand-0"
+          onClick={() =>
+            result.collectionProps.expandableRows?.onExpandableItemToggle({
+              detail: { item: treeItems[0], expanded: true },
+            })
+          }
+        />
+      </>
+    );
   }
   const { getExpandedItems, findExpandToggle } = render(<App />);
 
@@ -115,6 +127,11 @@ test('updates expanded items when collectionProps.onExpandableItemToggle is call
 
   fireEvent.click(findExpandToggle(1)!);
   expect(getExpandedItems()).toEqual([]);
+
+  // Ensuring expanded items has no duplicates.
+  fireEvent.click(screen.getByTestId('expand-0'));
+  fireEvent.click(screen.getByTestId('expand-0'));
+  expect(getExpandedItems()).toEqual(['1']);
 });
 
 test('updates expanded items with actions', () => {
@@ -295,4 +312,31 @@ test.each([false, true])('expanded rows with selection and keepSelection=%s', ke
 
   fireEvent.click(findExpandToggle(1)!);
   expect(getSelectedItems()).toEqual(keepSelection ? ['a', 'a.1.1', 'a.1.2', 'b.1', 'b.1.2'] : ['a', 'b.1', 'b.1.2']);
+});
+
+test('trackBy is added by expandableRows', () => {
+  function App() {
+    const result = useCollection(treeItems, { expandableRows: { getId, getParentId } });
+    return typeof result.collectionProps.trackBy === 'function' ? (
+      <div>{result.collectionProps.trackBy(treeItems[1])}</div>
+    ) : null;
+  }
+  render(<App />);
+
+  expect(document.body.textContent).toEqual('2');
+});
+
+test('selection.trackBy overrides expandableRows.getId', () => {
+  function App() {
+    const result = useCollection(treeItems, {
+      expandableRows: { getId, getParentId },
+      selection: { trackBy: item => item.id + item.id },
+    });
+    return typeof result.collectionProps.trackBy === 'function' ? (
+      <div>{result.collectionProps.trackBy(treeItems[1])}</div>
+    ) : null;
+  }
+  render(<App />);
+
+  expect(document.body.textContent).toEqual('22');
 });
