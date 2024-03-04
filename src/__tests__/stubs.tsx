@@ -71,10 +71,7 @@ const Table = React.forwardRef<CollectionRef, TableProps>(
       sortingDescending,
       onSortingChange,
       selectedItems,
-      getItemExpanded,
-      getItemExpandable,
-      getItemChildren,
-      onExpandableItemToggle,
+      expandableRows,
       onSelectionChange,
       trackBy,
       firstIndex,
@@ -89,6 +86,7 @@ const Table = React.forwardRef<CollectionRef, TableProps>(
     React.useImperativeHandle(ref, () => ({
       scrollToTop,
     }));
+    const { getItemExpandable, getItemExpanded, getItemChildren, onExpandableItemToggle } = expandableRows ?? {};
 
     function TableItem({ item, itemIndex, parentIndex }: { item: Item; itemIndex: number; parentIndex?: string }) {
       const isExpandable = getItemExpandable?.(item) ?? false;

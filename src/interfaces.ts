@@ -96,10 +96,12 @@ interface UseCollectionResultBase<T> {
     sortingDescending?: boolean;
     selectedItems?: ReadonlyArray<T>;
     onSelectionChange?(event: CustomEventLike<SelectionChangeDetail<T>>): void;
-    getItemChildren?: (item: T) => T[];
-    getItemExpandable?: (item: T) => boolean;
-    getItemExpanded?: (item: T) => boolean;
-    onExpandableItemToggle?(event: CustomEventLike<{ item: T; expanded: boolean }>): void;
+    expandableRows?: {
+      getItemChildren: (item: T) => T[];
+      getItemExpandable: (item: T) => boolean;
+      getItemExpanded: (item: T) => boolean;
+      onExpandableItemToggle(event: CustomEventLike<{ item: T; expanded: boolean }>): void;
+    };
     trackBy?: string | ((item: T) => string);
     ref: React.RefObject<CollectionRef>;
     totalItemsCount?: number;

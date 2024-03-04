@@ -176,24 +176,26 @@ export function createSyncProps<T>(
         : {}),
       ...(options.expandableRows
         ? {
-            getItemChildren(item: T) {
-              return itemsTree.getChildren(item);
-            },
-            getItemExpandable(item: T) {
-              return itemsTree.getChildren(item).length > 0;
-            },
-            getItemExpanded(item: T) {
-              return expandedItems.has(options.expandableRows!.getId(item));
-            },
-            onExpandableItemToggle: ({ detail: { item, expanded } }) => {
-              const itemKey = options.expandableRows!.getId(item);
-              const newExpandedItems = new Set(expandedItems);
-              if (expanded) {
-                newExpandedItems.add(itemKey);
-              } else {
-                newExpandedItems.delete(itemKey);
-              }
-              actions.setExpandedItems(newExpandedItems);
+            expandableRows: {
+              getItemChildren(item: T) {
+                return itemsTree.getChildren(item);
+              },
+              getItemExpandable(item: T) {
+                return itemsTree.getChildren(item).length > 0;
+              },
+              getItemExpanded(item: T) {
+                return expandedItems.has(options.expandableRows!.getId(item));
+              },
+              onExpandableItemToggle: ({ detail: { item, expanded } }) => {
+                const itemKey = options.expandableRows!.getId(item);
+                const newExpandedItems = new Set(expandedItems);
+                if (expanded) {
+                  newExpandedItems.add(itemKey);
+                } else {
+                  newExpandedItems.delete(itemKey);
+                }
+                actions.setExpandedItems(newExpandedItems);
+              },
             },
           }
         : {}),
