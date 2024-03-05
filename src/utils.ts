@@ -18,8 +18,8 @@ interface SelectionAction<T> {
   type: 'selection';
   selectedItems: ReadonlyArray<T>;
 }
-interface ExpandAction<T> {
-  type: 'expand';
+interface ExpansionAction<T> {
+  type: 'expansion';
   expandedItems: ReadonlyArray<T>;
 }
 interface SortingAction<T> {
@@ -40,7 +40,7 @@ interface PropertyFilteringAction {
 }
 type Action<T> =
   | SelectionAction<T>
-  | ExpandAction<T>
+  | ExpansionAction<T>
   | SortingAction<T>
   | PaginationAction
   | FilteringAction
@@ -52,7 +52,7 @@ export function collectionReducer<T>(state: CollectionState<T>, action: Action<T
     case 'selection':
       newState.selectedItems = action.selectedItems;
       break;
-    case 'expand':
+    case 'expansion':
       newState.expandedItems = action.expandedItems;
       break;
     case 'filtering':
@@ -102,7 +102,7 @@ export function createActions<T>({
       collectionRef.current && collectionRef.current.scrollToTop();
     },
     setExpandedItems(expandedItems: ReadonlyArray<T>) {
-      dispatch({ type: 'expand', expandedItems });
+      dispatch({ type: 'expansion', expandedItems });
     },
   };
 }
