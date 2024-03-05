@@ -1,6 +1,6 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
-import { useEffect, useRef } from 'react';
+import { useRef } from 'react';
 import { processItems, processSelectedItems, itemsAreEqual } from './operations/index.js';
 import { UseCollectionOptions, UseCollectionResult, CollectionRef } from './interfaces';
 import { createSyncProps } from './utils.js';
@@ -49,19 +49,12 @@ export function useCollection<T>(allItems: ReadonlyArray<T>, options: UseCollect
   }
 
   // Removing expanded items that are no longer present in items.
-  useEffect(() => {
-    if (options.expandableRows) {
-      const newExpandedItems = new Array<T>();
-      for (const item of visibleItems) {
-        if (expandedItemsSet.has(options.expandableRows.getId(item))) {
-          newExpandedItems.push(item);
-        }
-      }
-      if (newExpandedItems.length !== state.expandedItems.length) {
-        actions.setExpandedItems(newExpandedItems);
-      }
+  if (options.expandableRows) {
+    const newExpandedItems = visibleItems.filter(item => expandedItemsSet.has(options.expandableRows!.getId(item)));
+    if (!itemsAreEqual(newExpandedItems, state.expandedItems, options.expandableRows.getId)) {
+      actions.setExpandedItems(newExpandedItems);
     }
-  });
+  }
 
   return {
     items,
