@@ -180,7 +180,7 @@ export function createSyncProps<T>(
               getItemChildren(item: T) {
                 return itemsTree.getChildren(item);
               },
-              getItemExpandable(item: T) {
+              isItemExpandable(item: T) {
                 return itemsTree.getChildren(item).length > 0;
               },
               expandedItems,

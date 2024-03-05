@@ -89,7 +89,7 @@ interface UseCollectionResultBase<T> {
     onSelectionChange?(event: CustomEventLike<SelectionChangeDetail<T>>): void;
     expandableRows?: {
       getItemChildren: (item: T) => T[];
-      getItemExpandable: (item: T) => boolean;
+      isItemExpandable: (item: T) => boolean;
       expandedItems: ReadonlyArray<T>;
       onExpandableItemToggle(event: CustomEventLike<{ item: T; expanded: boolean }>): void;
     };

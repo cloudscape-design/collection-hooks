@@ -184,7 +184,7 @@ test('expanded items state is updated to remove no-longer present items', () => 
 });
 
 test('expanded rows with text filtering', () => {
-  const deepTreeItemsWithValues: (Item & { value?: string })[] = [...deepTreeItems];
+  const deepTreeItemsWithValues: (Item & { value?: string })[] = deepTreeItems.map(item => ({ ...item }));
   deepTreeItemsWithValues.find(item => item.id === 'a.1')!.value = 'match';
 
   function App() {
@@ -206,7 +206,7 @@ test('expanded rows with text filtering', () => {
 });
 
 test('expanded rows with property filtering', () => {
-  const deepTreeItemsWithValues: (Item & { value?: string })[] = [...deepTreeItems];
+  const deepTreeItemsWithValues: (Item & { value?: string })[] = deepTreeItems.map(item => ({ ...item }));
   deepTreeItemsWithValues.find(item => item.id === 'a.1')!.value = 'match';
 
   function App() {
