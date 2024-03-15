@@ -7,15 +7,30 @@ import { getTrackableValue } from '../operations/index.js';
 
 export type Item = { id: string; date?: Date };
 
+function getItemTextContent(itemElement: HTMLElement) {
+  return itemElement.querySelector('[data-testid="content"]')!.textContent;
+}
+
 export function render(jsx: React.ReactElement) {
   const queries = testRender(jsx);
   return {
-    getVisibleItems: () => queries.queryAllByTestId('item').map(element => element.textContent),
+    queries,
+    getVisibleItems: () => queries.queryAllByTestId('item').map(getItemTextContent),
     getSelectedItems: () =>
       queries
         .queryAllByTestId('item')
         .filter(element => element.dataset['selected'] === 'true')
-        .map(element => element.textContent),
+        .map(getItemTextContent),
+    getExpandedItems: () =>
+      queries
+        .queryAllByTestId('item')
+        .filter(element => element.dataset['expanded'] === 'true')
+        .map(getItemTextContent),
+    getExpandableItems: () =>
+      queries
+        .queryAllByTestId('item')
+        .filter(element => element.dataset['expandable'] === 'true')
+        .map(getItemTextContent),
     getSelectedLength: () => queries.getByTestId('selected-items').textContent,
     getMatchesCount: () => queries.getByTestId('matches-count').textContent,
     getPagesCount: () => queries.getByTestId('pages-count').textContent,
@@ -32,6 +47,12 @@ export function render(jsx: React.ReactElement) {
     findSortBy: () => queries.getByTestId('sortby'),
     findSortedBy: () => queries.getByTestId('sortedby'),
     findItem: (index: number) => queries.queryAllByTestId('item')[index],
+    findSingleSelect: (index: number) =>
+      queries.queryAllByTestId('item')[index].querySelector('[data-testid="single-select"]'),
+    findMultiSelect: (index: number) =>
+      queries.queryAllByTestId('item')[index].querySelector('[data-testid="multi-select"]'),
+    findExpandToggle: (index: number) =>
+      queries.queryAllByTestId('item')[index].querySelector('[data-testid="expand-toggle"]'),
     rerender: queries.rerender,
   };
 }
@@ -50,6 +71,7 @@ const Table = React.forwardRef<CollectionRef, TableProps>(
       sortingDescending,
       onSortingChange,
       selectedItems,
+      expandableRows,
       onSelectionChange,
       trackBy,
       firstIndex,
@@ -64,6 +86,58 @@ const Table = React.forwardRef<CollectionRef, TableProps>(
     React.useImperativeHandle(ref, () => ({
       scrollToTop,
     }));
+    const { isItemExpandable, expandedItems = [], getItemChildren, onExpandableItemToggle } = expandableRows ?? {};
+
+    function TableItem({ item, itemIndex, parentIndex }: { item: Item; itemIndex: number; parentIndex?: string }) {
+      const isExpandable = isItemExpandable?.(item) ?? false;
+      const isExpanded = expandedItems.some(it => getTrackableValue(trackBy, it) === getTrackableValue(trackBy, item));
+      const nestedItems = getItemChildren?.(item) ?? [];
+      const dataIndex = firstIndex ? (!parentIndex ? `${firstIndex + itemIndex}` : `${parentIndex}-${itemIndex}`) : '';
+      return (
+        <div
+          data-testid="item"
+          data-rowindex={dataIndex}
+          data-selected={
+            selectedItems &&
+            (selectedItems.indexOf(item) !== -1 ||
+              (trackBy &&
+                selectedItems.filter(
+                  selectedItem => getTrackableValue(trackBy, selectedItem) === getTrackableValue(trackBy, item)
+                ).length > 0))
+              ? 'true'
+              : 'false'
+          }
+          data-expandable={isExpandable}
+          data-expanded={isExpanded}
+          data-children={nestedItems}
+        >
+          <button
+            data-testid="single-select"
+            onClick={() => onSelectionChange?.(new CustomEvent('cloudscape', { detail: { selectedItems: [item] } }))}
+          ></button>
+          <button
+            data-testid="multi-select"
+            onClick={() =>
+              onSelectionChange?.(
+                new CustomEvent('cloudscape', { detail: { selectedItems: toggleSelection(item, selectedItems) } })
+              )
+            }
+          ></button>
+          {isExpandable && (
+            <button
+              data-testid="expand-toggle"
+              onClick={() =>
+                onExpandableItemToggle?.(new CustomEvent('cloudscape', { detail: { item, expanded: !isExpanded } }))
+              }
+            ></button>
+          )}
+          <div data-testid="content">{item.id}</div>
+          {isExpanded &&
+            nestedItems.map((item, i) => <TableItem key={item.id} item={item} itemIndex={i} parentIndex={dataIndex} />)}
+        </div>
+      );
+    }
+
     return (
       <div>
         <div data-testid="sortedby">
@@ -88,31 +162,11 @@ const Table = React.forwardRef<CollectionRef, TableProps>(
         {items.length === 0 && <div data-testid="empty">{empty}</div>}
         <span data-testid="selected-items">{selectedItems && selectedItems.length}</span>
         <span data-testid="total-items-count">{totalItemsCount}</span>
-        <ul>
+        <div>
           {items.map((item, i) => (
-            <li
-              key={item.id}
-              data-testid="item"
-              data-rowindex={firstIndex ? firstIndex + i : undefined}
-              data-selected={
-                selectedItems &&
-                (selectedItems.indexOf(item) !== -1 ||
-                  (trackBy &&
-                    selectedItems.filter(
-                      selectedItem => getTrackableValue(trackBy, selectedItem) === getTrackableValue(trackBy, item)
-                    ).length > 0))
-                  ? 'true'
-                  : 'false'
-              }
-              onClick={() =>
-                onSelectionChange &&
-                onSelectionChange(new CustomEvent('cloudscape', { detail: { selectedItems: [item] } }))
-              }
-            >
-              {item.id}
-            </li>
+            <TableItem key={item.id} item={item} itemIndex={i} />
           ))}
-        </ul>
+        </div>
       </div>
     );
   }
@@ -230,4 +284,8 @@ export function Demo({
       <Pagination {...paginationProps} />
     </>
   );
+}
+
+function toggleSelection<T>(item: T, selectedItems: readonly T[] = []): T[] {
+  return selectedItems.includes(item) ? selectedItems.filter(selected => selected !== item) : [...selectedItems, item];
 }
