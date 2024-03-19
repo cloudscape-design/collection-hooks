@@ -77,13 +77,17 @@ function freeTextFilter<T>(
   operator: PropertyFilterOperator,
   filteringPropertiesMap: FilteringPropertiesMap<T>
 ): boolean {
-  const matches = Object.keys(filteringPropertiesMap).some(propertyKey => {
+  // If the operator is not a negation, we just need one property of the object to match.
+  // If the operator is a negation, we want none of the properties of the object to match.
+  const isNegation = operator.startsWith('!');
+  return Object.keys(filteringPropertiesMap)[isNegation ? 'every' : 'some'](propertyKey => {
     const { operators } = filteringPropertiesMap[propertyKey as keyof typeof filteringPropertiesMap];
-    return (
-      !!operators[operator] && filterUsingOperator(item[propertyKey as keyof typeof item], value, { operator: ':' })
-    );
+    const propertyOperator = operators[operator];
+    if (!propertyOperator) {
+      return isNegation;
+    }
+    return filterUsingOperator(item[propertyKey as keyof typeof item], value, propertyOperator);
   });
-  return operator === ':' ? matches : !matches;
 }
 
 function filterByToken<T>(token: PropertyFilterToken, item: T, filteringPropertiesMap: FilteringPropertiesMap<T>) {

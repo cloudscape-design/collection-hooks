@@ -41,6 +41,7 @@ export interface UseCollectionOptions<T> {
     // custom filtering function
     filteringFunction?: (item: T, query: PropertyFilterQuery) => boolean;
     defaultQuery?: PropertyFilterQuery;
+    freeTextFiltering?: PropertyFilterFreeTextFiltering;
   };
   sorting?: { defaultState?: SortingState<T> };
   pagination?: { defaultPage?: number; pageSize?: number };
@@ -108,6 +109,7 @@ interface UseCollectionResultBase<T> {
     onChange(event: CustomEventLike<PropertyFilterQuery>): void;
     filteringProperties: readonly PropertyFilterProperty[];
     filteringOptions: readonly PropertyFilterOption[];
+    freeTextFiltering?: PropertyFilterFreeTextFiltering;
   };
   paginationProps: {
     disabled?: boolean;
@@ -179,4 +181,8 @@ export interface PropertyFilterOption {
   propertyKey: string;
   value: string;
   label?: string;
+}
+export interface PropertyFilterFreeTextFiltering {
+  operators?: readonly PropertyFilterOperator[];
+  defaultOperator?: PropertyFilterOperator;
 }

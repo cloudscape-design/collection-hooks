@@ -235,6 +235,7 @@ export function createSyncProps<T>(
       },
       filteringProperties: options.propertyFiltering?.filteringProperties || [],
       filteringOptions,
+      freeTextFiltering: options.propertyFiltering?.freeTextFiltering,
     },
     paginationProps: {
       currentPageIndex: actualPageIndex ?? currentPageIndex,

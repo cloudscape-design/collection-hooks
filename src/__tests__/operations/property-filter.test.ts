@@ -101,17 +101,35 @@ describe('free text tokens', () => {
 
     expect(processed).toEqual([items[2], items[3]]);
   });
-  test('do not filter by a property, which does not support the operator of the token', () => {
+  test('can use other other operators than contains, including custom matchers', () => {
     const items = [
-      { id: 1, field: 'match me' },
-      { id: 2, field: 'match me', anotherField: 'match me' },
-      { id: 3, anotherField: 'match me too' },
-      { id: 4 },
+      { id: 1, field: 'match' },
+      { id: 2, field: 'no match' },
+      { id: 3, field: 'no match', arrayField: ['something else', 'match'] },
     ];
-    const freeTextQuery = { tokens: [{ operator: '!:', value: 'match me' }], operation: 'and' } as const;
-    const { items: processed } = processItems(items, { propertyFilteringQuery: freeTextQuery }, { propertyFiltering });
+    const arrayProperty = {
+      key: 'arrayField',
+      operators: [
+        {
+          operator: '^',
+          match: (value: unknown, token: any) => (value as string[])?.some(s => s.startsWith(token)),
+        },
+      ],
+      propertyLabel: '',
+      groupValuesLabel: '',
+    };
+    const freeTextQuery = { tokens: [{ operator: '^', value: 'mat' }], operation: 'and' } as const;
+    const { items: processed } = processItems(
+      items,
+      { propertyFilteringQuery: freeTextQuery },
+      {
+        propertyFiltering: {
+          filteringProperties: [...propertyFiltering.filteringProperties, arrayProperty],
+        },
+      }
+    );
 
-    expect(processed).toEqual([items[2], items[3]]);
+    expect(processed).toEqual([items[0], items[2]]);
   });
 });
 

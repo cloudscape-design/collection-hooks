@@ -6,6 +6,7 @@ export { useCollection } from './use-collection.js';
 export {
   CollectionRef,
   FilteringOptions,
+  PropertyFilterFreeTextFiltering,
   PropertyFilterOperation,
   PropertyFilterOperator,
   PropertyFilterOperatorExtended,
