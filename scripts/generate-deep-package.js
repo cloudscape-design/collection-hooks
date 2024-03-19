@@ -7,7 +7,7 @@ import { fileURLToPath } from 'url';
 import { join, dirname } from 'path';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
-const cjsRoot = join(__dirname, '../dist/cjs');
+const cjsRoot = join(__dirname, '../lib/cjs');
 const packageJsonPath = join(cjsRoot, 'package.json');
 const packageJsonContent = `{
   "type": "commonjs"

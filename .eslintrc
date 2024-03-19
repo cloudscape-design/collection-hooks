@@ -36,5 +36,5 @@
       "version": "detect"
     }
   },
-  "ignorePatterns": ["node_modules", "dist", "coverage"]
+  "ignorePatterns": ["node_modules", "lib", "coverage"]
 }

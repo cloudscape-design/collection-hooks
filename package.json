@@ -12,32 +12,25 @@
     "test+08:00": "TZ=Asia/Brunei jest -o ./src/__tests__/date-utils --coverage=false",
     "test-local": "jest",
     "test": "npm run test-08:00 && npm run test+08:00 && npm run test-local",
-    "clean": "rimraf ./dist",
+    "clean": "rimraf ./lib",
     "prebuild": "npm run clean",
-    "build": "tsc -p ./tsconfig.json && tsc -p ./tsconfig.cjs.json",
-    "postbuild": "node ./scripts/generate-deep-package.js",
+    "build": "tsc -p ./tsconfig.json && tsc -p ./tsconfig.cjs.json && node ./scripts/generate-deep-package.js",
+    "postbuild": "cp package.json README.md LICENSE lib",
     "prepare": "husky"
   },
   "type": "module",
-  "main": "./dist/cjs/index.js",
-  "module": "./dist/mjs/index.js",
+  "main": "./cjs/index.js",
+  "module": "./mjs/index.js",
   "exports": {
     ".": {
-      "require": "./dist/cjs/index.js",
-      "default": "./dist/mjs/index.js"
+      "require": "./cjs/index.js",
+      "default": "./mjs/index.js"
     },
     "./operations": {
-      "require": "./dist/cjs/operations.js",
-      "default": "./dist/mjs/operations.js"
+      "require": "./cjs/operations.js",
+      "default": "./mjs/operations.js"
     }
   },
-  "files": [
-    "dist",
-    "operations.js",
-    "operations.d.ts",
-    "package.json",
-    "README.md"
-  ],
   "peerDependencies": {
     "react": "^16.8.0 || ^17.0.0 || ^18.0.0"
   },
