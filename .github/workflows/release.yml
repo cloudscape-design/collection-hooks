@@ -14,7 +14,7 @@ permissions:
 
 jobs:
   release:
-    uses: cloudscape-design/actions/.github/workflows/release.yml@libs/collection-hooks-shadow
+    uses: cloudscape-design/actions/.github/workflows/release.yml@refactor/release
     secrets: inherit
     with:
       publish-packages: lib
