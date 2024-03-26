@@ -32,9 +32,3 @@ export function createComparator<T>(
   const comparator = state.sortingColumn.sortingComparator ?? getSorter(state.sortingColumn.sortingField as keyof T);
   return comparator ? (a, b) => comparator(a, b) * direction : null;
 }
-
-// Keeping this function as there are customers depending on it.
-export function sort<T>(items: ReadonlyArray<T>, state: SortingState<T> | undefined): ReadonlyArray<T> {
-  const comparator = createComparator({}, state);
-  return comparator ? items.slice().sort(comparator) : items;
-}

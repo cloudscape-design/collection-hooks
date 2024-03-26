@@ -169,13 +169,3 @@ export const fixupFalsyValues = <T>(value: T): T | string => {
   }
   return '';
 };
-
-// Keeping this function as there are customers depending on it.
-export function propertyFilter<T>(
-  items: ReadonlyArray<T>,
-  query: PropertyFilterQuery,
-  propertyFiltering: NonNullable<UseCollectionOptions<T>['propertyFiltering']>
-): ReadonlyArray<T> {
-  const predicate = createPropertyFilterPredicate(propertyFiltering, query);
-  return predicate ? items.filter(predicate) : items;
-}
