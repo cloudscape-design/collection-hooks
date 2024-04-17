@@ -96,8 +96,8 @@ interface UseCollectionResultBase<T> {
     };
     trackBy?: string | ((item: T) => string);
     ref: React.RefObject<CollectionRef>;
-    totalItemsCount?: number;
-    firstIndex?: number;
+    totalItemsCount: number;
+    firstIndex: number;
   };
   filterProps: {
     disabled?: boolean;
