@@ -576,4 +576,15 @@ describe('total items count and page range', () => {
     const { getTotalItemsCount } = render(<App />);
     expect(getTotalItemsCount()).toEqual('4');
   });
+
+  test('should return first index and totalItems when no pagination', () => {
+    const allItems = generateItems(4);
+    function App() {
+      const result = useCollection<Item>(allItems, {});
+      return <Demo {...result} />;
+    }
+    const { getRowIndices, getTotalItemsCount } = render(<App />);
+    expect(getRowIndices()).toEqual(['1', '2', '3', '4']);
+    expect(getTotalItemsCount()).toEqual('4');
+  });
 });
