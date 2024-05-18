@@ -1,6 +1,6 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
-
+import { test, expect, describe } from 'vitest';
 import { compareDates, compareTimestamps } from '../../date-utils/compare-dates';
 
 const localTimezoneOffset = 0 - new Date('2020-01-01').getTimezoneOffset();

@@ -1,5 +1,6 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
+import { test, expect, describe, vi } from 'vitest';
 import { fireEvent, render as testRender } from '@testing-library/react';
 import * as React from 'react';
 import { useCollection } from '../';
@@ -170,7 +171,7 @@ test('should prevent pagination from going out of bounds', () => {
 
 test('should evoke scrollToTop from the ref on pagination, filtering, property filtering and sorting', () => {
   const allItems = generateItems(50);
-  const spy = jest.fn();
+  const spy = vi.fn();
   function App() {
     const result = useCollection(allItems, {
       pagination: {},

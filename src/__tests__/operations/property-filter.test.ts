@@ -1,5 +1,6 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
+import { test, expect, describe, vi } from 'vitest';
 import { processItems } from '../../operations';
 import { PropertyFilterOperator } from '../../interfaces';
 
@@ -349,7 +350,7 @@ test('unsupported operator results in an exception', () => {
 describe('filtering function', () => {
   test('Is called with the current query', () => {
     const items = [{ id: 1, field: 'match me' }];
-    const spy = jest.fn();
+    const spy = vi.fn();
     const query = { tokens: [], operation: 'and' } as const;
     processItems(
       items,
@@ -365,7 +366,7 @@ describe('filtering function', () => {
   });
   test('result is used for filtlering', () => {
     const items = [{ id: 1, field: 'match me' }];
-    const spy = jest.fn();
+    const spy = vi.fn();
     spy.mockReturnValue(false);
     const query = { tokens: [], operation: 'and' } as const;
     const { items: processed } = processItems(

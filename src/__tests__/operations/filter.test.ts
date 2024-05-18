@@ -1,5 +1,6 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
+import { test, expect, describe, vi } from 'vitest';
 import { processItems } from '../../operations';
 
 test('returns all items when filtering text is empty', () => {
@@ -110,7 +111,7 @@ describe('with filteringFunction', () => {
   });
 
   test('passes filtering text and fields into filtering function', () => {
-    const filteringSpy = jest.fn(() => true);
+    const filteringSpy = vi.fn(() => true);
     const items = [{ id: 1 }, { id: 2 }, { id: 3 }];
     const { items: processed } = processItems(
       items,
@@ -128,7 +129,7 @@ describe('with filteringFunction', () => {
   });
 
   test('applies custom filteringFunction even if filtering text is empty', () => {
-    const filteringSpy = jest.fn(() => true);
+    const filteringSpy = vi.fn(() => true);
     const items = [{ id: 1 }, { id: 2 }, { id: 3 }];
     const { items: processed } = processItems(
       items,
