@@ -1,5 +1,6 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
+import { test, expect } from 'vitest';
 import { fireEvent, screen } from '@testing-library/react';
 import React from 'react';
 import { useCollection } from '..';

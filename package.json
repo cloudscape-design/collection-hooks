@@ -1,6 +1,7 @@
 {
   "name": "@cloudscape-design/collection-hooks",
   "version": "1.0.0",
+  "license": "Apache-2.0",
   "repository": {
     "type": "git",
     "url": "https://github.com/cloudscape-design/collection-hooks.git"
@@ -8,14 +9,14 @@
   "homepage": "https://cloudscape.design",
   "scripts": {
     "lint": "eslint . --ext .ts,.tsx",
-    "test-08:00": "TZ=America/Los_Angeles jest -o ./src/__tests__/date-utils --coverage=false",
-    "test+08:00": "TZ=Asia/Brunei jest -o ./src/__tests__/date-utils --coverage=false",
-    "test-local": "jest",
+    "test-08:00": "TZ=America/Los_Angeles vitest --run ./src/__tests__/date-utils --coverage=false",
+    "test+08:00": "TZ=Asia/Brunei vitest --run ./src/__tests__/date-utils --coverage=false",
+    "test-local": "vitest --run",
     "test": "npm run test-08:00 && npm run test+08:00 && npm run test-local",
     "clean": "rimraf ./lib",
     "prebuild": "npm run clean",
     "build": "tsc -p ./tsconfig.json && tsc -p ./tsconfig.cjs.json && node ./scripts/generate-deep-package.js",
-    "postbuild": "cp package.json README.md LICENSE lib",
+    "postbuild": "cp package.json README.md LICENSE NOTICE lib",
     "prepare": "husky"
   },
   "type": "module",
@@ -35,18 +36,20 @@
     "cjs",
     "mjs",
     "package.json",
-    "README.md"
+    "README.md",
+    "LICENSE",
+    "NOTICE"
   ],
   "peerDependencies": {
     "react": "^16.8.0 || ^17.0.0 || ^18.0.0"
   },
   "devDependencies": {
     "@testing-library/react": "^11.2.7",
-    "@types/jest": "^26.0.24",
     "@types/react": "^16.14.21",
     "@types/react-dom": "^16.9.14",
     "@typescript-eslint/eslint-plugin": "^4.33.0",
     "@typescript-eslint/parser": "^4.33.0",
+    "@vitest/coverage-istanbul": "^1.6.0",
     "eslint": "^7.32.0",
     "eslint-config-prettier": "^6.15.0",
     "eslint-plugin-header": "3.1.0",
@@ -55,34 +58,17 @@
     "eslint-plugin-react-hooks": "^4.3.0",
     "eslint-plugin-unicorn": "^11.0.2",
     "husky": "^9.0.0",
-    "jest": "^26.6.3",
-    "jest-ts-webcompat-resolver": "^1.0.0",
     "lint-staged": "^13.2.1",
     "prettier": "^2.5.0",
     "react": "^16.14.0",
     "react-dom": "^16.14.0",
     "rimraf": "^3.0.2",
-    "ts-jest": "^26.5.6",
-    "typescript": "^4.5.2"
+    "typescript": "^4.5.2",
+    "vitest": "^1.6.0"
   },
   "lint-staged": {
     "*.{js,jsx,ts,tsx}": [
       "eslint --fix"
     ]
-  },
-  "jest": {
-    "preset": "ts-jest",
-    "resolver": "jest-ts-webcompat-resolver",
-    "collectCoverage": true,
-    "collectCoverageFrom": [
-      "src/**",
-      "!**/__tests__/**"
-    ],
-    "globals": {
-      "ts-jest": {
-        "tsconfig": "tsconfig.unit.json"
-      }
-    },
-    "testRegex": "/__tests__/.*\\.test\\.tsx?$"
   }
 }
