@@ -165,9 +165,14 @@ export interface PropertyFilterToken {
   propertyKey?: string;
   operator: PropertyFilterOperator;
 }
+export interface PropertyFilterTokenGroup {
+  operation: PropertyFilterOperation;
+  tokens: readonly (PropertyFilterToken | PropertyFilterTokenGroup)[];
+}
 export interface PropertyFilterQuery {
   tokens: readonly PropertyFilterToken[];
   operation: PropertyFilterOperation;
+  tokenGroups?: readonly PropertyFilterTokenGroup[];
 }
 export interface PropertyFilterProperty<TokenValue = any> {
   key: string;
