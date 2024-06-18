@@ -595,7 +595,7 @@ describe('Token groups', () => {
         propertyFilteringQuery: {
           operation: 'and',
           tokens: [{ propertyKey: 'field', operator: '=', value: 'A' }],
-          tokenGroups: [{ operation: 'and', tokens: [{ propertyKey: 'field', operator: '=', value: 'B' }] }],
+          tokenGroups: [{ propertyKey: 'field', operator: '=', value: 'B' }],
         },
       },
       { propertyFiltering }

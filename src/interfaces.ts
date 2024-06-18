@@ -172,7 +172,7 @@ export interface PropertyFilterTokenGroup {
 export interface PropertyFilterQuery {
   tokens: readonly PropertyFilterToken[];
   operation: PropertyFilterOperation;
-  tokenGroups?: readonly PropertyFilterTokenGroup[];
+  tokenGroups?: readonly (PropertyFilterToken | PropertyFilterTokenGroup)[];
 }
 export interface PropertyFilterProperty<TokenValue = any> {
   key: string;
