@@ -16,8 +16,8 @@
     "clean": "rimraf ./lib",
     "prebuild": "npm run clean",
     "build": "tsc -p ./tsconfig.json && tsc -p ./tsconfig.cjs.json && node ./scripts/generate-deep-package.js",
-    "postbuild": "cp package.json README.md LICENSE NOTICE lib",
-    "prepare": "husky"
+    "postbuild": "node ./scripts/copy-package-json.js && cp README.md LICENSE NOTICE lib",
+    "prepare": "husky && npm run build"
   },
   "type": "module",
   "main": "./cjs/index.js",
@@ -32,14 +32,6 @@
       "default": "./mjs/operations.js"
     }
   },
-  "files": [
-    "cjs",
-    "mjs",
-    "package.json",
-    "README.md",
-    "LICENSE",
-    "NOTICE"
-  ],
   "peerDependencies": {
     "react": "^16.8.0 || ^17.0.0 || ^18.0.0"
   },
