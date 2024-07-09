@@ -341,3 +341,15 @@ test('selection.trackBy overrides expandableRows.getId', () => {
 
   expect(document.body.textContent).toEqual('22');
 });
+
+test('selection without trackBy does not override expandableRows.trackBy', () => {
+  function App() {
+    const result = useCollection(treeItems, { expandableRows: { getId, getParentId }, selection: {} });
+    return typeof result.collectionProps.trackBy === 'function' ? (
+      <div>{result.collectionProps.trackBy(treeItems[1])}</div>
+    ) : null;
+  }
+  render(<App />);
+
+  expect(document.body.textContent).toEqual('2');
+});
