@@ -211,7 +211,7 @@ export function createSyncProps<T>(
               actions.setSelectedItems(selectedItems);
             },
             selectedItems,
-            trackBy: options.selection.trackBy,
+            trackBy: options.selection.trackBy ?? options.expandableRows?.getId,
           }
         : {}),
       ref: collectionRef,
