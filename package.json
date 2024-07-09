@@ -17,7 +17,7 @@
     "prebuild": "npm run clean",
     "build": "tsc -p ./tsconfig.json && tsc -p ./tsconfig.cjs.json && node ./scripts/generate-deep-package.js",
     "postbuild": "node ./scripts/copy-package-json.js && cp README.md LICENSE NOTICE lib",
-    "prepare": "husky && npm run build"
+    "prepare": "husky"
   },
   "type": "module",
   "main": "./cjs/index.js",
