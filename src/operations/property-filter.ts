@@ -125,7 +125,7 @@ function defaultFilteringFunction<T>(filteringPropertiesMap: FilteringProperties
     }
     return evaluate({
       operation: query.operation,
-      tokens: query.tokenGroups ?? query.tokens.map(token => ({ operation: 'and', tokens: [token] })),
+      tokens: query.tokenGroups ?? query.tokens,
     });
   };
 }
