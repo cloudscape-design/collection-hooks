@@ -586,3 +586,169 @@ describe('extended operators', () => {
     ).toThrow('Unsupported `operator.match` type given.');
   });
 });
+
+describe('Token groups', () => {
+  test('token groups have precedence over tokens', () => {
+    const { items: processed } = processItems(
+      [{ field: 'A' }, { field: 'B' }],
+      {
+        propertyFilteringQuery: {
+          operation: 'and',
+          tokens: [{ propertyKey: 'field', operator: '=', value: 'A' }],
+          tokenGroups: [{ propertyKey: 'field', operator: '=', value: 'B' }],
+        },
+      },
+      { propertyFiltering }
+    );
+    expect(processed).toEqual([{ field: 'B' }]);
+  });
+
+  test('filters by two OR token groups', () => {
+    const { items: processed } = processItems(
+      [
+        { field: 'A1', anotherField: 'A2' },
+        { field: 'A2', anotherField: 'A1' },
+        { field: 'A1', anotherField: 'A3' },
+        { field: 'A3', anotherField: 'A1' },
+        { field: 'A2', anotherField: 'A3' },
+        { field: 'A3', anotherField: 'A2' },
+        { field: 'A3', anotherField: 'A3' },
+      ],
+      {
+        propertyFilteringQuery: {
+          operation: 'and',
+          tokens: [],
+          tokenGroups: [
+            {
+              operation: 'or',
+              tokens: [
+                { propertyKey: 'field', operator: '=', value: 'A1' },
+                { propertyKey: 'anotherField', operator: '=', value: 'A1' },
+              ],
+            },
+            {
+              operation: 'or',
+              tokens: [
+                { propertyKey: 'field', operator: '=', value: 'A2' },
+                { propertyKey: 'anotherField', operator: '=', value: 'A2' },
+              ],
+            },
+          ],
+        },
+      },
+      { propertyFiltering }
+    );
+    expect(processed).toEqual([
+      { field: 'A1', anotherField: 'A2' },
+      { field: 'A2', anotherField: 'A1' },
+    ]);
+  });
+
+  test('filters by two AND token groups', () => {
+    const { items: processed } = processItems(
+      [
+        { field: 'A1', anotherField: 'A1' },
+        { field: 'A2', anotherField: 'A2' },
+        { field: 'A1', anotherField: 'A2' },
+        { field: 'A2', anotherField: 'A1' },
+        { field: 'A3', anotherField: 'A3' },
+      ],
+      {
+        propertyFilteringQuery: {
+          operation: 'or',
+          tokens: [],
+          tokenGroups: [
+            {
+              operation: 'and',
+              tokens: [
+                { propertyKey: 'field', operator: '=', value: 'A1' },
+                { propertyKey: 'anotherField', operator: '=', value: 'A1' },
+              ],
+            },
+            {
+              operation: 'and',
+              tokens: [
+                { propertyKey: 'field', operator: '=', value: 'A2' },
+                { propertyKey: 'anotherField', operator: '=', value: 'A2' },
+              ],
+            },
+          ],
+        },
+      },
+      { propertyFiltering }
+    );
+    expect(processed).toEqual([
+      { field: 'A1', anotherField: 'A1' },
+      { field: 'A2', anotherField: 'A2' },
+    ]);
+  });
+
+  test('filters by a deeply nested group', () => {
+    const { items: processed } = processItems(
+      [
+        { field: 'A1', anotherField: 'A1' },
+        { field: 'A2', anotherField: 'A2' },
+        { field: 'A1', anotherField: 'A2' },
+        { field: 'A2', anotherField: 'A1' },
+        { field: 'A1', anotherField: 'A3' },
+        { field: 'A3', anotherField: 'A1' },
+        { field: 'A2', anotherField: 'A3' },
+        { field: 'A3', anotherField: 'A2' },
+        { field: 'A3', anotherField: 'A3' },
+      ],
+      {
+        propertyFilteringQuery: {
+          operation: 'or',
+          tokens: [],
+          tokenGroups: [
+            {
+              operation: 'and',
+              tokens: [
+                {
+                  operation: 'or',
+                  tokens: [
+                    { propertyKey: 'field', operator: '=', value: 'A1' },
+                    { propertyKey: 'anotherField', operator: '=', value: 'A1' },
+                  ],
+                },
+                {
+                  operation: 'or',
+                  tokens: [
+                    { propertyKey: 'field', operator: '=', value: 'A2' },
+                    { propertyKey: 'anotherField', operator: '=', value: 'A2' },
+                  ],
+                },
+              ],
+            },
+            {
+              operation: 'or',
+              tokens: [
+                {
+                  operation: 'and',
+                  tokens: [
+                    { propertyKey: 'field', operator: '=', value: 'A1' },
+                    { propertyKey: 'anotherField', operator: '=', value: 'A1' },
+                  ],
+                },
+                {
+                  operation: 'and',
+                  tokens: [
+                    { propertyKey: 'field', operator: '=', value: 'A2' },
+                    { propertyKey: 'anotherField', operator: '=', value: 'A2' },
+                  ],
+                },
+              ],
+            },
+          ],
+        },
+      },
+      { propertyFiltering }
+    );
+    expect(processed).toEqual([
+      { field: 'A1', anotherField: 'A1' },
+      { field: 'A2', anotherField: 'A2' },
+      { field: 'A1', anotherField: 'A2' },
+      { field: 'A2', anotherField: 'A1' },
+    ]);
+  });
+});

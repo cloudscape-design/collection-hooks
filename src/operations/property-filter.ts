@@ -7,6 +7,7 @@ import {
   PropertyFilterToken,
   UseCollectionOptions,
   PropertyFilterProperty,
+  PropertyFilterTokenGroup,
 } from '../interfaces';
 import { compareDates, compareTimestamps } from '../date-utils/compare-dates.js';
 import { Predicate } from './compose-filters';
@@ -110,15 +111,22 @@ function filterByToken<T>(token: PropertyFilterToken, item: T, filteringProperti
 }
 
 function defaultFilteringFunction<T>(filteringPropertiesMap: FilteringPropertiesMap<T>) {
-  return (item: T, { tokens, operation }: PropertyFilterQuery) => {
-    let result = operation === 'and' ? true : !tokens.length;
-    for (const token of tokens) {
-      result =
-        operation === 'and'
-          ? result && filterByToken(token, item, filteringPropertiesMap)
-          : result || filterByToken(token, item, filteringPropertiesMap);
+  return (item: T, query: PropertyFilterQuery) => {
+    function evaluate(tokenOrGroup: PropertyFilterToken | PropertyFilterTokenGroup): boolean {
+      if ('operation' in tokenOrGroup) {
+        let result = tokenOrGroup.operation === 'and' ? true : !tokenOrGroup.tokens.length;
+        for (const group of tokenOrGroup.tokens) {
+          result = tokenOrGroup.operation === 'and' ? result && evaluate(group) : result || evaluate(group);
+        }
+        return result;
+      } else {
+        return filterByToken(tokenOrGroup, item, filteringPropertiesMap);
+      }
     }
-    return result;
+    return evaluate({
+      operation: query.operation,
+      tokens: query.tokenGroups ?? query.tokens,
+    });
   };
 }
 
