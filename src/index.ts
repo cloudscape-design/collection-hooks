@@ -18,6 +18,7 @@ export {
   PropertyFilterProperty,
   PropertyFilterQuery,
   PropertyFilterToken,
+  PropertyFilterTokenGroup,
   UseCollectionOptions,
   UseCollectionResult,
 } from './interfaces';
