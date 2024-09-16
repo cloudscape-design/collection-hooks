@@ -153,7 +153,9 @@ export interface PropertyFilterOperatorFormProps<TokenValue> {
   operator: PropertyFilterOperator;
 }
 
-export type PropertyFilterOperatorForm<TokenValue> = React.FC<PropertyFilterOperatorFormProps<TokenValue>>;
+export type PropertyFilterOperatorForm<TokenValue> = (
+  props: PropertyFilterOperatorFormProps<TokenValue>
+) => React.ReactNode | { main: React.ReactNode; secondary: React.ReactNode };
 
 export type PropertyFilterOperatorFormat<TokenValue> = (value: TokenValue) => string;
 
