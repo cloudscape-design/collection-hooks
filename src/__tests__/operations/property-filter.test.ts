@@ -587,6 +587,268 @@ describe('extended operators', () => {
   });
 });
 
+describe('matching enum token', () => {
+  const obj = { value: 0 };
+  const items = [
+    /* index=0 */ { status: 'ACTIVE', tags: ['A'], tags2: ['A'] },
+    /* index=1 */ { status: 'ACTIVATING', tags: ['A', 'B'], tags2: ['A', 'B'] },
+    /* index=2 */ { status: 'NOT_ACTIVE', tags: ['A', 'A', 'B'], tags2: ['A', 'A', 'B'] },
+    /* index=3 */ { status: 'DEACTIVATING', tags: [], tags2: [] },
+    /* index=4 */ { status: 'TERMINATED', tags: null, tags2: null },
+    /* index=5 */ { status: 0, tags: ['B', 0], tags2: ['B', 0] },
+    /* index=6 */ { status: obj, tags: ['A', obj], tags2: ['A', obj] },
+  ];
+
+  function processWithProperty(propertyKey: string, operator: string, token: any, itemsOverride = items) {
+    return processItems(
+      itemsOverride,
+      {
+        propertyFilteringQuery: { operation: 'and', tokens: [{ propertyKey, operator, value: token }] },
+      },
+      {
+        propertyFiltering: {
+          filteringProperties: [
+            {
+              key: 'status',
+              operators: [
+                { operator: '=', tokenType: 'enum' },
+                { operator: '!=', tokenType: 'enum' },
+                { operator: ':', tokenType: 'enum' },
+                { operator: '!:', tokenType: 'value' },
+              ],
+              groupValuesLabel: 'Status values',
+              propertyLabel: 'Status',
+            },
+            {
+              key: 'tags',
+              operators: [
+                { operator: ':', tokenType: 'enum', match: 'enum' },
+                { operator: '!:', tokenType: 'enum', match: 'enum' },
+                { operator: '=', tokenType: 'enum', match: 'enum' },
+                { operator: '!=', tokenType: 'enum', match: 'enum' },
+                { operator: '^', tokenType: 'enum', match: 'enum' },
+              ],
+              groupValuesLabel: 'Status values',
+              propertyLabel: 'Status',
+            },
+            {
+              key: 'tags2',
+              operators: [
+                { operator: ':', match: 'enum' },
+                { operator: '!:', match: 'enum' },
+                { operator: '=', match: 'enum' },
+              ],
+              groupValuesLabel: 'Status values',
+              propertyLabel: 'Status',
+            },
+          ],
+        },
+      }
+    ).items;
+  }
+
+  describe('tokenType="enum", match=undefined', () => {
+    test.each(['=', '!=', ':'])('matches nothing when token=null and operator="%s"', operator => {
+      const processed = processWithProperty('status', operator, null);
+      expect(processed).toEqual([]);
+    });
+
+    test.each(['=', '!=', ':'])('matches nothing when token="" and operator="%s"', operator => {
+      const processed = processWithProperty('status', operator, '');
+      expect(processed).toEqual([]);
+    });
+
+    test('matches all when token=[] and operator="!="', () => {
+      const processed = processWithProperty('status', '!=', []);
+      expect(processed).toEqual(items);
+    });
+
+    test('matches nothing when token=[] and operator="="', () => {
+      const processed = processWithProperty('status', '=', []);
+      expect(processed).toEqual([]);
+    });
+
+    test.each([{ token: ['NOT_ACTIVE', 'ACTIVE'] }])('matches some when token=$token and operator="="', ({ token }) => {
+      const processed = processWithProperty('status', '=', token);
+      expect(processed).toEqual([items[0], items[2]]);
+    });
+
+    test.each([{ token: [obj, 0] }])('matches some when token=$token and operator="="', ({ token }) => {
+      const processed = processWithProperty('status', '=', token);
+      expect(processed).toEqual([items[5], items[6]]);
+    });
+
+    test.each([{ token: ['ACTIVE', 'NOT_ACTIVE'] }])(
+      'matches some when token=$token and operator="!="',
+      ({ token }) => {
+        const processed = processWithProperty('status', '!=', token);
+        expect(processed).toEqual([items[1], items[3], items[4], items[5], items[6]]);
+      }
+    );
+
+    test.each([{ token: [0, obj] }])('matches some when token=$token and operator="!="', ({ token }) => {
+      const processed = processWithProperty('status', '!=', token);
+      expect(processed).toEqual([items[0], items[1], items[2], items[3], items[4]]);
+    });
+
+    test.each([['ACTIVE'], 'ACTIVE'])('matches nothing when token=%s and operator=":"', token => {
+      const processed = processWithProperty('status', ':', token);
+      expect(processed).toEqual([]);
+    });
+
+    test('matches some when token="ING" and operator="!:"', () => {
+      const processed = processWithProperty('status', '!:', 'ING');
+      expect(processed).toEqual([items[0], items[2], items[4], items[5], items[6]]);
+    });
+  });
+
+  describe('tokenType="enum", match="enum"', () => {
+    test.each(['=', '!=', ':', '!:', '^'])('matches nothing when token=null and operator="%s"', operator => {
+      const processed = processWithProperty('tags', operator, null);
+      expect(processed).toEqual([]);
+    });
+
+    test.each(['=', '!=', ':', '!:', '^'])('matches nothing when token="" and operator="%s"', operator => {
+      const processed = processWithProperty('tags', operator, '');
+      expect(processed).toEqual([]);
+    });
+
+    test.each(['=', '!=', ':', '!:'])('does not match invalid values when token=[] and operator="%s"', operator => {
+      const processed = processWithProperty('tags', operator, '', [
+        { tags: '' } as any,
+        { tags: true } as any,
+        { tags: {} } as any,
+      ]);
+      expect(processed).toEqual([]);
+    });
+
+    test('matches all when token=[] and operator=":"', () => {
+      const processed = processWithProperty('tags', ':', []);
+      expect(processed).toEqual(items);
+    });
+
+    test('matches nothing when token=[] and operator="!:"', () => {
+      const processed = processWithProperty('tags', '!:', []);
+      expect(processed).toEqual([]);
+    });
+
+    test('matches nothing when token=[] and operator="^"', () => {
+      const processed = processWithProperty('tags', '^', []);
+      expect(processed).toEqual([]);
+    });
+
+    test('matches item with empty tags when token=[] and operator="="', () => {
+      const processed = processWithProperty('tags', '=', []);
+      expect(processed).toEqual([items[3], items[4]]);
+    });
+
+    test('matches items with non-empty tags when token=[] and operator="!="', () => {
+      const processed = processWithProperty('tags', '!=', []);
+      expect(processed).toEqual([items[0], items[1], items[2], items[5], items[6]]);
+    });
+
+    test.each([{ token: ['B', 'A'] }])('matches some when token=$token and operator=":"', ({ token }) => {
+      const processed = processWithProperty('tags', ':', token);
+      expect(processed).toEqual([items[1], items[2]]);
+    });
+
+    test.each([{ token: [0] }])('matches some when token=$token and operator=":"', ({ token }) => {
+      const processed = processWithProperty('tags', ':', token);
+      expect(processed).toEqual([items[5]]);
+    });
+
+    test.each([{ token: [obj] }])('matches some when token=$token and operator=":"', ({ token }) => {
+      const processed = processWithProperty('tags', ':', token);
+      expect(processed).toEqual([items[6]]);
+    });
+
+    test.each([{ token: ['B', 'A'] }])('matches some when token=$token and operator="!:"', ({ token }) => {
+      const processed = processWithProperty('tags', '!:', token);
+      expect(processed).toEqual([items[0], items[3], items[4], items[5], items[6]]);
+    });
+
+    test.each([{ token: [0] }])('matches some when token=$token and operator="!:"', ({ token }) => {
+      const processed = processWithProperty('tags', '!:', token);
+      expect(processed).toEqual([items[0], items[1], items[2], items[3], items[4], items[6]]);
+    });
+
+    test.each([{ token: [obj] }])('matches some when token=$token and operator="!:"', ({ token }) => {
+      const processed = processWithProperty('tags', '!:', token);
+      expect(processed).toEqual([items[0], items[1], items[2], items[3], items[4], items[5]]);
+    });
+
+    test.each([{ token: ['B', 'A'] }])('matches one when token=$token and operator="="', ({ token }) => {
+      const processed = processWithProperty('tags', '=', token);
+      expect(processed).toEqual([items[1]]);
+    });
+
+    test.each([{ token: ['A', 'B', 'A'] }])('matches one when token=$token and operator="="', ({ token }) => {
+      const processed = processWithProperty('tags', '=', token);
+      expect(processed).toEqual([items[2]]);
+    });
+
+    test.each([{ token: [0, 'B'] }])('matches one when token=$token and operator="="', ({ token }) => {
+      const processed = processWithProperty('tags', '=', token);
+      expect(processed).toEqual([items[5]]);
+    });
+
+    test.each([{ token: ['A', obj] }])('matches one when token=$token and operator="="', ({ token }) => {
+      const processed = processWithProperty('tags', '=', token);
+      expect(processed).toEqual([items[6]]);
+    });
+  });
+
+  describe('tokenType="value", match="enum"', () => {
+    test.each([':', '='])('matches nothing when token=null and operator="%s"', operator => {
+      const processed = processWithProperty('tags2', operator, null);
+      expect(processed).toEqual([]);
+    });
+
+    test('matches all when token=null and operator="!:"', () => {
+      const processed = processWithProperty('tags2', '!:', null);
+      expect(processed).toEqual([items[0], items[1], items[2], items[3], items[4], items[5], items[6]]);
+    });
+
+    test.each([{ token: '' }, { token: 'A' }, { token: [] }])(
+      'matches nothing when token=$token and operator="="',
+      ({ token }) => {
+        const processed = processWithProperty('tags2', '=', token);
+        expect(processed).toEqual([]);
+      }
+    );
+
+    test.each([{ token: 'A' }])('matches some when token=$token and operator=":"', ({ token }) => {
+      const processed = processWithProperty('tags2', ':', token);
+      expect(processed).toEqual([items[0], items[1], items[2], items[6]]);
+    });
+
+    test.each([{ token: 0 }])('matches some when token=$token and operator=":"', ({ token }) => {
+      const processed = processWithProperty('tags2', ':', token);
+      expect(processed).toEqual([items[5]]);
+    });
+
+    test.each([{ token: obj }])('matches some when token=$token and operator=":"', ({ token }) => {
+      const processed = processWithProperty('tags2', ':', token);
+      expect(processed).toEqual([items[6]]);
+    });
+
+    test.each([{ token: 'A' }])('matches some when token=$token and operator="!:"', ({ token }) => {
+      const processed = processWithProperty('tags2', '!:', token);
+      expect(processed).toEqual([items[3], items[4], items[5]]);
+    });
+
+    test.each([{ token: 0 }])('xxx matches some when token=$token and operator="!:"', ({ token }) => {
+      const processed = processWithProperty('tags2', '!:', token);
+      expect(processed).toEqual([items[0], items[1], items[2], items[3], items[4], items[6]]);
+    });
+
+    test.each([{ token: obj }])('matches some when token=$token and operator="!:"', ({ token }) => {
+      const processed = processWithProperty('tags2', '!:', token);
+      expect(processed).toEqual([items[0], items[1], items[2], items[3], items[4], items[5]]);
+    });
+  });
+});
+
 describe('Token groups', () => {
   test('token groups have precedence over tokens', () => {
     const { items: processed } = processItems(
