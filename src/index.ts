@@ -16,6 +16,7 @@ export {
   PropertyFilterOperatorMatch,
   PropertyFilterOption,
   PropertyFilterProperty,
+  PropertyFilterPropertyType,
   PropertyFilterQuery,
   PropertyFilterToken,
   PropertyFilterTokenGroup,

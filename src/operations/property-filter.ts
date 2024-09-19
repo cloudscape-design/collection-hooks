@@ -8,14 +8,22 @@ import {
   UseCollectionOptions,
   PropertyFilterProperty,
   PropertyFilterTokenGroup,
+  PropertyFilterPropertyType,
 } from '../interfaces';
 import { compareDates, compareTimestamps } from '../date-utils/compare-dates.js';
 import { Predicate } from './compose-filters';
 
 const filterUsingOperator = (
   itemValue: any,
-  tokenValue: any,
-  { operator, match }: PropertyFilterOperatorExtended<any>
+  {
+    tokenValue,
+    operator: { operator, match },
+    type,
+  }: {
+    tokenValue: any;
+    operator: PropertyFilterOperatorExtended<any>;
+    type?: PropertyFilterPropertyType;
+  }
 ) => {
   if (match === 'date' || match === 'datetime') {
     const comparator = match === 'date' ? compareDates : compareTimestamps;
@@ -40,6 +48,17 @@ const filterUsingOperator = (
     return match(itemValue, tokenValue);
   } else if (match) {
     throw new Error('Unsupported `operator.match` type given.');
+  }
+
+  if (type === 'enum' && Array.isArray(tokenValue)) {
+    switch (operator) {
+      case '=':
+        return tokenValue.includes(itemValue);
+      case '!=':
+        return !tokenValue.includes(itemValue);
+      default:
+      // When other operator is given the comparison is done as for type="auto".
+    }
   }
 
   switch (operator) {
@@ -73,7 +92,7 @@ const filterUsingOperator = (
 };
 
 function freeTextFilter<T>(
-  value: string,
+  tokenValue: string,
   item: T,
   operator: PropertyFilterOperator,
   filteringPropertiesMap: FilteringPropertiesMap<T>
@@ -87,7 +106,7 @@ function freeTextFilter<T>(
     if (!propertyOperator) {
       return isNegation;
     }
-    return filterUsingOperator(item[propertyKey as keyof typeof item], value, propertyOperator);
+    return filterUsingOperator(item[propertyKey as keyof typeof item], { tokenValue, operator: propertyOperator });
   });
 }
 
@@ -100,12 +119,17 @@ function filterByToken<T>(token: PropertyFilterToken, item: T, filteringProperti
     ) {
       return false;
     }
-    const operator =
-      filteringPropertiesMap[token.propertyKey as keyof FilteringPropertiesMap<T>].operators[token.operator];
+    const property = filteringPropertiesMap[token.propertyKey as keyof FilteringPropertiesMap<T>];
+    const operator = property.operators[token.operator];
+    const type = property.type;
     const itemValue: any = operator?.match
       ? item[token.propertyKey as keyof T]
       : fixupFalsyValues(item[token.propertyKey as keyof T]);
-    return filterUsingOperator(itemValue, token.value, operator ?? { operator: token.operator });
+    return filterUsingOperator(itemValue, {
+      tokenValue: token.value,
+      operator: operator ?? { operator: token.operator },
+      type,
+    });
   }
   return freeTextFilter(token.value, item, token.operator, filteringPropertiesMap);
 }
@@ -132,6 +156,7 @@ function defaultFilteringFunction<T>(filteringPropertiesMap: FilteringProperties
 
 type FilteringPropertiesMap<T> = {
   [key in keyof T]: {
+    type?: PropertyFilterPropertyType;
     operators: FilteringOperatorsMap;
   };
 };
@@ -148,7 +173,7 @@ export function createPropertyFilterPredicate<T>(
     return null;
   }
   const filteringPropertiesMap = propertyFiltering.filteringProperties.reduce<FilteringPropertiesMap<T>>(
-    (acc: FilteringPropertiesMap<T>, { key, operators, defaultOperator }: PropertyFilterProperty) => {
+    (acc: FilteringPropertiesMap<T>, { key, operators, defaultOperator, type }: PropertyFilterProperty) => {
       const operatorMap: FilteringOperatorsMap = { [defaultOperator ?? '=']: { operator: defaultOperator ?? '=' } };
       operators?.forEach(op => {
         if (typeof op === 'string') {
@@ -157,9 +182,7 @@ export function createPropertyFilterPredicate<T>(
           operatorMap[op.operator] = { operator: op.operator, match: op.match };
         }
       });
-      acc[key as keyof T] = {
-        operators: operatorMap,
-      };
+      acc[key as keyof T] = { type, operators: operatorMap };
       return acc;
     },
     {} as FilteringPropertiesMap<T>

@@ -47,6 +47,13 @@ const propertyFiltering = {
       groupValuesLabel: 'Boolean values',
       propertyLabel: 'Boolean',
     },
+    {
+      key: 'status',
+      type: 'enum',
+      operators: ['=', '!=', ':', '!:'],
+      groupValuesLabel: 'Status values',
+      propertyLabel: 'Status',
+    },
   ],
 } as const;
 
@@ -584,6 +591,91 @@ describe('extended operators', () => {
         }
       )
     ).toThrow('Unsupported `operator.match` type given.');
+  });
+});
+
+describe('matching enum property', () => {
+  const items = [
+    { status: 'ACTIVE' },
+    { status: 'ACTIVATING' },
+    { status: 'NOT_ACTIVE' },
+    { status: 'DEACTIVATING' },
+    { status: 'TERMINATED' },
+  ];
+
+  test('matches enum property with equals enum matcher', () => {
+    const { items: processed } = processItems(
+      items,
+      {
+        propertyFilteringQuery: {
+          tokens: [{ propertyKey: 'status', operator: '=', value: ['DEACTIVATING', 'NOT_ACTIVE'] }],
+          operation: 'and',
+        },
+      },
+      { propertyFiltering }
+    );
+    expect(processed).toEqual([{ status: 'NOT_ACTIVE' }, { status: 'DEACTIVATING' }]);
+  });
+
+  test('matches enum property with not equals enum matcher', () => {
+    const { items: processed } = processItems(
+      items,
+      {
+        propertyFilteringQuery: {
+          tokens: [{ propertyKey: 'status', operator: '!=', value: ['DEACTIVATING', 'NOT_ACTIVE'] }],
+          operation: 'and',
+        },
+      },
+      { propertyFiltering }
+    );
+    expect(processed).toEqual([{ status: 'ACTIVE' }, { status: 'ACTIVATING' }, { status: 'TERMINATED' }]);
+  });
+
+  test('matches enum property with equals auto matcher', () => {
+    const { items: processed } = processItems(
+      items,
+      {
+        propertyFilteringQuery: {
+          tokens: [{ propertyKey: 'status', operator: '=', value: 'ACTIVATING' }],
+          operation: 'and',
+        },
+      },
+      { propertyFiltering }
+    );
+    expect(processed).toEqual([{ status: 'ACTIVATING' }]);
+  });
+
+  test('matches enum property with not equals auto matcher', () => {
+    const { items: processed } = processItems(
+      items,
+      {
+        propertyFilteringQuery: {
+          tokens: [{ propertyKey: 'status', operator: '!=', value: 'ACTIVATING' }],
+          operation: 'and',
+        },
+      },
+      { propertyFiltering }
+    );
+    expect(processed).toEqual([
+      { status: 'ACTIVE' },
+      { status: 'NOT_ACTIVE' },
+      { status: 'DEACTIVATING' },
+      { status: 'TERMINATED' },
+    ]);
+  });
+
+  test('matches enum property with contains auto matcher', () => {
+    const { items: processed } = processItems(
+      items,
+      {
+        propertyFilteringQuery: {
+          tokens: [{ propertyKey: 'status', operator: ':', value: 'TING' }],
+          operation: 'and',
+        },
+      },
+      { propertyFiltering }
+    );
+    expect(processed).toEqual([{ status: 'ACTIVATING' }, { status: 'DEACTIVATING' }]);
   });
 });
 

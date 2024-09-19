@@ -176,12 +176,16 @@ export interface PropertyFilterQuery {
 }
 export interface PropertyFilterProperty<TokenValue = any> {
   key: string;
+  type?: PropertyFilterPropertyType;
   groupValuesLabel: string;
   propertyLabel: string;
   operators?: readonly (PropertyFilterOperator | PropertyFilterOperatorExtended<TokenValue>)[];
   defaultOperator?: PropertyFilterOperator;
   group?: string;
 }
+
+export type PropertyFilterPropertyType = 'auto' | 'enum';
+
 export interface PropertyFilterOption {
   propertyKey: string;
   value: string;
