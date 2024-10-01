@@ -133,10 +133,13 @@ export type PropertyFilterOperator = '<' | '<=' | '>' | '>=' | ':' | '!:' | '=' 
 
 export interface PropertyFilterOperatorExtended<TokenValue> {
   operator: PropertyFilterOperator;
+  tokenType?: PropertyFilterTokenType;
   match?: PropertyFilterOperatorMatch<TokenValue>;
   form?: PropertyFilterOperatorForm<TokenValue>;
   format?: PropertyFilterOperatorFormat<TokenValue>;
 }
+
+export type PropertyFilterTokenType = 'value' | 'enum';
 
 export type PropertyFilterOperatorMatch<TokenValue> =
   | PropertyFilterOperatorMatchByType
@@ -182,6 +185,7 @@ export interface PropertyFilterProperty<TokenValue = any> {
   defaultOperator?: PropertyFilterOperator;
   group?: string;
 }
+
 export interface PropertyFilterOption {
   propertyKey: string;
   value: string;
