@@ -12,6 +12,7 @@ import {
 } from '../interfaces';
 import { compareDates, compareTimestamps } from '../date-utils/compare-dates.js';
 import { Predicate } from './compose-filters';
+import { warnOnce } from '../logging.js';
 
 const filterUsingOperator = (
   itemValue: any,
@@ -70,7 +71,7 @@ function matchDateValue({
     case '!=':
       return comparisonResult !== 0;
     default:
-      // Other operators are not supported.
+      warnOnce(`Unsupported operator "${operator}" given for match="${match}".`);
       return false;
   }
 }
@@ -88,7 +89,7 @@ function matchPrimitiveValue({
 }): boolean {
   if (tokenType === 'enum') {
     if (!tokenValue || !Array.isArray(tokenValue)) {
-      // The token value must be an array when tokenType=="enum".
+      warnOnce('The token value must be an array when tokenType=="enum".');
       return false;
     }
     switch (operator) {
@@ -97,7 +98,7 @@ function matchPrimitiveValue({
       case '!=':
         return !tokenValue || !tokenValue.includes(itemValue);
       default:
-        // Other operators are not supported.
+        warnOnce(`Unsupported operator "${operator}" given for tokenType=="enum".`);
         return false;
     }
   }

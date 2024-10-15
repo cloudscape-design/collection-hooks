@@ -3,6 +3,7 @@
 import { test, expect, describe, vi } from 'vitest';
 import { processItems } from '../../operations';
 import { PropertyFilterOperator } from '../../interfaces';
+import * as logging from '../../logging';
 
 const propertyFiltering = {
   filteringProperties: [
@@ -557,6 +558,40 @@ describe('extended operators', () => {
     expect(processed).toEqual(expectedResult);
   });
 
+  test.each([
+    { match: 'date' as const, operator: ':' },
+    { match: 'date' as const, operator: '^' },
+    { match: 'datetime' as const, operator: ':' },
+  ])('warns if unsupported operator "$operator" given for match="$match"', ({ match, operator }) => {
+    const warnOnce = vi.spyOn(logging, 'warnOnce');
+    const { items: processed } = processItems(
+      items,
+      {
+        propertyFilteringQuery: {
+          tokens: [{ propertyKey: 'timestamp', operator, value: '' }],
+          operation: 'and',
+        },
+      },
+      {
+        propertyFiltering: {
+          filteringProperties: [
+            {
+              key: 'timestamp',
+              operators: [
+                { operator: ':', match },
+                { operator: '^', match },
+              ],
+              propertyLabel: '',
+              groupValuesLabel: '',
+            },
+          ],
+        },
+      }
+    );
+    expect(processed).toEqual([]);
+    expect(warnOnce).toHaveBeenCalledWith(`Unsupported operator "${operator}" given for match="${match}".`);
+  });
+
   test('throws if unexpected operator.match', () => {
     expect(() =>
       processItems(
@@ -673,6 +708,18 @@ describe('matching enum token', () => {
   test('matches some when token="ING" and operator="!:"', () => {
     const processed = processWithProperty('status', '!:', 'ING');
     expect(processed).toEqual([items[0], items[2], items[4], items[5], items[6]]);
+  });
+
+  test('warns when unsupported operator is used', () => {
+    const warnOnce = vi.spyOn(logging, 'warnOnce');
+    processWithProperty('status', ':', []);
+    expect(warnOnce).toHaveBeenCalledWith('Unsupported operator ":" given for tokenType=="enum".');
+  });
+
+  test('warns when token is not an array', () => {
+    const warnOnce = vi.spyOn(logging, 'warnOnce');
+    processWithProperty('status', '=', null);
+    expect(warnOnce).toHaveBeenCalledWith('The token value must be an array when tokenType=="enum".');
   });
 });
 
