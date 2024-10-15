@@ -8,40 +8,100 @@ import {
   UseCollectionOptions,
   PropertyFilterProperty,
   PropertyFilterTokenGroup,
+  PropertyFilterTokenType,
 } from '../interfaces';
 import { compareDates, compareTimestamps } from '../date-utils/compare-dates.js';
 import { Predicate } from './compose-filters';
+import { warnOnce } from '../logging.js';
 
 const filterUsingOperator = (
   itemValue: any,
-  tokenValue: any,
-  { operator, match }: PropertyFilterOperatorExtended<any>
+  {
+    tokenValue,
+    operator: { operator, match, tokenType },
+  }: {
+    tokenValue: any;
+    operator: PropertyFilterOperatorExtended<any>;
+  }
 ) => {
+  // For match="date" or match="datetime" we expect the value to be a Date object.
+  // The token value is expected to be an ISO date- or datetime string, example:
+  // match(operator="=", token="2020-01-01", value=new Date("2020-01-01")) == true
   if (match === 'date' || match === 'datetime') {
-    const comparator = match === 'date' ? compareDates : compareTimestamps;
-    const comparisonResult = comparator(itemValue, tokenValue);
-    switch (operator) {
-      case '<':
-        return comparisonResult < 0;
-      case '<=':
-        return comparisonResult <= 0;
-      case '>':
-        return comparisonResult > 0;
-      case '>=':
-        return comparisonResult >= 0;
-      case '=':
-        return comparisonResult === 0;
-      case '!=':
-        return comparisonResult !== 0;
-      default:
-        return false;
-    }
-  } else if (typeof match === 'function') {
+    return matchDateValue({ tokenValue, itemValue, operator, match });
+  }
+  // For custom match functions there is no expectation to value or token type: the function is supposed
+  // to handle everything. It is recommended to treat both the token and the value as unknowns.
+  else if (typeof match === 'function') {
     return match(itemValue, tokenValue);
   } else if (match) {
     throw new Error('Unsupported `operator.match` type given.');
   }
+  // For default matching logic we expect the value to be a primitive type or an object that matches by reference.
+  // The token can be an array (tokenType="enum") or a value (tokenType="value" or tokenType=undefined), examples:
+  // match(operator="=", token="A", value="A") == true
+  // match(operator="=", token=["A", "B"], value="A") == true
+  return matchPrimitiveValue({ tokenValue, itemValue, operator, tokenType });
+};
 
+function matchDateValue({
+  tokenValue,
+  itemValue,
+  operator,
+  match,
+}: {
+  tokenValue: any;
+  itemValue: any;
+  operator: PropertyFilterOperator;
+  match: 'date' | 'datetime';
+}) {
+  const comparator = match === 'date' ? compareDates : compareTimestamps;
+  const comparisonResult = comparator(itemValue, tokenValue);
+  switch (operator) {
+    case '<':
+      return comparisonResult < 0;
+    case '<=':
+      return comparisonResult <= 0;
+    case '>':
+      return comparisonResult > 0;
+    case '>=':
+      return comparisonResult >= 0;
+    case '=':
+      return comparisonResult === 0;
+    case '!=':
+      return comparisonResult !== 0;
+    default:
+      warnOnce(`Unsupported operator "${operator}" given for match="${match}".`);
+      return false;
+  }
+}
+
+function matchPrimitiveValue({
+  tokenValue,
+  itemValue,
+  operator,
+  tokenType,
+}: {
+  tokenValue: any;
+  itemValue: any;
+  operator: PropertyFilterOperator;
+  tokenType?: PropertyFilterTokenType;
+}): boolean {
+  if (tokenType === 'enum') {
+    if (!tokenValue || !Array.isArray(tokenValue)) {
+      warnOnce('The token value must be an array when tokenType=="enum".');
+      return false;
+    }
+    switch (operator) {
+      case '=':
+        return tokenValue && tokenValue.includes(itemValue);
+      case '!=':
+        return !tokenValue || !tokenValue.includes(itemValue);
+      default:
+        warnOnce(`Unsupported operator "${operator}" given for tokenType=="enum".`);
+        return false;
+    }
+  }
   switch (operator) {
     case '<':
       return itemValue < tokenValue;
@@ -70,10 +130,10 @@ const filterUsingOperator = (
     default:
       throw new Error('Unsupported operator given.');
   }
-};
+}
 
 function freeTextFilter<T>(
-  value: string,
+  tokenValue: string,
   item: T,
   operator: PropertyFilterOperator,
   filteringPropertiesMap: FilteringPropertiesMap<T>
@@ -87,7 +147,7 @@ function freeTextFilter<T>(
     if (!propertyOperator) {
       return isNegation;
     }
-    return filterUsingOperator(item[propertyKey as keyof typeof item], value, propertyOperator);
+    return filterUsingOperator(item[propertyKey as keyof typeof item], { tokenValue, operator: propertyOperator });
   });
 }
 
@@ -100,12 +160,15 @@ function filterByToken<T>(token: PropertyFilterToken, item: T, filteringProperti
     ) {
       return false;
     }
-    const operator =
-      filteringPropertiesMap[token.propertyKey as keyof FilteringPropertiesMap<T>].operators[token.operator];
+    const property = filteringPropertiesMap[token.propertyKey as keyof FilteringPropertiesMap<T>];
+    const operator = property.operators[token.operator];
     const itemValue: any = operator?.match
       ? item[token.propertyKey as keyof T]
       : fixupFalsyValues(item[token.propertyKey as keyof T]);
-    return filterUsingOperator(itemValue, token.value, operator ?? { operator: token.operator });
+    return filterUsingOperator(itemValue, {
+      tokenValue: token.value,
+      operator: operator ?? { operator: token.operator },
+    });
   }
   return freeTextFilter(token.value, item, token.operator, filteringPropertiesMap);
 }
@@ -154,12 +217,10 @@ export function createPropertyFilterPredicate<T>(
         if (typeof op === 'string') {
           operatorMap[op] = { operator: op };
         } else {
-          operatorMap[op.operator] = { operator: op.operator, match: op.match };
+          operatorMap[op.operator] = { operator: op.operator, match: op.match, tokenType: op.tokenType };
         }
       });
-      acc[key as keyof T] = {
-        operators: operatorMap,
-      };
+      acc[key as keyof T] = { operators: operatorMap };
       return acc;
     },
     {} as FilteringPropertiesMap<T>

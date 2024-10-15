@@ -3,6 +3,7 @@
 import { test, expect, describe, vi } from 'vitest';
 import { processItems } from '../../operations';
 import { PropertyFilterOperator } from '../../interfaces';
+import * as logging from '../../logging';
 
 const propertyFiltering = {
   filteringProperties: [
@@ -557,6 +558,40 @@ describe('extended operators', () => {
     expect(processed).toEqual(expectedResult);
   });
 
+  test.each([
+    { match: 'date' as const, operator: ':' },
+    { match: 'date' as const, operator: '^' },
+    { match: 'datetime' as const, operator: ':' },
+  ])('warns if unsupported operator "$operator" given for match="$match"', ({ match, operator }) => {
+    const warnOnce = vi.spyOn(logging, 'warnOnce');
+    const { items: processed } = processItems(
+      items,
+      {
+        propertyFilteringQuery: {
+          tokens: [{ propertyKey: 'timestamp', operator, value: '' }],
+          operation: 'and',
+        },
+      },
+      {
+        propertyFiltering: {
+          filteringProperties: [
+            {
+              key: 'timestamp',
+              operators: [
+                { operator: ':', match },
+                { operator: '^', match },
+              ],
+              propertyLabel: '',
+              groupValuesLabel: '',
+            },
+          ],
+        },
+      }
+    );
+    expect(processed).toEqual([]);
+    expect(warnOnce).toHaveBeenCalledWith(`Unsupported operator "${operator}" given for match="${match}".`);
+  });
+
   test('throws if unexpected operator.match', () => {
     expect(() =>
       processItems(
@@ -584,6 +619,107 @@ describe('extended operators', () => {
         }
       )
     ).toThrow('Unsupported `operator.match` type given.');
+  });
+});
+
+describe('matching enum token', () => {
+  const obj = { value: 0 };
+  const items = [
+    /* index=0 */ { status: 'ACTIVE' },
+    /* index=1 */ { status: 'ACTIVATING' },
+    /* index=2 */ { status: 'NOT_ACTIVE' },
+    /* index=3 */ { status: 'DEACTIVATING' },
+    /* index=4 */ { status: 'TERMINATED' },
+    /* index=5 */ { status: 0 },
+    /* index=6 */ { status: obj },
+  ];
+
+  function processWithProperty(propertyKey: string, operator: string, token: any, itemsOverride = items) {
+    return processItems(
+      itemsOverride,
+      {
+        propertyFilteringQuery: { operation: 'and', tokens: [{ propertyKey, operator, value: token }] },
+      },
+      {
+        propertyFiltering: {
+          filteringProperties: [
+            {
+              key: 'status',
+              operators: [
+                { operator: '=', tokenType: 'enum' },
+                { operator: '!=', tokenType: 'enum' },
+                { operator: ':', tokenType: 'enum' },
+                { operator: '!:', tokenType: 'value' },
+              ],
+              groupValuesLabel: 'Status values',
+              propertyLabel: 'Status',
+            },
+          ],
+        },
+      }
+    ).items;
+  }
+
+  test.each(['=', '!=', ':'])('matches nothing when token=null and operator="%s"', operator => {
+    const processed = processWithProperty('status', operator, null);
+    expect(processed).toEqual([]);
+  });
+
+  test.each(['=', '!=', ':'])('matches nothing when token="" and operator="%s"', operator => {
+    const processed = processWithProperty('status', operator, '');
+    expect(processed).toEqual([]);
+  });
+
+  test('matches all when token=[] and operator="!="', () => {
+    const processed = processWithProperty('status', '!=', []);
+    expect(processed).toEqual(items);
+  });
+
+  test('matches nothing when token=[] and operator="="', () => {
+    const processed = processWithProperty('status', '=', []);
+    expect(processed).toEqual([]);
+  });
+
+  test.each([{ token: ['NOT_ACTIVE', 'ACTIVE'] }])('matches some when token=$token and operator="="', ({ token }) => {
+    const processed = processWithProperty('status', '=', token);
+    expect(processed).toEqual([items[0], items[2]]);
+  });
+
+  test.each([{ token: [obj, 0] }])('matches some when token=$token and operator="="', ({ token }) => {
+    const processed = processWithProperty('status', '=', token);
+    expect(processed).toEqual([items[5], items[6]]);
+  });
+
+  test.each([{ token: ['ACTIVE', 'NOT_ACTIVE'] }])('matches some when token=$token and operator="!="', ({ token }) => {
+    const processed = processWithProperty('status', '!=', token);
+    expect(processed).toEqual([items[1], items[3], items[4], items[5], items[6]]);
+  });
+
+  test.each([{ token: [0, obj] }])('matches some when token=$token and operator="!="', ({ token }) => {
+    const processed = processWithProperty('status', '!=', token);
+    expect(processed).toEqual([items[0], items[1], items[2], items[3], items[4]]);
+  });
+
+  test.each([['ACTIVE'], 'ACTIVE'])('matches nothing when token=%s and operator=":"', token => {
+    const processed = processWithProperty('status', ':', token);
+    expect(processed).toEqual([]);
+  });
+
+  test('matches some when token="ING" and operator="!:"', () => {
+    const processed = processWithProperty('status', '!:', 'ING');
+    expect(processed).toEqual([items[0], items[2], items[4], items[5], items[6]]);
+  });
+
+  test('warns when unsupported operator is used', () => {
+    const warnOnce = vi.spyOn(logging, 'warnOnce');
+    processWithProperty('status', ':', []);
+    expect(warnOnce).toHaveBeenCalledWith('Unsupported operator ":" given for tokenType=="enum".');
+  });
+
+  test('warns when token is not an array', () => {
+    const warnOnce = vi.spyOn(logging, 'warnOnce');
+    processWithProperty('status', '=', null);
+    expect(warnOnce).toHaveBeenCalledWith('The token value must be an array when tokenType=="enum".');
   });
 });
 
