@@ -10,6 +10,7 @@ import {
   PropertyFilterQuery,
   PropertyFilterOption,
   CollectionActions,
+  PropertyFilterRef,
 } from './interfaces';
 import { fixupFalsyValues } from './operations/property-filter.js';
 import { ItemsTree } from './operations/items-tree';
@@ -119,6 +120,8 @@ export function createSyncProps<T>(
   }: CollectionState<T>,
   actions: CollectionActions<T>,
   collectionRef: React.RefObject<CollectionRef>,
+  textFilterRef: React.RefObject<PropertyFilterRef>,
+  propertyFilterRef: React.RefObject<PropertyFilterRef>,
   {
     pagesCount,
     actualPageIndex,
@@ -227,16 +230,20 @@ export function createSyncProps<T>(
       filteringText,
       onChange: ({ detail: { filteringText } }) => {
         actions.setFiltering(filteringText);
+        textFilterRef?.current?.reannounceCountText?.call(undefined);
       },
+      ref: textFilterRef,
     },
     propertyFilterProps: {
       query: propertyFilteringQuery,
       onChange: ({ detail: query }) => {
         actions.setPropertyFiltering(query);
+        propertyFilterRef?.current?.reannounceCountText?.call(undefined);
       },
       filteringProperties: options.propertyFiltering?.filteringProperties || [],
       filteringOptions,
       freeTextFiltering: options.propertyFiltering?.freeTextFiltering,
+      ref: propertyFilterRef,
     },
     paginationProps: {
       currentPageIndex: actualPageIndex ?? currentPageIndex,
