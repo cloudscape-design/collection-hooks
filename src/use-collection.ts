@@ -2,12 +2,14 @@
 // SPDX-License-Identifier: Apache-2.0
 import { useRef } from 'react';
 import { processItems, processSelectedItems, itemsAreEqual } from './operations/index.js';
-import { UseCollectionOptions, UseCollectionResult, CollectionRef } from './interfaces';
+import { UseCollectionOptions, UseCollectionResult, CollectionRef, PropertyFilterRef } from './interfaces';
 import { createSyncProps } from './utils.js';
 import { useCollectionState } from './use-collection-state.js';
 
 export function useCollection<T>(allItems: ReadonlyArray<T>, options: UseCollectionOptions<T>): UseCollectionResult<T> {
   const collectionRef = useRef<CollectionRef>(null);
+  const textFilterRef = useRef<PropertyFilterRef>(null);
+  const propertyFilterRef = useRef<PropertyFilterRef>(null);
   const [state, actions] = useCollectionState(options, collectionRef);
   const { items, allPageItems, pagesCount, filteredItemsCount, actualPageIndex, itemsTree } = processItems(
     allItems,
@@ -61,7 +63,7 @@ export function useCollection<T>(allItems: ReadonlyArray<T>, options: UseCollect
     allPageItems,
     filteredItemsCount,
     actions,
-    ...createSyncProps(options, state, actions, collectionRef, {
+    ...createSyncProps(options, state, actions, collectionRef, textFilterRef, propertyFilterRef, {
       actualPageIndex,
       pagesCount,
       allItems,
