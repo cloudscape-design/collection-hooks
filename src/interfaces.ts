@@ -103,6 +103,7 @@ interface UseCollectionResultBase<T> {
     disabled?: boolean;
     filteringText: string;
     onChange(event: CustomEventLike<{ filteringText: string }>): void;
+    ref?: React.RefObject<PropertyFilterRef>;
   };
   propertyFilterProps: {
     query: PropertyFilterQuery;
@@ -110,6 +111,7 @@ interface UseCollectionResultBase<T> {
     filteringProperties: readonly PropertyFilterProperty[];
     filteringOptions: readonly PropertyFilterOption[];
     freeTextFiltering?: PropertyFilterFreeTextFiltering;
+    ref?: React.RefObject<PropertyFilterRef>;
   };
   paginationProps: {
     disabled?: boolean;
@@ -194,4 +196,8 @@ export interface PropertyFilterOption {
 export interface PropertyFilterFreeTextFiltering {
   operators?: readonly PropertyFilterOperator[];
   defaultOperator?: PropertyFilterOperator;
+}
+export interface PropertyFilterRef {
+  reannounceCountText: () => void;
+  focus: () => void;
 }
