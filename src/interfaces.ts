@@ -176,6 +176,8 @@ export interface PropertyFilterQuery {
   tokens: readonly PropertyFilterToken[];
   operation: PropertyFilterOperation;
   tokenGroups?: readonly (PropertyFilterToken | PropertyFilterTokenGroup)[];
+  // Used for secondary set of tokens that are always joined with AND to the primary tokens/tokenGroups.
+  secondaryTokens?: readonly (PropertyFilterToken | PropertyFilterTokenGroup)[];
 }
 export interface PropertyFilterProperty<TokenValue = any> {
   key: string;

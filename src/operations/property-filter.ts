@@ -186,10 +186,12 @@ function defaultFilteringFunction<T>(filteringPropertiesMap: FilteringProperties
         return filterByToken(tokenOrGroup, item, filteringPropertiesMap);
       }
     }
-    return evaluate({
+    const primary = evaluate({
       operation: query.operation,
       tokens: query.tokenGroups ?? query.tokens,
     });
+    const secondary = evaluate({ operation: 'and', tokens: query.secondaryTokens ?? [] });
+    return primary && secondary;
   };
 }
 

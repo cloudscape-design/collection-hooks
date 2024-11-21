@@ -888,3 +888,30 @@ describe('Token groups', () => {
     ]);
   });
 });
+
+test('filters with primary and secondary tokens', () => {
+  const { items: processed } = processItems(
+    [
+      { field: 'A1', anotherField: 'A1' },
+      { field: 'A2', anotherField: 'A2' },
+      { field: 'A1', anotherField: 'A2' },
+      { field: 'A2', anotherField: 'A1' },
+      { field: 'A3', anotherField: 'A3' },
+    ],
+    {
+      propertyFilteringQuery: {
+        operation: 'or',
+        tokens: [
+          { propertyKey: 'field', operator: '=', value: 'A1' },
+          { propertyKey: 'field', operator: '=', value: 'A2' },
+        ],
+        secondaryTokens: [{ propertyKey: 'anotherField', operator: '=', value: 'A1' }],
+      },
+    },
+    { propertyFiltering }
+  );
+  expect(processed).toEqual([
+    { field: 'A1', anotherField: 'A1' },
+    { field: 'A2', anotherField: 'A1' },
+  ]);
+});
