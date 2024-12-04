@@ -30,6 +30,10 @@
     "./operations": {
       "require": "./cjs/operations.js",
       "default": "./mjs/operations.js"
+    },
+    "./codec": {
+      "require": "./cjs/codec/index.js",
+      "default": "./mjs/codec/index.js"
     }
   },
   "files": [
