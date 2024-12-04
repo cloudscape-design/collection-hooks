@@ -1,7 +1,7 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
 
-export function encode<T extends Record<string, unknown>>(queryObject: T): string {
+export function encode<T>(queryObject: T): string {
   return encodeURIComponent(JSON.stringify(queryObject));
 }
 
