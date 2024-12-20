@@ -142,4 +142,39 @@ describe('with filteringFunction', () => {
     expect(filteringSpy).toHaveBeenCalledTimes(3);
     expect(filteringSpy).toHaveBeenCalledWith(expect.any(Object), '', undefined);
   });
+
+  test('does not match object values', () => {
+    const items = [
+      { id: 1, field: {} },
+      { id: 2, field: 'object' },
+      { id: 3, field: [{}, {}] },
+      { id: 4, field: 'Some text containing [object Object]' },
+    ];
+    const { items: processed } = processItems(
+      items,
+      { filteringText: 'object' },
+      {
+        filtering: {},
+      }
+    );
+    expect(processed).toHaveLength(2);
+    expect(processed[0]?.id).toEqual(2);
+    expect(processed[1]?.id).toEqual(4);
+  });
+
+  test('does not match against date objects', () => {
+    const items = [
+      { id: 1, field: new Date('2024-12-01') },
+      { id: 2, field: '2024-12-01' },
+    ];
+    const { items: processed } = processItems(
+      items,
+      { filteringText: '2024' },
+      {
+        filtering: {},
+      }
+    );
+    expect(processed).toHaveLength(1);
+    expect(processed[0]?.id).toEqual(2);
+  });
 });
