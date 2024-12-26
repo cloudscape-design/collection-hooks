@@ -1,7 +1,8 @@
 {
   "extends": "./tsconfig.json",
   "compilerOptions": {
-    "lib": ["es2019", "dom"],
+    "lib": ["es2020", "dom"],
+    "moduleResolution": "bundler",
     "noEmit": true,
     "jsx": "react"
   },
