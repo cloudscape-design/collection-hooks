@@ -12,6 +12,7 @@
     "test-08:00": "TZ=America/Los_Angeles vitest --run ./src/__tests__/date-utils --coverage=false",
     "test+08:00": "TZ=Asia/Brunei vitest --run ./src/__tests__/date-utils --coverage=false",
     "test-local": "vitest --run",
+    "pretest": "tsc -p tsconfig.unit.json",
     "test": "npm run test-08:00 && npm run test+08:00 && npm run test-local",
     "clean": "rimraf ./lib",
     "prebuild": "npm run clean",
@@ -22,6 +23,7 @@
   "type": "module",
   "main": "./cjs/index.js",
   "module": "./mjs/index.js",
+  "sideEffects": false,
   "exports": {
     ".": {
       "require": "./cjs/index.js",
@@ -58,12 +60,13 @@
     "eslint-plugin-react-hooks": "^4.3.0",
     "eslint-plugin-unicorn": "^11.0.2",
     "husky": "^9.0.0",
+    "jsdom": "^25.0.1",
     "lint-staged": "^13.2.1",
     "prettier": "^2.5.0",
     "react": "^16.14.0",
     "react-dom": "^16.14.0",
     "rimraf": "^3.0.2",
-    "typescript": "^4.5.2",
+    "typescript": "^5.7.2",
     "vitest": "^1.6.0"
   },
   "lint-staged": {

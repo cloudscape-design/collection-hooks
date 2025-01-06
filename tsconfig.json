@@ -1,11 +1,12 @@
 {
   "compilerOptions": {
-    "target": "es5",
+    "target": "es2015",
     "module": "esnext",
     "declaration": true,
+    "types": [],
     "esModuleInterop": true,
     "moduleResolution": "Node",
-    "lib": ["es5", "es2015.collection"],
+    "lib": ["es2020"],
     "strict": true,
     "outDir": "lib/mjs",
     "rootDir": "src"
