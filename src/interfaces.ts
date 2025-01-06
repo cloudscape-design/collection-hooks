@@ -95,7 +95,7 @@ interface UseCollectionResultBase<T> {
       onExpandableItemToggle(event: CustomEventLike<{ item: T; expanded: boolean }>): void;
     };
     trackBy?: string | ((item: T) => string);
-    ref: React.RefObject<CollectionRef>;
+    ref: React.RefObject<CollectionRef | null>;
     totalItemsCount: number;
     firstIndex: number;
   };
