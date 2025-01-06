@@ -23,6 +23,7 @@
   "type": "module",
   "main": "./cjs/index.js",
   "module": "./mjs/index.js",
+  "sideEffects": false,
   "exports": {
     ".": {
       "require": "./cjs/index.js",
