@@ -1,6 +1,6 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
-import { Dispatch, Reducer, ReactNode } from 'react';
+import { Dispatch, ReactNode } from 'react';
 import {
   UseCollectionOptions,
   CollectionState,
@@ -45,7 +45,7 @@ type Action<T> =
   | PaginationAction
   | FilteringAction
   | PropertyFilteringAction;
-export type CollectionReducer<T> = Reducer<CollectionState<T>, Action<T>>;
+
 export function collectionReducer<T>(state: CollectionState<T>, action: Action<T>): CollectionState<T> {
   const newState = { ...state };
   switch (action.type) {
@@ -79,27 +79,27 @@ export function createActions<T>({
   collectionRef,
 }: {
   dispatch: Dispatch<Action<T>>;
-  collectionRef: React.RefObject<CollectionRef>;
+  collectionRef: React.RefObject<CollectionRef | null>;
 }): CollectionActions<T> {
   return {
     setFiltering(filteringText) {
       dispatch({ type: 'filtering', filteringText });
-      collectionRef.current && collectionRef.current.scrollToTop();
+      collectionRef.current?.scrollToTop();
     },
     setSorting(state: SortingState<T>) {
       dispatch({ type: 'sorting', sortingState: state });
-      collectionRef.current && collectionRef.current.scrollToTop();
+      collectionRef.current?.scrollToTop();
     },
     setCurrentPage(pageIndex: number) {
       dispatch({ type: 'pagination', pageIndex });
-      collectionRef.current && collectionRef.current.scrollToTop();
+      collectionRef.current?.scrollToTop();
     },
     setSelectedItems(selectedItems: Array<T>) {
       dispatch({ type: 'selection', selectedItems });
     },
     setPropertyFiltering(query: PropertyFilterQuery) {
       dispatch({ type: 'property-filtering', query });
-      collectionRef.current && collectionRef.current.scrollToTop();
+      collectionRef.current?.scrollToTop();
     },
     setExpandedItems(expandedItems: ReadonlyArray<T>) {
       dispatch({ type: 'expansion', expandedItems });
@@ -118,7 +118,7 @@ export function createSyncProps<T>(
     propertyFilteringQuery,
   }: CollectionState<T>,
   actions: CollectionActions<T>,
-  collectionRef: React.RefObject<CollectionRef>,
+  collectionRef: React.RefObject<CollectionRef | null>,
   {
     pagesCount,
     actualPageIndex,
