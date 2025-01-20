@@ -10,12 +10,13 @@ function defaultFilteringFunction<T>(item: T, filteringText: string, filteringFi
   filteringFields = filteringFields || Object.keys(item as Record<string, any>);
   const lowFilteringText = filteringText.toLowerCase();
 
-  return filteringFields.some(
-    key =>
-      String((item as Record<string, any>)[key])
-        .toLowerCase()
-        .indexOf(lowFilteringText) > -1
-  );
+  return filteringFields.some(key => {
+    const value = (item as Record<string, any>)[key];
+    if (value && typeof value === 'object') {
+      return false;
+    }
+    return String(value).toLowerCase().indexOf(lowFilteringText) > -1;
+  });
 }
 
 export function createFilterPredicate<T>(
