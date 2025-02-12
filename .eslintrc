@@ -12,7 +12,7 @@
     "ecmaVersion": 2018,
     "sourceType": "module"
   },
-  "plugins": ["unicorn", "header"],
+  "plugins": ["unicorn", "header", "no-only-tests"],
   "rules": {
     "@typescript-eslint/ban-ts-comment": ["error", { "ts-expect-error": "allow-with-description" }],
     "@typescript-eslint/interface-name-prefix": "off",
@@ -29,7 +29,8 @@
       "error",
       "line",
       [" Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.", " SPDX-License-Identifier: Apache-2.0"]
-    ]
+    ],
+    "no-only-tests/no-only-tests": "error"
   },
   "settings": {
     "react": {
