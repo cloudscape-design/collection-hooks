@@ -52,6 +52,7 @@
     "@typescript-eslint/eslint-plugin": "^8.24.1",
     "@typescript-eslint/parser": "^8.24.1",
     "@vitest/coverage-istanbul": "^3.0.5",
+    "@vitest/eslint-plugin": "^1.1.31",
     "eslint": "^8.57.1",
     "eslint-config-prettier": "^6.15.0",
     "eslint-plugin-header": "3.1.0",
@@ -73,8 +74,5 @@
     "*.{js,jsx,ts,tsx}": [
       "eslint --fix"
     ]
-  },
-  "dependencies": {
-    "@vitest/eslint-plugin": "^1.1.31"
   }
 }
