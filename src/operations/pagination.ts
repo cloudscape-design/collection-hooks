@@ -16,7 +16,7 @@ export function createPageProps<T>(
   const pageSize = pagination.pageSize ?? DEFAULT_PAGE_SIZE;
   const pagesCount = Math.ceil(items.length / pageSize);
   let pageIndex = currentPageIndex ?? 1;
-  if (pageIndex < 1 || pageIndex > pagesCount || Number.isNaN(pageIndex)) {
+  if (pageIndex < 1 || Number.isNaN(pageIndex)) {
     pageIndex = 1;
   }
   return { pageSize, pagesCount, pageIndex };

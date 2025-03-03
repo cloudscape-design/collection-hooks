@@ -17,23 +17,12 @@ test('default pagination', () => {
 test('should reset the currentPageIndex to 1 when out of range', () => {
   const items = generateItems(25);
 
-  // Page number is above the maximum
+  // Page number is below the minimum
   let {
     items: processed,
     pagesCount,
     actualPageIndex,
-  } = processItems(items, { currentPageIndex: 4 }, { pagination: {} });
-  expect(actualPageIndex).toEqual(1);
-  expect(pagesCount).toEqual(3);
-  expect(processed).toHaveLength(10);
-  expect(processed[0]).toEqual(items[0]);
-
-  // Page number is below the minimum
-  ({
-    items: processed,
-    pagesCount,
-    actualPageIndex,
-  } = processItems(items, { currentPageIndex: 0 }, { pagination: {} }));
+  } = processItems(items, { currentPageIndex: 0 }, { pagination: {} });
   expect(actualPageIndex).toEqual(1);
   expect(pagesCount).toEqual(3);
   expect(processed).toHaveLength(10);
