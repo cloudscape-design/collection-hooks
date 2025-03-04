@@ -87,6 +87,18 @@ test('displays the last page when the number of items is divisible by page size'
   expect(processed[9]).toEqual(items[19]);
 });
 
+test('displays an out of range page', () => {
+  const items = generateItems(20);
+  const {
+    items: processed,
+    pagesCount,
+    actualPageIndex,
+  } = processItems(items, { currentPageIndex: 3 }, { pagination: {} });
+  expect(actualPageIndex).toEqual(3);
+  expect(pagesCount).toEqual(2);
+  expect(processed).toHaveLength(0);
+});
+
 test('supports custom page size', () => {
   const items = generateItems(35);
   const { items: processed, pagesCount } = processItems(
