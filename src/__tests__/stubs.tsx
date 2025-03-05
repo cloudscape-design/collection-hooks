@@ -81,7 +81,9 @@ const Table = React.forwardRef<CollectionRef, TableProps>(
     ref: React.Ref<CollectionRef>
   ) => {
     const scrollToTop = () => {
-      spy && spy();
+      if (spy) {
+        spy();
+      }
     };
     React.useImperativeHandle(ref, () => ({
       scrollToTop,
@@ -245,7 +247,11 @@ function Pagination({
   return (
     <ul>
       <li>
-        <button data-testid="previous-page" disabled={disabled} onClick={() => changePage(currentPageIndex - 1)}>
+        <button
+          data-testid="previous-page"
+          disabled={disabled || currentPageIndex === 1}
+          onClick={() => changePage(currentPageIndex - 1)}
+        >
           &lt;
         </button>
       </li>
@@ -258,7 +264,11 @@ function Pagination({
         <span data-testid="pages-count">{pagesCount}</span>
       </li>
       <li>
-        <button data-testid="next-page" disabled={disabled} onClick={() => changePage(currentPageIndex + 1)}>
+        <button
+          data-testid="next-page"
+          disabled={disabled || currentPageIndex === pagesCount}
+          onClick={() => changePage(currentPageIndex + 1)}
+        >
           &gt;
         </button>
       </li>

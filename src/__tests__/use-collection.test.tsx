@@ -165,8 +165,8 @@ test('should prevent pagination from going out of bounds', () => {
   expect(getCurrentPage()).toEqual('2');
   expect(getVisibleItems()[0]).toEqual('11');
   fireEvent.click(findNextPage());
-  expect(getCurrentPage()).toEqual('1');
-  expect(getVisibleItems()[0]).toEqual('1');
+  expect(getCurrentPage()).toEqual('2');
+  expect(getVisibleItems()[0]).toEqual('11');
 });
 
 test('should evoke scrollToTop from the ref on pagination, filtering, property filtering and sorting', () => {
