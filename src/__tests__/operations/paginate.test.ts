@@ -93,7 +93,7 @@ test('displays an out of range page', () => {
     items: processed,
     pagesCount,
     actualPageIndex,
-  } = processItems(items, { currentPageIndex: 3 }, { pagination: {} });
+  } = processItems(items, { currentPageIndex: 3 }, { pagination: { allowPageOutOfRange: true } });
   expect(actualPageIndex).toEqual(3);
   expect(pagesCount).toEqual(2);
   expect(processed).toHaveLength(0);
