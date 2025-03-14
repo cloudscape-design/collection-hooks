@@ -1,6 +1,6 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
-import { useReducer } from 'react';
+import { useReducer, useMemo } from 'react';
 import { createActions, collectionReducer, CollectionReducer } from './utils.js';
 import { UseCollectionOptions, CollectionState, CollectionRef, CollectionActions } from './interfaces';
 
@@ -16,11 +16,8 @@ export function useCollectionState<T>(
     filteringText: options.filtering?.defaultFilteringText ?? '',
     propertyFilteringQuery: options.propertyFiltering?.defaultQuery ?? { tokens: [], operation: 'and' },
   });
-  return [
-    state,
-    createActions({
-      dispatch,
-      collectionRef,
-    }),
-  ] as const;
+
+  const actions = useMemo(() => createActions({ dispatch, collectionRef }), [dispatch, collectionRef]);
+
+  return [state, actions] as const;
 }
