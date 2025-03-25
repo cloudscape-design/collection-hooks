@@ -84,22 +84,22 @@ export function createActions<T>({
   return {
     setFiltering(filteringText) {
       dispatch({ type: 'filtering', filteringText });
-      collectionRef.current && collectionRef.current.scrollToTop();
+      collectionRef.current?.scrollToTop();
     },
     setSorting(state: SortingState<T>) {
       dispatch({ type: 'sorting', sortingState: state });
-      collectionRef.current && collectionRef.current.scrollToTop();
+      collectionRef.current?.scrollToTop();
     },
     setCurrentPage(pageIndex: number) {
       dispatch({ type: 'pagination', pageIndex });
-      collectionRef.current && collectionRef.current.scrollToTop();
+      collectionRef.current?.scrollToTop();
     },
     setSelectedItems(selectedItems: Array<T>) {
       dispatch({ type: 'selection', selectedItems });
     },
     setPropertyFiltering(query: PropertyFilterQuery) {
       dispatch({ type: 'property-filtering', query });
-      collectionRef.current && collectionRef.current.scrollToTop();
+      collectionRef.current?.scrollToTop();
     },
     setExpandedItems(expandedItems: ReadonlyArray<T>) {
       dispatch({ type: 'expansion', expandedItems });

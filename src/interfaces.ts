@@ -44,7 +44,7 @@ export interface UseCollectionOptions<T> {
     freeTextFiltering?: PropertyFilterFreeTextFiltering;
   };
   sorting?: { defaultState?: SortingState<T> };
-  pagination?: { defaultPage?: number; pageSize?: number };
+  pagination?: { defaultPage?: number; pageSize?: number; allowPageOutOfRange?: boolean };
   selection?: {
     defaultSelectedItems?: ReadonlyArray<T>;
     keepSelection?: boolean;
