@@ -190,6 +190,8 @@ export interface PropertyFilterOption {
   propertyKey: string;
   value: string;
   label?: string;
+  tags?: ReadonlyArray<string>;
+  filteringTags?: ReadonlyArray<string>;
 }
 export interface PropertyFilterFreeTextFiltering {
   operators?: readonly PropertyFilterOperator[];
