@@ -3,7 +3,7 @@
     "target": "es2015",
     "module": "esnext",
     "declaration": true,
-    "types": [],
+    "types": ["node"],
     "esModuleInterop": true,
     "moduleResolution": "Node",
     "lib": ["es2020"],
