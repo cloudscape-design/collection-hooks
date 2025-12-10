@@ -74,5 +74,18 @@
     "*.{js,jsx,ts,tsx}": [
       "eslint --fix"
     ]
+  },
+  "overrides": {
+    "@vitest/coverage-istanbul": {
+      "glob": "^10.5.0"
+    },
+    "rimraf": {
+      "glob": "^11.1.0"
+    },
+    "flat-cache": {
+      "rimraf": {
+        "glob": "^7.2.3"
+      }
+    }
   }
 }
