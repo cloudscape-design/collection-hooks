@@ -74,5 +74,8 @@
     "*.{js,jsx,ts,tsx}": [
       "eslint --fix"
     ]
+  },
+  "overrides": {
+    "glob": ">=10.5.0"
   }
 }
