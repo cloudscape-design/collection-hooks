@@ -16,7 +16,7 @@
     "test": "npm run test-08:00 && npm run test+08:00 && npm run test-local",
     "clean": "rimraf ./lib",
     "prebuild": "npm run clean",
-    "build": "tsc -p ./tsconfig.json && tsc -p ./tsconfig.cjs.json && node ./scripts/generate-deep-package.js",
+    "build": "tsc -p ./tsconfig.json && tsc -p ./tsconfig.cjs.json && node ./scripts/generate-deep-package.js && node ./scripts/generate-root-dts-shims.js",
     "postbuild": "cp package.json README.md LICENSE NOTICE lib",
     "prepare": "husky"
   },
@@ -32,11 +32,18 @@
     "./operations": {
       "require": "./cjs/operations.js",
       "default": "./mjs/operations.js"
+    },
+    "./internal-do-not-use": {
+      "require": "./cjs/internal-do-not-use.js",
+      "default": "./mjs/internal-do-not-use.js"
     }
   },
   "files": [
     "cjs",
     "mjs",
+    "index.d.ts",
+    "operations.d.ts",
+    "internal-do-not-use.d.ts",
     "package.json",
     "README.md",
     "LICENSE",

@@ -15,6 +15,9 @@ export function useCollectionState<T>(
     currentPageIndex: options.pagination?.defaultPage ?? 1,
     filteringText: options.filtering?.defaultFilteringText ?? '',
     propertyFilteringQuery: options.propertyFiltering?.defaultQuery ?? { tokens: [], operation: 'and' },
+    groupSelection: options.selection?.defaultSelectedItems
+      ? { inverted: false, toggledItems: options.selection.defaultSelectedItems }
+      : { inverted: false, toggledItems: [] },
   });
 
   const actions = useMemo(() => createActions({ dispatch, collectionRef }), [dispatch, collectionRef]);
