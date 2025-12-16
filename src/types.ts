@@ -7,7 +7,7 @@
  */
 declare global {
   const process: { env: { NODE_ENV?: string } };
-  const console: { warn: (...args: Array<any>) => void };
+  const console: { log: (...args: Array<any>) => void; warn: (...args: Array<any>) => void };
 }
 
 // dummy export to make typescript treat this file as ES module

@@ -32,6 +32,10 @@
     "./operations": {
       "require": "./cjs/operations.js",
       "default": "./mjs/operations.js"
+    },
+    "./internal-do-not-use": {
+      "require": "./cjs/internal-do-not-use.js",
+      "default": "./mjs/internal-do-not-use.js"
     }
   },
   "files": [
