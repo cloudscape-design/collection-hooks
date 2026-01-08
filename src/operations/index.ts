@@ -5,73 +5,54 @@ import { createFilterPredicate } from './filter.js';
 import { createPropertyFilterPredicate } from './property-filter.js';
 import { createComparator } from './sort.js';
 import { createPageProps } from './pagination.js';
-import { ItemsTree } from './items-tree.js';
 import { composeFilters } from './compose-filters.js';
+import { getTrackableValue } from './trackby-utils.js';
+import { computeFlatItems, computeTreeItems } from './items-tree.js';
 
 export function processItems<T>(
-  items: ReadonlyArray<T>,
+  allItems: ReadonlyArray<T>,
   { filteringText, sortingState, currentPageIndex, propertyFilteringQuery }: Partial<CollectionState<T>>,
   { filtering, sorting, pagination, propertyFiltering, expandableRows }: UseCollectionOptions<T>
 ): {
-  items: ReadonlyArray<T>;
-  allPageItems: ReadonlyArray<T>;
+  items: readonly T[];
+  allPageItems: readonly T[];
   pagesCount: number | undefined;
   actualPageIndex: number | undefined;
   filteredItemsCount: number | undefined;
-  itemsTree: ItemsTree<T>;
+  getChildren: (item: T) => T[];
 } {
-  const itemsTree = new ItemsTree(items, expandableRows);
-
   const filterPredicate = composeFilters(
     createPropertyFilterPredicate(propertyFiltering, propertyFilteringQuery),
     createFilterPredicate(filtering, filteringText)
   );
-  if (filterPredicate) {
-    itemsTree.filter(filterPredicate);
-  }
+  const sortingComparator = createComparator(sorting, sortingState);
+  const { items, size, getChildren } = expandableRows
+    ? computeTreeItems(allItems, expandableRows, filterPredicate, sortingComparator)
+    : computeFlatItems(allItems, filterPredicate, sortingComparator);
 
-  const comparator = createComparator(sorting, sortingState);
-  if (comparator) {
-    itemsTree.sort(comparator);
-  }
+  const filteredItemsCount = filterPredicate ? size : undefined;
 
-  const allPageItems = itemsTree.getItems();
-  const filteredItemsCount = filterPredicate ? itemsTree.getSize() : undefined;
-
-  const pageProps = createPageProps(pagination, currentPageIndex, allPageItems);
+  const pageProps = createPageProps(pagination, currentPageIndex, items);
   if (pageProps) {
     return {
-      items: allPageItems.slice(
-        (pageProps.pageIndex - 1) * pageProps.pageSize,
-        pageProps.pageIndex * pageProps.pageSize
-      ),
-      allPageItems: allPageItems,
+      items: items.slice((pageProps.pageIndex - 1) * pageProps.pageSize, pageProps.pageIndex * pageProps.pageSize),
+      allPageItems: items,
       filteredItemsCount,
       pagesCount: pageProps?.pagesCount,
       actualPageIndex: pageProps?.pageIndex,
-      itemsTree,
+      getChildren,
     };
   }
 
   return {
-    items: allPageItems,
-    allPageItems: allPageItems,
+    items: items,
+    allPageItems: items,
     filteredItemsCount,
     pagesCount: undefined,
     actualPageIndex: undefined,
-    itemsTree,
+    getChildren,
   };
 }
-
-export const getTrackableValue = <T>(trackBy: TrackBy<T> | undefined, item: T): string | T => {
-  if (!trackBy) {
-    return item;
-  }
-  if (typeof trackBy === 'function') {
-    return trackBy(item);
-  }
-  return (item as any)[trackBy];
-};
 
 export const processSelectedItems = <T>(
   items: ReadonlyArray<T>,

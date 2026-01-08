@@ -3,7 +3,7 @@
 import * as React from 'react';
 import { render as testRender } from '@testing-library/react';
 import { UseCollectionResult, CollectionRef } from '../index.js';
-import { getTrackableValue } from '../operations/index.js';
+import { getTrackableValue } from '../operations/trackby-utils.js';
 
 export type Item = { id: string; date?: Date };
 
@@ -20,16 +20,6 @@ export function render(jsx: React.ReactElement) {
       queries
         .queryAllByTestId('item')
         .filter(element => element.dataset['selected'] === 'true')
-        .map(getItemTextContent),
-    getExpandedItems: () =>
-      queries
-        .queryAllByTestId('item')
-        .filter(element => element.dataset['expanded'] === 'true')
-        .map(getItemTextContent),
-    getExpandableItems: () =>
-      queries
-        .queryAllByTestId('item')
-        .filter(element => element.dataset['expandable'] === 'true')
         .map(getItemTextContent),
     getSelectedLength: () => queries.getByTestId('selected-items').textContent,
     getMatchesCount: () => queries.getByTestId('matches-count').textContent,
@@ -51,8 +41,6 @@ export function render(jsx: React.ReactElement) {
       queries.queryAllByTestId('item')[index].querySelector('[data-testid="single-select"]'),
     findMultiSelect: (index: number) =>
       queries.queryAllByTestId('item')[index].querySelector('[data-testid="multi-select"]'),
-    findExpandToggle: (index: number) =>
-      queries.queryAllByTestId('item')[index].querySelector('[data-testid="expand-toggle"]'),
     rerender: queries.rerender,
   };
 }
@@ -71,7 +59,6 @@ const Table = React.forwardRef<CollectionRef, TableProps>(
       sortingDescending,
       onSortingChange,
       selectedItems,
-      expandableRows,
       onSelectionChange,
       trackBy,
       firstIndex,
@@ -88,12 +75,8 @@ const Table = React.forwardRef<CollectionRef, TableProps>(
     React.useImperativeHandle(ref, () => ({
       scrollToTop,
     }));
-    const { isItemExpandable, expandedItems = [], getItemChildren, onExpandableItemToggle } = expandableRows ?? {};
 
     function TableItem({ item, itemIndex, parentIndex }: { item: Item; itemIndex: number; parentIndex?: string }) {
-      const isExpandable = isItemExpandable?.(item) ?? false;
-      const isExpanded = expandedItems.some(it => getTrackableValue(trackBy, it) === getTrackableValue(trackBy, item));
-      const nestedItems = getItemChildren?.(item) ?? [];
       const dataIndex = firstIndex ? (!parentIndex ? `${firstIndex + itemIndex}` : `${parentIndex}-${itemIndex}`) : '';
       return (
         <div
@@ -109,9 +92,6 @@ const Table = React.forwardRef<CollectionRef, TableProps>(
               ? 'true'
               : 'false'
           }
-          data-expandable={isExpandable}
-          data-expanded={isExpanded}
-          data-children={nestedItems}
         >
           <button
             data-testid="single-select"
@@ -125,17 +105,7 @@ const Table = React.forwardRef<CollectionRef, TableProps>(
               )
             }
           ></button>
-          {isExpandable && (
-            <button
-              data-testid="expand-toggle"
-              onClick={() =>
-                onExpandableItemToggle?.(new CustomEvent('cloudscape', { detail: { item, expanded: !isExpanded } }))
-              }
-            ></button>
-          )}
           <div data-testid="content">{item.id}</div>
-          {isExpanded &&
-            nestedItems.map((item, i) => <TableItem key={item.id} item={item} itemIndex={i} parentIndex={dataIndex} />)}
         </div>
       );
     }

@@ -1,10 +1,10 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
-import { test, expect } from 'vitest';
-import { fireEvent, screen } from '@testing-library/react';
-import React from 'react';
-import { useCollection } from '..';
-import { Demo, Item, render } from './stubs';
+
+import { test, expect, describe } from 'vitest';
+import { UseCollectionOptions } from '..';
+import { Item } from './stubs';
+import { renderUseCollection } from './utils';
 
 const getId = (item: Item) => item.id;
 const getParentId = () => null;
@@ -48,308 +48,206 @@ const deepTreeItems = [
 const getDeepTreeParentId = (item: Item) =>
   deepTreeItems.find(maybeParent => item.id.slice(0, -2) === maybeParent.id)?.id ?? null;
 
-test('initializes expanded rows with expandableRows.defaultExpandedItems', () => {
-  const allItems = generateItems(50);
-  function App() {
-    const result = useCollection(allItems, {
-      expandableRows: {
-        getId,
-        getParentId,
-        defaultExpandedItems: [allItems[0], allItems[2]],
-      },
-    });
-    return <Demo {...result} />;
-  }
-  const { getExpandedItems } = render(<App />);
-  const expandedItems = getExpandedItems();
+function createEvent<D>(detail: D) {
+  return new CustomEvent('cloudscape', { detail });
+}
 
-  expect(expandedItems).toHaveLength(2);
-  expect(expandedItems[0]).toBe('1');
-  expect(expandedItems[1]).toBe('3');
+test('initializes expanded rows with expandableRows.defaultExpandedItems', () => {
+  const items = generateItems(50);
+  const { collection } = renderUseCollection(items, {
+    expandableRows: { getId, getParentId, defaultExpandedItems: [items[0], items[2]] },
+  });
+  expect(collection.collectionProps.expandableRows!.expandedItems).toHaveLength(2);
+  expect(collection.collectionProps.expandableRows!.expandedItems[0].id).toBe('1');
+  expect(collection.collectionProps.expandableRows!.expandedItems[1].id).toBe('3');
+});
+
+test('expandableRows getters can be called on any item', () => {
+  const items = deepTreeItems;
+  const { collection } = renderUseCollection(items, {
+    expandableRows: { getId, getParentId: getDeepTreeParentId, defaultExpandedItems: [items[0]] },
+  });
+  const expandableRows = collection.collectionProps.expandableRows!;
+
+  expect(expandableRows.isItemExpandable({ id: 'x' })).toEqual(false);
+  expect(expandableRows.getItemChildren({ id: 'x' })).toEqual([]);
+
+  expect(expandableRows.isItemExpandable(items[0])).toEqual(true);
+  expect(expandableRows.getItemChildren(items[0])).toEqual([{ id: 'a.1' }]);
+
+  expect(expandableRows.isItemExpandable(items[1])).toEqual(true);
+  expect(expandableRows.getItemChildren(items[1])).toEqual([{ id: 'a.1.1' }, { id: 'a.1.2' }]);
+
+  expect(expandableRows.isItemExpandable(items[2])).toEqual(false);
+  expect(expandableRows.getItemChildren(items[2])).toEqual([]);
 });
 
 test('displays root items and expanded items children only', () => {
-  function App() {
-    const result = useCollection(treeItems, {
-      expandableRows: {
-        getId,
-        getParentId: getTreeParentId,
-        defaultExpandedItems: [treeItems[14]],
-      },
-    });
-    return <Demo {...result} />;
-  }
-  const { getVisibleItems } = render(<App />);
-
-  expect(getVisibleItems()).toEqual(['1', '5', '10', '15', '16', '17', '18', '19', '20', '25']);
+  const items = treeItems;
+  const { visibleItems } = renderUseCollection(items, {
+    expandableRows: { getId, getParentId: getTreeParentId, defaultExpandedItems: [items[14]] },
+  });
+  expect(visibleItems.map(i => i.id)).toEqual(['1', '5', '10', '15', '16', '17', '18', '19', '20', '25']);
 });
 
 test('displays root items and expanded items children only in a deep tree', () => {
-  function App() {
-    const result = useCollection(deepTreeItems, {
-      expandableRows: {
-        getId,
-        getParentId: getDeepTreeParentId,
-        defaultExpandedItems: [deepTreeItems[0], deepTreeItems[1], deepTreeItems[4]],
-      },
-    });
-    return <Demo {...result} />;
-  }
-
-  const { getVisibleItems } = render(<App />);
-  expect(getVisibleItems()).toEqual(['a', 'a.1', 'a.1.1', 'a.1.2', 'b', 'b.1', 'c']);
+  const items = deepTreeItems;
+  const { visibleItems } = renderUseCollection(items, {
+    expandableRows: { getId, getParentId: getDeepTreeParentId, defaultExpandedItems: [items[0], items[1], items[4]] },
+  });
+  expect(visibleItems.map(i => i.id)).toEqual(['a', 'a.1', 'a.1.1', 'a.1.2', 'b', 'b.1', 'c']);
 });
 
 test('updates expanded items when collectionProps.onExpandableItemToggle is called', () => {
-  function App() {
-    const result = useCollection(treeItems, {
-      expandableRows: { getId, getParentId: getTreeParentId },
-    });
-    return (
-      <>
-        <Demo {...result} />
-        <button
-          data-testid="expand-0"
-          onClick={() =>
-            result.collectionProps.expandableRows?.onExpandableItemToggle({
-              detail: { item: treeItems[0], expanded: true },
-            })
-          }
-        />
-      </>
-    );
-  }
-  const { getExpandedItems, findExpandToggle } = render(<App />);
+  const items = treeItems;
+  const result = renderUseCollection(items, {
+    expandableRows: { getId, getParentId: getTreeParentId, defaultExpandedItems: [items[9]] },
+  });
+  const toggle = result.collection.collectionProps.expandableRows!.onExpandableItemToggle!;
 
-  expect(getExpandedItems()).toEqual([]);
+  expect(result.collection.collectionProps.expandableRows!.expandedItems).toEqual([{ id: '10' }]);
 
-  fireEvent.click(findExpandToggle(1)!);
-  expect(getExpandedItems()).toEqual(['5']);
+  toggle(createEvent({ item: result.visibleItems[1], expanded: true }));
+  expect(result.collection.collectionProps.expandableRows!.expandedItems).toEqual([{ id: '10' }, { id: '5' }]);
 
-  fireEvent.click(findExpandToggle(1)!);
-  expect(getExpandedItems()).toEqual([]);
+  toggle(createEvent({ item: result.visibleItems[1], expanded: false }));
+  expect(result.collection.collectionProps.expandableRows!.expandedItems).toEqual([{ id: '10' }]);
 
   // Ensuring expanded items has no duplicates.
-  fireEvent.click(screen.getByTestId('expand-0'));
-  fireEvent.click(screen.getByTestId('expand-0'));
-  expect(getExpandedItems()).toEqual(['1']);
+  toggle(createEvent({ item: items[9], expanded: true }));
+  expect(result.collection.collectionProps.expandableRows!.expandedItems).toEqual([{ id: '10' }]);
 });
 
 test('updates expanded items with actions', () => {
-  const allItems = [{ id: 'a' }, { id: 'b' }, { id: 'c' }];
-  function App() {
-    const result = useCollection(allItems, {
-      expandableRows: { getId, getParentId },
-    });
-    const { setExpandedItems } = result.actions;
-    return (
-      <div>
-        <Demo {...result} />
-        <button data-testid="expand-all" onClick={() => setExpandedItems(allItems)}></button>
-        <button data-testid="collapse-all" onClick={() => setExpandedItems([])}></button>
-      </div>
-    );
-  }
+  const items = [{ id: 'a' }, { id: 'b' }, { id: 'c' }];
+  const result = renderUseCollection(items, { expandableRows: { getId, getParentId } });
 
-  const { getExpandedItems } = render(<App />);
-  expect(getExpandedItems()).toEqual([]);
+  expect(result.collection.collectionProps.expandableRows!.expandedItems).toEqual([]);
 
-  fireEvent.click(screen.getByTestId('expand-all'));
-  expect(getExpandedItems()).toEqual(['a', 'b', 'c']);
+  result.collection.actions.setExpandedItems(items);
+  expect(result.collection.collectionProps.expandableRows!.expandedItems).toEqual(items);
 
-  fireEvent.click(screen.getByTestId('collapse-all'));
-  expect(getExpandedItems()).toEqual([]);
+  result.collection.actions.setExpandedItems([]);
+  expect(result.collection.collectionProps.expandableRows!.expandedItems).toEqual([]);
 });
 
 test('expanded items state is updated to remove no-longer present items', () => {
-  const allItems = [{ id: 'a' }, { id: 'b' }, { id: 'c' }, { id: 'd' }, { id: 'e' }, { id: 'f' }];
-  function App({ items }: { items: Item[] }) {
-    const result = useCollection(items, {
-      expandableRows: {
-        getId,
-        getParentId,
-        defaultExpandedItems: allItems,
-      },
-    });
-    return <Demo {...result} />;
-  }
+  const items = [{ id: 'a' }, { id: 'b' }, { id: 'c' }, { id: 'd' }, { id: 'e' }, { id: 'f' }];
+  const altItems = [items[0], items[2], items[3], items[4], items[5]];
+  const expandableRows = { getId, getParentId, defaultExpandedItems: items };
+  const result = renderUseCollection(items, { expandableRows });
 
-  const { rerender, getExpandedItems } = render(<App items={allItems} />);
-  expect(getExpandedItems()).toEqual(['a', 'b', 'c', 'd', 'e', 'f']);
+  expect(result.collection.collectionProps.expandableRows!.expandedItems).toBe(items);
 
-  rerender(<App items={[allItems[0], allItems[2], allItems[3], allItems[4], allItems[5]]} />);
-  expect(getExpandedItems()).toEqual(['a', 'c', 'd', 'e', 'f']);
+  result.rerender(altItems, { expandableRows });
+  expect(result.collection.collectionProps.expandableRows!.expandedItems).toEqual(altItems);
 
-  rerender(<App items={allItems} />);
-  expect(getExpandedItems()).toEqual(['a', 'c', 'd', 'e', 'f']);
+  result.rerender(items, { expandableRows });
+  expect(result.collection.collectionProps.expandableRows!.expandedItems).toEqual(altItems);
 });
 
 test('expanded rows with text filtering', () => {
-  const deepTreeItemsWithValues: (Item & { value?: string })[] = deepTreeItems.map(item => ({ ...item }));
-  deepTreeItemsWithValues.find(item => item.id === 'a.1')!.value = 'match';
-
-  function App() {
-    const result = useCollection(deepTreeItemsWithValues, {
-      expandableRows: {
-        getId,
-        getParentId: getDeepTreeParentId,
-        defaultExpandedItems: deepTreeItemsWithValues,
-      },
-      filtering: {
-        defaultFilteringText: 'match',
-      },
-    });
-    return <Demo {...result} />;
-  }
-  const { getVisibleItems } = render(<App />);
-
-  expect(getVisibleItems()).toEqual(['a', 'a.1']);
+  const items: (Item & { value?: string })[] = deepTreeItems.map(item => ({ ...item }));
+  items.find(item => item.id === 'a.1')!.value = 'match';
+  const { visibleItems } = renderUseCollection(items, {
+    expandableRows: { getId, getParentId: getDeepTreeParentId, defaultExpandedItems: items },
+    filtering: { defaultFilteringText: 'match' },
+  });
+  expect(visibleItems.map(i => i.id)).toEqual(['a', 'a.1']);
 });
 
 test('expanded rows with property filtering', () => {
-  const deepTreeItemsWithValues: (Item & { value?: string })[] = deepTreeItems.map(item => ({ ...item }));
-  deepTreeItemsWithValues.find(item => item.id === 'a.1')!.value = 'match';
-
-  function App() {
-    const result = useCollection(deepTreeItemsWithValues, {
-      expandableRows: {
-        getId,
-        getParentId: getDeepTreeParentId,
-        defaultExpandedItems: deepTreeItemsWithValues,
-      },
-      propertyFiltering: {
-        filteringProperties: [{ key: 'value', operators: ['='], propertyLabel: '', groupValuesLabel: '' }],
-        defaultQuery: { tokens: [{ propertyKey: 'value', operator: '=', value: 'match' }], operation: 'and' },
-      },
-    });
-    return <Demo {...result} />;
-  }
-  const { getVisibleItems } = render(<App />);
-
-  expect(getVisibleItems()).toEqual(['a', 'a.1']);
+  const items: (Item & { value?: string })[] = deepTreeItems.map(item => ({ ...item }));
+  items.find(item => item.id === 'a.1')!.value = 'match';
+  const { visibleItems } = renderUseCollection(items, {
+    expandableRows: { getId, getParentId: getDeepTreeParentId, defaultExpandedItems: items },
+    propertyFiltering: {
+      filteringProperties: [{ key: 'value', operators: ['='], propertyLabel: '', groupValuesLabel: '' }],
+      defaultQuery: { tokens: [{ propertyKey: 'value', operator: '=', value: 'match' }], operation: 'and' },
+    },
+  });
+  expect(visibleItems.map(i => i.id)).toEqual(['a', 'a.1']);
 });
 
 test('expanded rows with pagination', () => {
-  function App({ pageSize }: { pageSize: number }) {
-    const result = useCollection(treeItems, {
-      pagination: { pageSize },
-      expandableRows: {
-        getId,
-        getParentId: getTreeParentId,
-        defaultExpandedItems: treeItems,
-      },
-    });
-    return <Demo {...result} />;
-  }
-  const { rerender, getVisibleItems } = render(<App pageSize={10} />);
+  const items = treeItems;
+  const expandableRows = { getId, getParentId: getTreeParentId, defaultExpandedItems: items };
 
-  expect(getVisibleItems()).toEqual(treeItems.map(item => item.id));
+  const result = renderUseCollection(items, { pagination: { pageSize: 10 }, expandableRows });
+  expect(result.visibleItems).toEqual(items);
 
-  rerender(<App pageSize={3} />);
-  expect(getVisibleItems()).toEqual(treeItems.map(item => item.id).slice(0, 14));
+  result.rerender(items, { pagination: { pageSize: 3 }, expandableRows });
+  expect(result.visibleItems).toEqual(items.slice(0, 14));
 });
 
 test('expanded rows with sorting', () => {
-  const shuffledDeepTreeItems: Item[] = deepTreeItems
+  const items: Item[] = deepTreeItems
     .map(item => ({ ...item, value: Math.random() }))
     .sort((a, b) => a.value - b.value);
-  function App() {
-    const result = useCollection(shuffledDeepTreeItems, {
-      sorting: {
-        defaultState: {
-          sortingColumn: {
-            sortingField: 'id',
-          },
-        },
-      },
-      expandableRows: {
-        getId,
-        getParentId: getDeepTreeParentId,
-        defaultExpandedItems: shuffledDeepTreeItems,
-      },
-    });
-    return <Demo {...result} />;
-  }
-
-  const { getVisibleItems } = render(<App />);
-  expect(getVisibleItems()).toEqual(deepTreeItems.map(item => item.id));
+  const { visibleItems } = renderUseCollection(items, {
+    sorting: { defaultState: { sortingColumn: { sortingField: 'id' } } },
+    expandableRows: { getId, getParentId: getDeepTreeParentId, defaultExpandedItems: items },
+  });
+  expect(visibleItems.map(i => i.id)).toEqual(deepTreeItems.map(i => i.id));
 });
 
 test.each([false, true])('expanded rows with selection and keepSelection=%s', keepSelection => {
   const items = [...deepTreeItems];
+  const defaultExpanded = [items[0], items[1], items[4], items[5]];
+  const selected1 = [items[0], items[1], items[2], items[3], items[5]];
+  const selected2 = [items[0], items[1], items[2], items[3], items[5], items[7]];
+  const selected3 = [items[0], items[2], items[3], items[5], items[7]];
+  const result = renderUseCollection(items, {
+    expandableRows: { getId, getParentId: getDeepTreeParentId, defaultExpandedItems: defaultExpanded },
+    selection: { keepSelection, defaultSelectedItems: selected1 },
+  });
+  const getSelectedItems = () => result.collection.collectionProps.selectedItems!;
+  const setSelectedItems = (selectedItems: { id: string }[]) =>
+    result.collection.collectionProps.onSelectionChange!(new CustomEvent('cloudscape', { detail: { selectedItems } }));
+  const toggleExpandedItem = (item: { id: string }, expanded: boolean) =>
+    result.collection.collectionProps.expandableRows!.onExpandableItemToggle(
+      new CustomEvent('cloudscape', { detail: { item, expanded } })
+    );
 
-  function App({ items }: { items: Item[] }) {
-    const result = useCollection(items, {
-      expandableRows: {
-        getId,
-        getParentId: getDeepTreeParentId,
-        defaultExpandedItems: [deepTreeItems[0], deepTreeItems[1], deepTreeItems[4], deepTreeItems[5]],
-      },
-      selection: {
-        keepSelection,
-        defaultSelectedItems: [
-          deepTreeItems[0],
-          deepTreeItems[1],
-          deepTreeItems[2],
-          deepTreeItems[3],
-          deepTreeItems[5],
-        ],
-      },
-    });
-    return <Demo {...result} />;
-  }
+  expect(result.collection.collectionProps.selectedItems).toEqual(selected1);
 
-  const { getSelectedItems, findMultiSelect, findExpandToggle } = render(<App items={items} />);
-  expect(getSelectedItems()).toEqual(['a', 'a.1', 'a.1.1', 'a.1.2', 'b.1']);
+  setSelectedItems(selected2);
+  expect(result.collection.collectionProps.selectedItems).toEqual(selected2);
 
-  fireEvent.click(findMultiSelect(7)!);
-  expect(getSelectedItems()).toEqual(['a', 'a.1', 'a.1.1', 'a.1.2', 'b.1', 'b.1.2']);
+  setSelectedItems(selected3);
+  expect(result.collection.collectionProps.selectedItems).toEqual(selected3);
 
-  fireEvent.click(findMultiSelect(1)!);
-  expect(getSelectedItems()).toEqual(['a', 'a.1.1', 'a.1.2', 'b.1', 'b.1.2']);
+  toggleExpandedItem(items[1], false);
+  expect(getSelectedItems()).toEqual(keepSelection ? selected3 : selected3.filter(i => !i.id.includes('a.1')));
 
-  fireEvent.click(findExpandToggle(1)!);
-  expect(getSelectedItems()).toEqual(['a', 'b.1', 'b.1.2']);
-
-  fireEvent.click(findExpandToggle(1)!);
-  expect(getSelectedItems()).toEqual(keepSelection ? ['a', 'a.1.1', 'a.1.2', 'b.1', 'b.1.2'] : ['a', 'b.1', 'b.1.2']);
+  toggleExpandedItem(items[1], true);
+  expect(getSelectedItems()).toEqual(keepSelection ? selected3 : selected3.filter(i => !i.id.includes('a.1')));
 });
 
-test('trackBy is added by expandableRows', () => {
-  function App() {
-    const result = useCollection(treeItems, { expandableRows: { getId, getParentId } });
-    return typeof result.collectionProps.trackBy === 'function' ? (
-      <div>{result.collectionProps.trackBy(treeItems[1])}</div>
-    ) : null;
+describe('trackBy', () => {
+  function getTrackBy<T>(allItems: readonly T[], options: UseCollectionOptions<T>) {
+    const { collection } = renderUseCollection(allItems, options);
+    if (typeof collection.collectionProps.trackBy !== 'function') {
+      throw new Error('trackBy is missing or not a function');
+    }
+    return collection.collectionProps.trackBy!;
   }
-  render(<App />);
 
-  expect(document.body.textContent).toEqual('2');
-});
+  test('trackBy is added by expandableRows', () => {
+    const trackBy = getTrackBy(treeItems, { expandableRows: { getId, getParentId } });
+    expect(trackBy(treeItems[1])).toEqual('2');
+  });
 
-test('selection.trackBy overrides expandableRows.getId', () => {
-  function App() {
-    const result = useCollection(treeItems, {
+  test('selection.trackBy overrides expandableRows.getId', () => {
+    const trackBy = getTrackBy(treeItems, {
       expandableRows: { getId, getParentId },
       selection: { trackBy: item => item.id + item.id },
     });
-    return typeof result.collectionProps.trackBy === 'function' ? (
-      <div>{result.collectionProps.trackBy(treeItems[1])}</div>
-    ) : null;
-  }
-  render(<App />);
+    expect(trackBy(treeItems[1])).toEqual('22');
+  });
 
-  expect(document.body.textContent).toEqual('22');
-});
-
-test('selection without trackBy does not override expandableRows.trackBy', () => {
-  function App() {
-    const result = useCollection(treeItems, { expandableRows: { getId, getParentId }, selection: {} });
-    return typeof result.collectionProps.trackBy === 'function' ? (
-      <div>{result.collectionProps.trackBy(treeItems[1])}</div>
-    ) : null;
-  }
-  render(<App />);
-
-  expect(document.body.textContent).toEqual('2');
+  test('selection without trackBy does not override expandableRows.trackBy', () => {
+    const trackBy = getTrackBy(deepTreeItems, { expandableRows: { getId, getParentId }, selection: {} });
+    expect(trackBy(treeItems[1])).toEqual('2');
+  });
 });

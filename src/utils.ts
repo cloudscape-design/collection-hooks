@@ -12,7 +12,6 @@ import {
   CollectionActions,
 } from './interfaces';
 import { fixupFalsyValues } from './operations/property-filter.js';
-import { ItemsTree } from './operations/items-tree';
 
 interface SelectionAction<T> {
   type: 'selection';
@@ -124,13 +123,13 @@ export function createSyncProps<T>(
     actualPageIndex,
     allItems,
     allPageItems,
-    itemsTree,
+    getChildren,
   }: {
     pagesCount?: number;
     actualPageIndex?: number;
-    allItems: ReadonlyArray<T>;
-    allPageItems: ReadonlyArray<T>;
-    itemsTree: ItemsTree<T>;
+    allItems: readonly T[];
+    allPageItems: readonly T[];
+    getChildren: (item: T) => T[];
   }
 ): Pick<UseCollectionResult<T>, 'collectionProps' | 'filterProps' | 'paginationProps' | 'propertyFilterProps'> {
   let empty: ReactNode | null = options.filtering
@@ -178,10 +177,10 @@ export function createSyncProps<T>(
         ? {
             expandableRows: {
               getItemChildren(item: T) {
-                return itemsTree.getChildren(item);
+                return getChildren(item);
               },
               isItemExpandable(item: T) {
-                return itemsTree.getChildren(item).length > 0;
+                return getChildren(item).length > 0;
               },
               expandedItems,
               onExpandableItemToggle: ({ detail: { item, expanded } }) => {

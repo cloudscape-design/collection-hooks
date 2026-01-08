@@ -9,7 +9,7 @@ import { useCollectionState } from './use-collection-state.js';
 export function useCollection<T>(allItems: ReadonlyArray<T>, options: UseCollectionOptions<T>): UseCollectionResult<T> {
   const collectionRef = useRef<CollectionRef>(null);
   const [state, actions] = useCollectionState(options, collectionRef);
-  const { items, allPageItems, pagesCount, filteredItemsCount, actualPageIndex, itemsTree } = processItems(
+  const { items, allPageItems, pagesCount, filteredItemsCount, actualPageIndex, getChildren } = processItems(
     allItems,
     state,
     options
@@ -30,7 +30,7 @@ export function useCollection<T>(allItems: ReadonlyArray<T>, options: UseCollect
       for (const item of items) {
         flatItems.push(item);
         if (expandedItemsSet.has(getId(item))) {
-          traverse(itemsTree.getChildren(item));
+          traverse(getChildren(item));
         }
       }
     };
@@ -66,7 +66,7 @@ export function useCollection<T>(allItems: ReadonlyArray<T>, options: UseCollect
       pagesCount,
       allItems,
       allPageItems,
-      itemsTree,
+      getChildren,
     }),
   };
 }
