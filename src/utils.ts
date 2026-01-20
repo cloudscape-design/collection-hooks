@@ -216,7 +216,7 @@ export function createSyncProps<T>(
               // The table component uses group selection when expandableRows.groupSelection is defined. Therefore,
               // we only pass this property when selection and dataGrouping are configured in use-collection options.
               groupSelection: options.selection && options.expandableRows.dataGrouping ? groupSelection : undefined,
-              onGroupSelectionChange: ({ detail }) => actions.setGroupSelection(detail),
+              onGroupSelectionChange: ({ detail }) => actions.setGroupSelection(detail.groupSelection),
               getItemsCount,
               getSelectedItemsCount,
             },

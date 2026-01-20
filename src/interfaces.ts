@@ -31,7 +31,9 @@ export interface GroupSelectionState<T> {
   toggledItems: readonly T[];
 }
 
-export type GroupSelectionChangeDetail<T> = GroupSelectionState<T>;
+export interface GroupSelectionChangeDetail<T> {
+  groupSelection: GroupSelectionState<T>;
+}
 
 export type TrackBy<T> = string | ((item: T) => string);
 

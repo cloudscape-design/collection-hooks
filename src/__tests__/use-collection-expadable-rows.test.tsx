@@ -372,7 +372,7 @@ describe('data grouping', () => {
     });
     const changeSelection = current.result.collectionProps.expandableRows!.onGroupSelectionChange;
 
-    changeSelection({ detail: { inverted: false, toggledItems: [{ id: 'a' }] } });
+    changeSelection({ detail: { groupSelection: { inverted: false, toggledItems: [{ id: 'a' }] } } });
     expect(current.result.collectionProps.expandableRows!.groupSelection).toEqual({
       inverted: false,
       toggledItems: [{ id: 'a' }],
