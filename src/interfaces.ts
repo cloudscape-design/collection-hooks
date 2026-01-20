@@ -114,16 +114,17 @@ interface UseCollectionResultBase<T> {
       // The groupSelection property is only added in case selection is configured, and expandableRows.dataGrouping={}.
       groupSelection?: GroupSelectionState<T>;
       onGroupSelectionChange(event: CustomEventLike<GroupSelectionChangeDetail<T>>): void;
-      // The counts reflect the number of nested selected/selectable nodes (deeply), including the given one.
+      // The counts reflect the number of nested selectable/selected nodes (deeply), including the given one.
       // When expandableRows.dataGrouping={}, only leaf nodes are considered. They return 1 when called on leaf nodes.
       getItemsCount?: (item: T) => number;
       getSelectedItemsCount?: (item: T) => number;
     };
     trackBy?: string | ((item: T) => string);
     ref: React.RefObject<CollectionRef>;
-    // The count reflects the number of selectable nodes, which means all nodes when expandableRows.dataGrouping=undefined,
-    // and all leaf nodes when expandableRows.dataGrouping={}.
+    // The counts reflect the number of selectable/selected nodes (deeply).
+    // When expandableRows.dataGrouping={}, only leaf nodes are considered.
     totalItemsCount: number;
+    totalSelectedItemsCount: number;
     firstIndex: number;
   };
   filterProps: {

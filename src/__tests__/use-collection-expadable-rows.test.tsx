@@ -234,6 +234,20 @@ describe('data grouping', () => {
     expect(grouped.result.collectionProps.totalItemsCount).toBe(6);
   });
 
+  test('computes total selected counts correctly', () => {
+    const expandable = renderUseCollection(items, {
+      expandableRows: { getId, getParentId },
+      selection: { defaultSelectedItems: [{ id: 'a' }, { id: 'a.1.1' }], keepSelection: true },
+    });
+    expect(expandable.result.collectionProps.totalSelectedItemsCount).toBe(2);
+
+    const grouped = renderUseCollection(items, {
+      expandableRows: { getId, getParentId, dataGrouping: true },
+      selection: { defaultSelectedItems: [{ id: 'a' }, { id: 'a.1.1' }], keepSelection: true },
+    });
+    expect(grouped.result.collectionProps.totalSelectedItemsCount).toBe(1);
+  });
+
   test('does not return per-item counts when dataGrouping=undefined', () => {
     const { result } = renderUseCollection(items, { expandableRows: { getId, getParentId }, selection: {} });
     expect(result.collectionProps.expandableRows!.getItemsCount).toBe(undefined);
