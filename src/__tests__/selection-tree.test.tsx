@@ -38,20 +38,20 @@ test.each<GroupSelectionState<Item>>([
   { inverted: true, toggledItems: ['b', 'b.1.1', 'c.2'] },
 ])('item selection getters produce expected result, state=%s', state => {
   const tree = createSelectionTree(['a', 'a.1', 'b', 'b.1', 'b.1.1', 'b.1.2', 'c', 'c.1', 'c.2'], state);
-  const getItemState = (item: Item) => ({
-    s: tree.isItemSelected(item),
-    i: tree.isItemIndeterminate(item),
-    c: tree.getSelectedItemsCount(item),
+  const get = (item: Item) => ({
+    selected: tree.isItemSelected(item),
+    indeterminate: tree.isItemIndeterminate(item),
+    count: tree.getSelectedItemsCount(item),
   });
-  expect(getItemState('a')).toEqual({ s: true, i: false, c: 1 });
-  expect(getItemState('a.1')).toEqual({ s: true, i: false, c: 1 });
-  expect(getItemState('b')).toEqual({ s: false, i: true, c: 1 });
-  expect(getItemState('b.1')).toEqual({ s: false, i: true, c: 1 });
-  expect(getItemState('b.1.1')).toEqual({ s: true, i: false, c: 1 });
-  expect(getItemState('b.1.2')).toEqual({ s: false, i: false, c: 0 });
-  expect(getItemState('c')).toEqual({ s: true, i: true, c: 1 });
-  expect(getItemState('c.1')).toEqual({ s: true, i: false, c: 1 });
-  expect(getItemState('c.2')).toEqual({ s: false, i: false, c: 0 });
+  expect(get('a')).toEqual({ selected: true, indeterminate: false, count: 1 });
+  expect(get('a.1')).toEqual({ selected: true, indeterminate: false, count: 1 });
+  expect(get('b')).toEqual({ selected: false, indeterminate: true, count: 1 });
+  expect(get('b.1')).toEqual({ selected: false, indeterminate: true, count: 1 });
+  expect(get('b.1.1')).toEqual({ selected: true, indeterminate: false, count: 1 });
+  expect(get('b.1.2')).toEqual({ selected: false, indeterminate: false, count: 0 });
+  expect(get('c')).toEqual({ selected: true, indeterminate: true, count: 1 });
+  expect(get('c.1')).toEqual({ selected: true, indeterminate: false, count: 1 });
+  expect(get('c.2')).toEqual({ selected: false, indeterminate: false, count: 0 });
 });
 
 test('can call item selection getters on missing items', () => {
@@ -85,10 +85,12 @@ test.each<GroupSelectionState<Item>>([
 });
 
 test.each<[GroupSelectionState<Item>, GroupSelectionState<Item>]>([
+  // Toggling all when empty -> all selected
   [
     { inverted: false, toggledItems: [] },
     { inverted: true, toggledItems: [] },
   ],
+  // Toggling all when partial -> all selected
   [
     { inverted: false, toggledItems: ['b.1.1'] },
     { inverted: true, toggledItems: [] },
@@ -97,6 +99,7 @@ test.each<[GroupSelectionState<Item>, GroupSelectionState<Item>]>([
     { inverted: true, toggledItems: ['b.1.1'] },
     { inverted: true, toggledItems: [] },
   ],
+  // Toggling all when all selected -> nothing selected
   [
     { inverted: true, toggledItems: [] },
     { inverted: false, toggledItems: [] },

@@ -16,7 +16,7 @@
     "test": "npm run test-08:00 && npm run test+08:00 && npm run test-local",
     "clean": "rimraf ./lib",
     "prebuild": "npm run clean",
-    "build": "tsc -p ./tsconfig.json && tsc -p ./tsconfig.cjs.json && node ./scripts/generate-deep-package.js && node ./scripts/generate-root-dts-shims.js",
+    "build": "tsc -p ./tsconfig.json && tsc -p ./tsconfig.cjs.json && node ./scripts/generate-deep-package.js && node ./scripts/generate-root-declarations.js",
     "postbuild": "cp package.json README.md LICENSE NOTICE lib",
     "prepare": "husky"
   },
