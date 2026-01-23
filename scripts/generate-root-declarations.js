@@ -9,9 +9,9 @@ import { join, dirname } from 'path';
 const root = join(dirname(fileURLToPath(import.meta.url)), '..', 'lib');
 
 const shims = [
-  { target: './mjs/index.d.ts', out: './index.d.ts' },
-  { target: './mjs/operations.d.ts', out: './operations.d.ts' },
-  { target: './mjs/internal-do-not-use.d.ts', out: './internal-do-not-use.d.ts' },
+  { target: './cjs/index.d.ts', out: './index.d.ts' },
+  { target: './cjs/operations.d.ts', out: './operations.d.ts' },
+  { target: './cjs/internal-do-not-use.d.ts', out: './internal-do-not-use.d.ts' },
 ];
 
 for (const { out, target } of shims) {
