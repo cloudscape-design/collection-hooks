@@ -3,11 +3,9 @@
 
 /**
  * subset of node.js types, safe to use in browser and bundlers
- * we do not use `lib.dom` types because they are not available in SSR environment
  */
 declare global {
   const process: { env: { NODE_ENV?: string } };
-  const console: { log: (...args: Array<any>) => void; warn: (...args: Array<any>) => void };
 }
 
 // dummy export to make typescript treat this file as ES module

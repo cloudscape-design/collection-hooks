@@ -4,7 +4,7 @@
 import React from 'react';
 import { useCollection, UseCollectionOptions, UseCollectionResult } from '..';
 import { render } from '@testing-library/react';
-import { getTrackableValue } from '../operations/trackby-utils.js';
+import { getTrackableValue } from '@cloudscape-design/component-toolkit/internal';
 import { Item } from './stubs';
 
 export function renderUseCollection<T>(allItems: readonly T[], options: UseCollectionOptions<T>) {
