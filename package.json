@@ -76,6 +76,9 @@
   "lint-staged": {
     "*.{js,jsx,ts,tsx}": [
       "eslint --fix"
+    ],
+    "package-lock.json": [
+      "node ./scripts/prepare-package-lock.js"
     ]
   },
   "overrides": {
