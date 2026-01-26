@@ -6,7 +6,7 @@
     "types": [],
     "esModuleInterop": true,
     "moduleResolution": "Node",
-    "lib": ["es2020"],
+    "lib": ["es2020", "dom"],
     "strict": true,
     "outDir": "lib/mjs",
     "rootDir": "src"

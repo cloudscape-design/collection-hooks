@@ -6,9 +6,8 @@ import { createPropertyFilterPredicate } from './property-filter.js';
 import { createComparator } from './sort.js';
 import { createPageProps } from './pagination.js';
 import { composeFilters } from './compose-filters.js';
-import { getTrackableValue } from './trackby-utils.js';
+import { getTrackableValue, SelectionTree } from '@cloudscape-design/component-toolkit/internal';
 import { computeFlatItems, computeTreeItems } from './items-tree.js';
-import { SelectionTree } from './selection-tree.js';
 
 export function processItems<T>(
   allItems: ReadonlyArray<T>,
