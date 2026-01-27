@@ -6,57 +6,40 @@ import { createPropertyFilterPredicate } from './property-filter.js';
 import { createComparator } from './sort.js';
 import { createPageProps } from './pagination.js';
 import { composeFilters } from './compose-filters.js';
-import { getTrackableValue, SelectionTree } from '@cloudscape-design/component-toolkit/internal';
+import { getTrackableValue } from './trackby-utils.js';
 import { computeFlatItems, computeTreeItems } from './items-tree.js';
 
 export function processItems<T>(
   allItems: ReadonlyArray<T>,
-  state: Partial<CollectionState<T>>,
-  { filtering, sorting, pagination, propertyFiltering, expandableRows, selection }: UseCollectionOptions<T>
+  { filteringText, sortingState, currentPageIndex, propertyFilteringQuery }: Partial<CollectionState<T>>,
+  { filtering, sorting, pagination, propertyFiltering, expandableRows }: UseCollectionOptions<T>
 ): {
   items: readonly T[];
   allPageItems: readonly T[];
   pagesCount: number | undefined;
   actualPageIndex: number | undefined;
-  totalItemsCount: number;
   filteredItemsCount: number | undefined;
-  selectedItems: undefined | T[];
-  getItemsCount?: (item: T) => number;
-  getSelectedItemsCount?: (item: T) => number;
   getChildren: (item: T) => T[];
 } {
   const filterPredicate = composeFilters(
-    createPropertyFilterPredicate(propertyFiltering, state.propertyFilteringQuery),
-    createFilterPredicate(filtering, state.filteringText)
+    createPropertyFilterPredicate(propertyFiltering, propertyFilteringQuery),
+    createFilterPredicate(filtering, filteringText)
   );
-  const sortingComparator = createComparator(sorting, state.sortingState);
-  const { items, totalItemsCount, getChildren, getItemsCount } = expandableRows
+  const sortingComparator = createComparator(sorting, sortingState);
+  const { items, size, getChildren } = expandableRows
     ? computeTreeItems(allItems, expandableRows, filterPredicate, sortingComparator)
     : computeFlatItems(allItems, filterPredicate, sortingComparator);
-  const filteredItemsCount = filterPredicate ? totalItemsCount : undefined;
 
-  let getSelectedItemsCount: undefined | ((item: T) => number) = undefined;
-  let selectedItems: undefined | T[] = undefined;
-  if (selection && expandableRows?.dataGrouping && state.groupSelection) {
-    const trackBy = selection?.trackBy ?? expandableRows?.getId;
-    const selectionTreeProps = { getChildren: getChildren, trackBy };
-    const selectionTree = new SelectionTree(items, selectionTreeProps, state.groupSelection);
-    getSelectedItemsCount = selectionTree.getSelectedItemsCount;
-    selectedItems = selectionTree.getSelectedItems();
-  }
+  const filteredItemsCount = filterPredicate ? size : undefined;
 
-  const pageProps = createPageProps(pagination, state.currentPageIndex, items);
+  const pageProps = createPageProps(pagination, currentPageIndex, items);
   if (pageProps) {
     return {
       items: items.slice((pageProps.pageIndex - 1) * pageProps.pageSize, pageProps.pageIndex * pageProps.pageSize),
       allPageItems: items,
-      totalItemsCount,
       filteredItemsCount,
       pagesCount: pageProps?.pagesCount,
       actualPageIndex: pageProps?.pageIndex,
-      selectedItems,
-      getItemsCount,
-      getSelectedItemsCount,
       getChildren,
     };
   }
@@ -64,13 +47,9 @@ export function processItems<T>(
   return {
     items: items,
     allPageItems: items,
-    totalItemsCount,
     filteredItemsCount,
     pagesCount: undefined,
     actualPageIndex: undefined,
-    selectedItems,
-    getItemsCount,
-    getSelectedItemsCount,
     getChildren,
   };
 }
