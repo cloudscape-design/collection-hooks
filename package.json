@@ -49,6 +49,7 @@
     "react": ">=16.8.0"
   },
   "devDependencies": {
+    "@cloudscape-design/build-tools": "github:cloudscape-design/build-tools#main",
     "@testing-library/react": "^11.2.7",
     "@types/react": "^16.14.21",
     "@types/react-dom": "^16.9.14",
@@ -78,7 +79,7 @@
       "eslint --fix"
     ],
     "package-lock.json": [
-      "node ./scripts/prepare-package-lock.js"
+      "prepare-package-lock"
     ]
   },
   "overrides": {
