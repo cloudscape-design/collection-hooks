@@ -4,7 +4,7 @@
 import { test, expect, describe } from 'vitest';
 import { UseCollectionOptions } from '..';
 import { Item } from './stubs';
-import { generateNestedItems, renderUseCollection } from './utils';
+import { generateRandomNestedItems, renderUseCollection } from './utils';
 
 const getId = (item: Item) => item.id;
 const getParentId = (item: Item): null | string => {
@@ -279,8 +279,8 @@ describe('data grouping', () => {
   });
 
   test('item counts sum up to total count', () => {
-    for (let totalItems = 1; totalItems <= 25; totalItems += 5) {
-      const items = generateNestedItems({ totalItems });
+    for (let totalItems = 0; totalItems <= 25; totalItems += 1) {
+      const items = generateRandomNestedItems({ totalItems });
       const { result } = renderUseCollection(items, {
         expandableRows: { getId, getParentId, dataGrouping: true },
       });
@@ -291,8 +291,8 @@ describe('data grouping', () => {
   });
 
   test('total count equals items size when dataGrouping=undefined', () => {
-    for (let totalItems = 1; totalItems <= 25; totalItems += 5) {
-      const items = generateNestedItems({ totalItems });
+    for (let totalItems = 0; totalItems <= 25; totalItems += 1) {
+      const items = generateRandomNestedItems({ totalItems });
       const { result } = renderUseCollection(items, { expandableRows: { getId, getParentId } });
       expect(result.collectionProps.totalItemsCount).toBe(items.length);
     }

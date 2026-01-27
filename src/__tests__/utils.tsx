@@ -27,7 +27,8 @@ export function renderUseCollection<T>(allItems: readonly T[], options: UseColle
   return current;
 }
 
-export const generateNestedItems = ({ totalItems }: { totalItems: number }) => {
+// Generates random items tree to be used for property-based tests.
+export const generateRandomNestedItems = ({ totalItems }: { totalItems: number }) => {
   const items: Item[] = [];
   let nextIndex = 0;
   let level = 1;
