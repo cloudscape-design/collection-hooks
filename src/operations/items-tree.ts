@@ -1,9 +1,12 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
 
+import { DataGroupingProps } from '../interfaces';
+
 interface TreeProps<T> {
   getId(item: T): string;
   getParentId(item: T): null | string;
+  dataGrouping?: DataGroupingProps;
 }
 
 export function computeFlatItems<T>(
@@ -17,7 +20,7 @@ export function computeFlatItems<T>(
   if (sortingComparator) {
     items = items.slice().sort(sortingComparator);
   }
-  return { items, size: items.length, getChildren: () => [] };
+  return { items, totalItemsCount: items.length, getChildren: () => [], getItemsCount: undefined };
 }
 
 export function computeTreeItems<T>(
@@ -27,8 +30,9 @@ export function computeTreeItems<T>(
   sortingComparator: null | ((a: T, b: T) => number)
 ) {
   const idToChildren = new Map<string, T[]>();
+  const idToCount = new Map<string, number>();
   let items: T[] = [];
-  let size = allItems.length;
+  let totalItemsCount = 0;
 
   for (const item of allItems) {
     const parentId = treeProps.getParentId(item);
@@ -47,13 +51,10 @@ export function computeTreeItems<T>(
     const filterNode = (item: T): boolean => {
       const children = getChildren(item);
       const filteredChildren = children.filter(filterNode);
-      size -= children.length - filteredChildren.length;
       setChildren(item, filteredChildren);
       return filterPredicate(item) || filteredChildren.length > 0;
     };
-    const prevLength = items.length;
     items = items.filter(filterNode);
-    size -= prevLength - items.length;
   }
 
   if (sortingComparator) {
@@ -66,5 +67,19 @@ export function computeTreeItems<T>(
     sortLevel(items);
   }
 
-  return { items, size, getChildren };
+  function computeGroupCounts(item: T) {
+    const children = getChildren(item);
+    let itemCount = children.length === 0 ? 1 : 0;
+    for (const child of children) {
+      itemCount += computeGroupCounts(child);
+    }
+    idToCount.set(treeProps.getId(item), itemCount);
+    return itemCount;
+  }
+  for (const item of items) {
+    totalItemsCount += treeProps.dataGrouping ? computeGroupCounts(item) : 1;
+  }
+  const getItemsCount = treeProps.dataGrouping ? (item: T) => idToCount.get(treeProps.getId(item)) ?? 0 : undefined;
+
+  return { items, totalItemsCount, getChildren, getItemsCount };
 }
