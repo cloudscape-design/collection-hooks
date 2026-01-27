@@ -10,17 +10,12 @@ import {
   PropertyFilterQuery,
   PropertyFilterOption,
   CollectionActions,
-  GroupSelectionState,
 } from './interfaces';
 import { fixupFalsyValues } from './operations/property-filter.js';
 
 interface SelectionAction<T> {
   type: 'selection';
   selectedItems: ReadonlyArray<T>;
-}
-interface GroupSelectionAction<T> {
-  type: 'group-selection';
-  state: GroupSelectionState<T>;
 }
 interface ExpansionAction<T> {
   type: 'expansion';
@@ -44,7 +39,6 @@ interface PropertyFilteringAction {
 }
 type Action<T> =
   | SelectionAction<T>
-  | GroupSelectionAction<T>
   | ExpansionAction<T>
   | SortingAction<T>
   | PaginationAction
@@ -56,9 +50,6 @@ export function collectionReducer<T>(state: CollectionState<T>, action: Action<T
   switch (action.type) {
     case 'selection':
       newState.selectedItems = action.selectedItems;
-      break;
-    case 'group-selection':
-      newState.groupSelection = action.state;
       break;
     case 'expansion':
       newState.expandedItems = action.expandedItems;
@@ -112,9 +103,6 @@ export function createActions<T>({
     setExpandedItems(expandedItems: ReadonlyArray<T>) {
       dispatch({ type: 'expansion', expandedItems });
     },
-    setGroupSelection(groupSelection: GroupSelectionState<T>) {
-      dispatch({ type: 'group-selection', state: groupSelection });
-    },
   };
 }
 
@@ -127,7 +115,6 @@ export function createSyncProps<T>(
     expandedItems,
     currentPageIndex,
     propertyFilteringQuery,
-    groupSelection,
   }: CollectionState<T>,
   actions: CollectionActions<T>,
   collectionRef: React.RefObject<CollectionRef>,
@@ -135,17 +122,13 @@ export function createSyncProps<T>(
     pagesCount,
     actualPageIndex,
     allItems,
-    totalItemsCount,
-    getItemsCount,
-    getSelectedItemsCount,
+    allPageItems,
     getChildren,
   }: {
     pagesCount?: number;
     actualPageIndex?: number;
     allItems: readonly T[];
-    totalItemsCount: number;
-    getItemsCount?: (item: T) => number;
-    getSelectedItemsCount?: (item: T) => number;
+    allPageItems: readonly T[];
     getChildren: (item: T) => T[];
   }
 ): Pick<UseCollectionResult<T>, 'collectionProps' | 'filterProps' | 'paginationProps' | 'propertyFilterProps'> {
@@ -213,12 +196,6 @@ export function createSyncProps<T>(
                   actions.setExpandedItems(expandedItems.filter(stateItem => getId(stateItem) !== getId(item)));
                 }
               },
-              // The table component uses group selection when expandableRows.groupSelection is defined. Therefore,
-              // we only pass this property when selection and dataGrouping are configured in use-collection options.
-              groupSelection: options.selection && options.expandableRows.dataGrouping ? groupSelection : undefined,
-              onGroupSelectionChange: ({ detail }) => actions.setGroupSelection(detail.groupSelection),
-              getItemsCount,
-              getSelectedItemsCount,
             },
             // The trackBy property is used to match expanded items by ID and not by object reference.
             // The property can be overridden by the explicitly provided selection.trackBy.
@@ -238,8 +215,7 @@ export function createSyncProps<T>(
         : {}),
       ref: collectionRef,
       firstIndex: 1,
-      totalItemsCount,
-      totalSelectedItemsCount: selectedItems.length,
+      totalItemsCount: allPageItems.length,
       ...(options.pagination?.pageSize
         ? {
             firstIndex: ((actualPageIndex ?? currentPageIndex) - 1) * options.pagination.pageSize + 1,
