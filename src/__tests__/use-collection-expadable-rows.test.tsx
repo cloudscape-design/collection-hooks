@@ -240,9 +240,11 @@ describe('data grouping', () => {
   test('computes total counts correctly', () => {
     const expandable = renderUseCollection(items, { expandableRows: { getId, getParentId } });
     expect(expandable.result.collectionProps.totalItemsCount).toBe(3);
+    expect(expandable.result.collectionProps.expandableRows!.getItemsCount).toBe(undefined);
 
     const grouped = renderUseCollection(items, { expandableRows: { getId, getParentId, dataGrouping: true } });
-    expect(grouped.result.collectionProps.totalItemsCount).toBe(6);
+    expect(grouped.result.collectionProps.totalItemsCount).toBe(3);
+    expect(grouped.result.collectionProps.expandableRows!.totalItemsCount).toBe(6);
   });
 
   test('computes total selected counts correctly', () => {
@@ -250,19 +252,13 @@ describe('data grouping', () => {
       expandableRows: { getId, getParentId },
       selection: { defaultSelectedItems: [{ id: 'a' }, { id: 'a.1.1' }], keepSelection: true },
     });
-    expect(expandable.result.collectionProps.totalSelectedItemsCount).toBe(2);
+    expect(expandable.result.collectionProps.expandableRows!.getSelectedItemsCount).toBe(undefined);
 
     const grouped = renderUseCollection(items, {
       expandableRows: { getId, getParentId, dataGrouping: true },
       selection: { defaultSelectedItems: [{ id: 'a' }, { id: 'a.1.1' }], keepSelection: true },
     });
-    expect(grouped.result.collectionProps.totalSelectedItemsCount).toBe(1);
-  });
-
-  test('does not return per-item counts when dataGrouping=undefined', () => {
-    const { result } = renderUseCollection(items, { expandableRows: { getId, getParentId }, selection: {} });
-    expect(result.collectionProps.expandableRows!.getItemsCount).toBe(undefined);
-    expect(result.collectionProps.expandableRows!.getSelectedItemsCount).toBe(undefined);
+    expect(grouped.result.collectionProps.expandableRows!.totalSelectedItemsCount).toBe(1);
   });
 
   test('can call selection counts on missing items', () => {
@@ -297,7 +293,7 @@ describe('data grouping', () => {
       });
       const expandableRows = result.collectionProps.expandableRows!;
       const sumCounts = result.items.reduce((sum, i) => sum + expandableRows.getItemsCount!(i), 0);
-      expect(sumCounts).toBe(result.collectionProps.totalItemsCount);
+      expect(sumCounts).toBe(result.collectionProps.expandableRows!.totalItemsCount);
     }
   });
 

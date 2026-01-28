@@ -104,29 +104,14 @@ interface UseCollectionResultBase<T> {
     onSortingChange?(event: CustomEventLike<SortingState<T>>): void;
     sortingColumn?: SortingColumn<T>;
     sortingDescending?: boolean;
-    // When expandableRows.dataGrouping={}, the selected items are derived from the expandableRows.groupSelection,
-    // and include all effectively selected leaf nodes.
+    // When data grouping is set, the property is derived from group selection, and includes all effectively selected items.
     selectedItems?: ReadonlyArray<T>;
     onSelectionChange?(event: CustomEventLike<SelectionChangeDetail<T>>): void;
-    expandableRows?: {
-      getItemChildren: (item: T) => T[];
-      isItemExpandable: (item: T) => boolean;
-      expandedItems: ReadonlyArray<T>;
-      onExpandableItemToggle(event: CustomEventLike<{ item: T; expanded: boolean }>): void;
-      // The groupSelection property is only added in case selection is configured, and expandableRows.dataGrouping={}.
-      groupSelection?: GroupSelectionState<T>;
-      onGroupSelectionChange(event: CustomEventLike<GroupSelectionChangeDetail<T>>): void;
-      // The counts reflect the number of nested selectable/selected nodes (deeply), including the given one.
-      // When expandableRows.dataGrouping={}, only leaf nodes are considered. They return 1 when called on leaf nodes.
-      getItemsCount?: (item: T) => number;
-      getSelectedItemsCount?: (item: T) => number;
-    };
+    expandableRows?: ExpandableRowsResult<T>;
     trackBy?: string | ((item: T) => string);
     ref: React.RefObject<CollectionRef>;
-    // The counts reflect the number of selectable/selected nodes (deeply).
-    // When expandableRows.dataGrouping={}, only leaf nodes are considered.
+    // The count of all root items (on all pages). It is used together with the firstIndex to announce page changes.
     totalItemsCount: number;
-    totalSelectedItemsCount: number;
     firstIndex: number;
   };
   filterProps: {
@@ -146,6 +131,25 @@ interface UseCollectionResultBase<T> {
     currentPageIndex: number;
     onChange(event: CustomEventLike<{ currentPageIndex: number }>): void;
   };
+}
+
+export interface ExpandableRowsResultBase<T> {
+  getItemChildren: (item: T) => T[];
+  isItemExpandable: (item: T) => boolean;
+  // The counters reflect the number of nested selectable/selected nodes (deeply), including the given one.
+  // When data grouping is set, only leaf nodes are counted. The getters return 1 when called on leaf nodes.
+  getItemsCount?: (item: T) => number;
+  totalItemsCount: number;
+  getSelectedItemsCount?: (item: T) => number;
+  totalSelectedItemsCount: number;
+}
+
+export interface ExpandableRowsResult<T> extends ExpandableRowsResultBase<T> {
+  expandedItems: ReadonlyArray<T>;
+  onExpandableItemToggle(event: CustomEventLike<{ item: T; expanded: boolean }>): void;
+  // The groupSelection property is only added in case selection is configured, and data grouping is set.
+  groupSelection?: GroupSelectionState<T>;
+  onGroupSelectionChange(event: CustomEventLike<GroupSelectionChangeDetail<T>>): void;
 }
 
 export interface UseCollectionResult<T> extends UseCollectionResultBase<T> {

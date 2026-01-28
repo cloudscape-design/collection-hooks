@@ -17,9 +17,7 @@ export function useCollection<T>(allItems: ReadonlyArray<T>, options: UseCollect
     filteredItemsCount,
     actualPageIndex,
     selectedItems,
-    getItemsCount,
-    getSelectedItemsCount,
-    getChildren,
+    expandableRows,
   } = processItems(allItems, state, options);
 
   const expandedItemsSet = new Set<string>();
@@ -36,8 +34,8 @@ export function useCollection<T>(allItems: ReadonlyArray<T>, options: UseCollect
     const traverse = (items: readonly T[]) => {
       for (const item of items) {
         flatItems.push(item);
-        if (expandedItemsSet.has(getId(item))) {
-          traverse(getChildren(item));
+        if (expandableRows && expandedItemsSet.has(getId(item))) {
+          traverse(expandableRows.getItemChildren(item));
         }
       }
     };
@@ -76,9 +74,7 @@ export function useCollection<T>(allItems: ReadonlyArray<T>, options: UseCollect
       pagesCount,
       allItems,
       totalItemsCount,
-      getItemsCount,
-      getSelectedItemsCount,
-      getChildren,
+      expandableRows,
     }),
   };
 }
