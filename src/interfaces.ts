@@ -26,6 +26,15 @@ export interface SelectionChangeDetail<T> {
   selectedItems: ReadonlyArray<T>;
 }
 
+export interface GroupSelectionState<T> {
+  inverted: boolean;
+  toggledItems: readonly T[];
+}
+
+export interface GroupSelectionChangeDetail<T> {
+  groupSelection: GroupSelectionState<T>;
+}
+
 export type TrackBy<T> = string | ((item: T) => string);
 
 export interface UseCollectionOptions<T> {
@@ -57,7 +66,14 @@ export interface ExpandableRowsProps<ItemType> {
   getId(item: ItemType): string;
   getParentId(item: ItemType): null | string;
   defaultExpandedItems?: ReadonlyArray<ItemType>;
+  // When set, only leaf nodes (those with no children) are reflected in the counters,
+  // and selection is replaced by group selection.
+  dataGrouping?: DataGroupingProps;
 }
+
+// There is no configuration for data grouping yet, but it might come in future releases.
+// eslint-disable-next-line @typescript-eslint/no-empty-object-type
+export interface DataGroupingProps {}
 
 export interface CollectionState<T> {
   filteringText: string;
@@ -66,6 +82,7 @@ export interface CollectionState<T> {
   sortingState?: SortingState<T>;
   selectedItems: ReadonlyArray<T>;
   expandedItems: ReadonlyArray<T>;
+  groupSelection: GroupSelectionState<T>;
 }
 
 export interface CollectionActions<T> {
@@ -75,6 +92,7 @@ export interface CollectionActions<T> {
   setSelectedItems(selectedItems: ReadonlyArray<T>): void;
   setPropertyFiltering(query: PropertyFilterQuery): void;
   setExpandedItems(items: ReadonlyArray<T>): void;
+  setGroupSelection(state: GroupSelectionState<T>): void;
 }
 
 interface UseCollectionResultBase<T> {
@@ -86,16 +104,13 @@ interface UseCollectionResultBase<T> {
     onSortingChange?(event: CustomEventLike<SortingState<T>>): void;
     sortingColumn?: SortingColumn<T>;
     sortingDescending?: boolean;
+    // When data grouping is set, the property is derived from group selection, and includes all effectively selected items.
     selectedItems?: ReadonlyArray<T>;
     onSelectionChange?(event: CustomEventLike<SelectionChangeDetail<T>>): void;
-    expandableRows?: {
-      getItemChildren: (item: T) => T[];
-      isItemExpandable: (item: T) => boolean;
-      expandedItems: ReadonlyArray<T>;
-      onExpandableItemToggle(event: CustomEventLike<{ item: T; expanded: boolean }>): void;
-    };
+    expandableRows?: ExpandableRowsResult<T>;
     trackBy?: string | ((item: T) => string);
     ref: React.RefObject<CollectionRef>;
+    // The count of all root items (on all pages). It is used together with the firstIndex to announce page changes.
     totalItemsCount: number;
     firstIndex: number;
   };
@@ -116,6 +131,25 @@ interface UseCollectionResultBase<T> {
     currentPageIndex: number;
     onChange(event: CustomEventLike<{ currentPageIndex: number }>): void;
   };
+}
+
+export interface ExpandableRowsResultBase<T> {
+  getItemChildren: (item: T) => T[];
+  isItemExpandable: (item: T) => boolean;
+  // The counters reflect the number of nested selectable/selected nodes (deeply), including the given one.
+  // When data grouping is set, only leaf nodes are counted. The getters return 1 when called on leaf nodes.
+  getItemsCount?: (item: T) => number;
+  totalItemsCount: number;
+  getSelectedItemsCount?: (item: T) => number;
+  totalSelectedItemsCount: number;
+}
+
+export interface ExpandableRowsResult<T> extends ExpandableRowsResultBase<T> {
+  expandedItems: ReadonlyArray<T>;
+  onExpandableItemToggle(event: CustomEventLike<{ item: T; expanded: boolean }>): void;
+  // The groupSelection property is only added in case selection is configured, and data grouping is set.
+  groupSelection?: GroupSelectionState<T>;
+  onGroupSelectionChange(event: CustomEventLike<GroupSelectionChangeDetail<T>>): void;
 }
 
 export interface UseCollectionResult<T> extends UseCollectionResultBase<T> {

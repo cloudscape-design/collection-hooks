@@ -3,7 +3,7 @@
 import * as React from 'react';
 import { render as testRender } from '@testing-library/react';
 import { UseCollectionResult, CollectionRef } from '../index.js';
-import { getTrackableValue } from '../operations/trackby-utils.js';
+import { getTrackableValue } from '@cloudscape-design/component-toolkit/internal';
 
 export type Item = { id: string; date?: Date };
 
