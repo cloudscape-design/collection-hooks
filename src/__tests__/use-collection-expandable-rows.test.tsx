@@ -240,9 +240,10 @@ describe('data grouping', () => {
   test('computes total counts correctly', () => {
     const expandable = renderUseCollection(items, { expandableRows: { getId, getParentId } });
     expect(expandable.result.collectionProps.totalItemsCount).toBe(3);
+    // The getItemsCount is only defined for when data grouping is used.
     expect(expandable.result.collectionProps.expandableRows!.getItemsCount).toBe(undefined);
 
-    const grouped = renderUseCollection(items, { expandableRows: { getId, getParentId, dataGrouping: true } });
+    const grouped = renderUseCollection(items, { expandableRows: { getId, getParentId, dataGrouping: {} } });
     expect(grouped.result.collectionProps.totalItemsCount).toBe(3);
     expect(grouped.result.collectionProps.expandableRows!.totalItemsCount).toBe(6);
   });
@@ -252,10 +253,11 @@ describe('data grouping', () => {
       expandableRows: { getId, getParentId },
       selection: { defaultSelectedItems: [{ id: 'a' }, { id: 'a.1.1' }], keepSelection: true },
     });
+    // The getSelectedItemsCount is only defined for when data grouping is used.
     expect(expandable.result.collectionProps.expandableRows!.getSelectedItemsCount).toBe(undefined);
 
     const grouped = renderUseCollection(items, {
-      expandableRows: { getId, getParentId, dataGrouping: true },
+      expandableRows: { getId, getParentId, dataGrouping: {} },
       selection: { defaultSelectedItems: [{ id: 'a' }, { id: 'a.1.1' }], keepSelection: true },
     });
     expect(grouped.result.collectionProps.expandableRows!.totalSelectedItemsCount).toBe(1);
@@ -263,7 +265,7 @@ describe('data grouping', () => {
 
   test('can call selection counts on missing items', () => {
     const { result } = renderUseCollection(items, {
-      expandableRows: { getId, getParentId, dataGrouping: true },
+      expandableRows: { getId, getParentId, dataGrouping: {} },
       selection: {},
     });
     expect(result.collectionProps.expandableRows!.getItemsCount!({ id: 'x' })).toBe(0);
@@ -271,12 +273,12 @@ describe('data grouping', () => {
   });
 
   test('does not return per-item selection counts when selection=undefined', () => {
-    const { result } = renderUseCollection(items, { expandableRows: { getId, getParentId, dataGrouping: true } });
+    const { result } = renderUseCollection(items, { expandableRows: { getId, getParentId, dataGrouping: {} } });
     expect(result.collectionProps.expandableRows!.getSelectedItemsCount).toBe(undefined);
   });
 
   test('computes item counts correctly', () => {
-    const { result } = renderUseCollection(items, { expandableRows: { getId, getParentId, dataGrouping: true } });
+    const { result } = renderUseCollection(items, { expandableRows: { getId, getParentId, dataGrouping: {} } });
     const expandableRows = result.collectionProps.expandableRows!;
 
     expect(expandableRows.getItemsCount!({ id: 'a' })).toBe(2);
@@ -289,7 +291,7 @@ describe('data grouping', () => {
     for (let totalItems = 0; totalItems <= 25; totalItems += 1) {
       const items = generateRandomNestedItems({ totalItems });
       const { result } = renderUseCollection(items, {
-        expandableRows: { getId, getParentId, dataGrouping: true },
+        expandableRows: { getId, getParentId, dataGrouping: {} },
       });
       const expandableRows = result.collectionProps.expandableRows!;
       const sumCounts = result.items.reduce((sum, i) => sum + expandableRows.getItemsCount!(i), 0);
@@ -299,7 +301,7 @@ describe('data grouping', () => {
 
   test('computes selected item counts correctly', () => {
     const { result } = renderUseCollection(items, {
-      expandableRows: { getId, getParentId, dataGrouping: true },
+      expandableRows: { getId, getParentId, dataGrouping: {} },
       selection: { defaultSelectedItems: [{ id: 'a.1.1' }, { id: 'b.1.1' }, { id: 'b.1.2' }] },
     });
     const expandableRows = result.collectionProps.expandableRows!;
@@ -308,19 +310,19 @@ describe('data grouping', () => {
 
   test('computes projected selectedItems state', () => {
     const leaf = renderUseCollection(items, {
-      expandableRows: { getId, getParentId, dataGrouping: true },
+      expandableRows: { getId, getParentId, dataGrouping: {} },
       selection: { defaultSelectedItems: [{ id: 'a.1.1' }, { id: 'b.1.1' }, { id: 'b.1.2' }] },
     });
     expect(leaf.result.collectionProps.selectedItems).toEqual([{ id: 'a.1.1' }, { id: 'b.1.1' }, { id: 'b.1.2' }]);
 
     const deep = renderUseCollection(items, {
-      expandableRows: { getId, getParentId, dataGrouping: true },
+      expandableRows: { getId, getParentId, dataGrouping: {} },
       selection: { defaultSelectedItems: [{ id: 'a' }, { id: 'b' }, { id: 'b.1' }, { id: 'c' }, { id: 'c.1.2' }] },
     });
     expect(deep.result.collectionProps.selectedItems).toEqual([{ id: 'a.1.1' }, { id: 'a.1.2' }, { id: 'c.1.1' }]);
 
     const missing = renderUseCollection(items, {
-      expandableRows: { getId, getParentId, dataGrouping: true },
+      expandableRows: { getId, getParentId, dataGrouping: {} },
       selection: { defaultSelectedItems: [{ id: 'x' }] },
     });
     expect(missing.result.collectionProps.selectedItems).toEqual([]);
@@ -328,7 +330,7 @@ describe('data grouping', () => {
 
   test('ignores selected items state in favour of projected selected items', () => {
     const { result } = renderUseCollection(items, {
-      expandableRows: { getId, getParentId, dataGrouping: true },
+      expandableRows: { getId, getParentId, dataGrouping: {} },
       selection: { defaultSelectedItems: [{ id: 'a.1.1' }, { id: 'b.1.1' }, { id: 'b.1.2' }] },
     });
 
@@ -343,13 +345,13 @@ describe('data grouping', () => {
   });
 
   test('group selection is undefined when selection=undefined', () => {
-    const { result } = renderUseCollection(items, { expandableRows: { getId, getParentId, dataGrouping: true } });
+    const { result } = renderUseCollection(items, { expandableRows: { getId, getParentId, dataGrouping: {} } });
     expect(result.collectionProps.expandableRows!.groupSelection).toBe(undefined);
   });
 
   test('converts default selected items to group selection and back', () => {
     const current = renderUseCollection(items, {
-      expandableRows: { getId, getParentId, dataGrouping: true },
+      expandableRows: { getId, getParentId, dataGrouping: {} },
       selection: { defaultSelectedItems: [{ id: 'a' }, { id: 'a.1.1' }] },
     });
     expect(current.result.collectionProps.expandableRows!.groupSelection).toEqual({
@@ -366,7 +368,7 @@ describe('data grouping', () => {
 
   test('changes group selection with event handler', () => {
     const current = renderUseCollection(items, {
-      expandableRows: { getId, getParentId, dataGrouping: true },
+      expandableRows: { getId, getParentId, dataGrouping: {} },
       selection: { defaultSelectedItems: [{ id: 'a' }, { id: 'a.1.1' }] },
     });
     const changeSelection = current.result.collectionProps.expandableRows!.onGroupSelectionChange;
