@@ -9,11 +9,16 @@ import { useCollectionState } from './use-collection-state.js';
 export function useCollection<T>(allItems: ReadonlyArray<T>, options: UseCollectionOptions<T>): UseCollectionResult<T> {
   const collectionRef = useRef<CollectionRef>(null);
   const [state, actions] = useCollectionState(options, collectionRef);
-  const { items, allPageItems, pagesCount, filteredItemsCount, actualPageIndex, getChildren } = processItems(
-    allItems,
-    state,
-    options
-  );
+  const {
+    items,
+    allPageItems,
+    pagesCount,
+    totalItemsCount,
+    filteredItemsCount,
+    actualPageIndex,
+    selectedItems,
+    expandableRows,
+  } = processItems(allItems, state, options);
 
   const expandedItemsSet = new Set<string>();
   if (options.expandableRows) {
@@ -29,8 +34,8 @@ export function useCollection<T>(allItems: ReadonlyArray<T>, options: UseCollect
     const traverse = (items: readonly T[]) => {
       for (const item of items) {
         flatItems.push(item);
-        if (expandedItemsSet.has(getId(item))) {
-          traverse(getChildren(item));
+        if (expandableRows && expandedItemsSet.has(getId(item))) {
+          traverse(expandableRows.getItemChildren(item));
         }
       }
     };
@@ -56,17 +61,20 @@ export function useCollection<T>(allItems: ReadonlyArray<T>, options: UseCollect
     }
   }
 
+  // When normal selection is used, the selectedItems are taken from state.
+  // When group selection is used, the selectedItems are derived from group selection state.
+  const extendedState = selectedItems ? { ...state, selectedItems } : state;
   return {
     items,
     allPageItems,
     filteredItemsCount,
     actions,
-    ...createSyncProps(options, state, actions, collectionRef, {
+    ...createSyncProps(options, extendedState, actions, collectionRef, {
       actualPageIndex,
       pagesCount,
       allItems,
-      allPageItems,
-      getChildren,
+      totalItemsCount,
+      expandableRows,
     }),
   };
 }
