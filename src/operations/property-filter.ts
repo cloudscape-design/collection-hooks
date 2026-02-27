@@ -173,10 +173,15 @@ function filterByToken<T>(token: PropertyFilterToken, item: T, filteringProperti
   return freeTextFilter(token.value, item, token.operator, filteringPropertiesMap);
 }
 
+function isPropertyFilterTokenGroup(t: PropertyFilterToken | PropertyFilterTokenGroup): t is PropertyFilterTokenGroup {
+  const key: keyof PropertyFilterTokenGroup = 'operation';
+  return key in t;
+}
+
 function defaultFilteringFunction<T>(filteringPropertiesMap: FilteringPropertiesMap<T>) {
   return (item: T, query: PropertyFilterQuery) => {
     function evaluate(tokenOrGroup: PropertyFilterToken | PropertyFilterTokenGroup): boolean {
-      if ('operation' in tokenOrGroup) {
+      if (isPropertyFilterTokenGroup(tokenOrGroup)) {
         let result = tokenOrGroup.operation === 'and' ? true : !tokenOrGroup.tokens.length;
         for (const group of tokenOrGroup.tokens) {
           result = tokenOrGroup.operation === 'and' ? result && evaluate(group) : result || evaluate(group);
