@@ -480,6 +480,25 @@ describe('Property filtering', () => {
     expect(container?.textContent?.split(',')).toEqual(['a']);
   });
 
+  test('should return precomputed filteringOptions as-is when provided', () => {
+    const precomputed = [
+      { propertyKey: 'id', value: 'custom-1' },
+      { propertyKey: 'id', value: 'custom-2' },
+    ];
+    function App() {
+      const items: Item[] = [{ id: 'one' }, { id: 'two' }];
+      const result = useCollection(items, {
+        propertyFiltering: {
+          filteringProperties: [{ key: 'id', groupValuesLabel: 'Id values', propertyLabel: 'Id' }],
+          filteringOptions: precomputed,
+        },
+      });
+      return <>{result.propertyFilterProps.filteringOptions.map(({ value }) => value).join(',')}</>;
+    }
+    const { container } = testRender(<App />);
+    expect(container?.textContent?.split(',')).toEqual(['custom-1', 'custom-2']);
+  });
+
   test('should not generate filtering options for "falsy" values except boolean false and number zero', () => {
     const MixedOptions = () => {
       const propertyFiltering = {
