@@ -1,9 +1,9 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
-import { useRef } from 'react';
+import { useRef, useMemo } from 'react';
 import { processItems, processSelectedItems, itemsAreEqual } from './operations/index.js';
 import { UseCollectionOptions, UseCollectionResult, CollectionRef } from './interfaces';
-import { createSyncProps } from './utils.js';
+import { createSyncProps, computeFilteringOptions } from './utils.js';
 import { useCollectionState } from './use-collection-state.js';
 
 export function useCollection<T>(allItems: ReadonlyArray<T>, options: UseCollectionOptions<T>): UseCollectionResult<T> {
@@ -61,6 +61,19 @@ export function useCollection<T>(allItems: ReadonlyArray<T>, options: UseCollect
     }
   }
 
+  // Memoize `computeFilteringOptions` scan so it only runs when `allItems` or
+  // `filteringProperties` change. When the caller supplies
+  // `options.propertyFiltering.filteringOptions`, the scan is skipped entirely
+  // and the pre-computed list is returned directly.
+  const filteringProperties = options.propertyFiltering?.filteringProperties;
+  const precomputedOptions = options.propertyFiltering?.filteringOptions;
+  const filteringOptions = useMemo(
+    () => computeFilteringOptions(allItems, filteringProperties, precomputedOptions),
+    // filteringProperties and precomputedOptions are typically stable references (defined outside render or
+    // wrapped in useMemo by the caller), so array-identity comparison is correct here.
+    [allItems, filteringProperties, precomputedOptions]
+  );
+
   // When normal selection is used, the selectedItems are taken from state.
   // When group selection is used, the selectedItems are derived from group selection state.
   const extendedState = selectedItems ? { ...state, selectedItems } : state;
@@ -75,6 +88,7 @@ export function useCollection<T>(allItems: ReadonlyArray<T>, options: UseCollect
       allItems,
       totalItemsCount,
       expandableRows,
+      filteringOptions,
     }),
   };
 }

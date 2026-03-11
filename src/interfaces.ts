@@ -47,6 +47,16 @@ export interface UseCollectionOptions<T> {
     empty?: React.ReactNode;
     noMatch?: React.ReactNode;
     filteringProperties: readonly PropertyFilterProperty[];
+    /**
+     * Pre-computed filtering options to use instead of scanning all items.
+     *
+     * When provided, `useCollection` skips its O(items × filteringProperties) scan
+     * and returns this list directly from `propertyFilterProps.filteringOptions`.
+     *
+     * Use this when you already know the full set of valid filter values.
+     * The caller is responsible for keeping this list up-to-date and for deduplication.
+     */
+    filteringOptions?: readonly PropertyFilterOption[];
     // custom filtering function
     filteringFunction?: (item: T, query: PropertyFilterQuery) => boolean;
     defaultQuery?: PropertyFilterQuery;
