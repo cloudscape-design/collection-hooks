@@ -53,9 +53,7 @@ export interface UseCollectionOptions<T> {
      * When provided, `useCollection` skips its O(items × filteringProperties) scan
      * and returns this list directly from `propertyFilterProps.filteringOptions`.
      *
-     * Use this when you already know the full set of valid filter values — for example,
-     * when tag options are built from a separate API response — to avoid redundant work.
-     *
+     * Use this when you already know the full set of valid filter values.
      * The caller is responsible for keeping this list up-to-date and for deduplication.
      */
     filteringOptions?: readonly PropertyFilterOption[];

@@ -61,10 +61,10 @@ export function useCollection<T>(allItems: ReadonlyArray<T>, options: UseCollect
     }
   }
 
-  // Memoize the O(items × filteringProperties) scan so it only runs when allItems or
-  // filteringProperties change — not on pagination, sorting, or selection changes.
-  // When the caller supplies options.propertyFiltering.filteringOptions, the scan is
-  // skipped entirely and the pre-computed list is returned directly.
+  // Memoize `computeFilteringOptions` scan so it only runs when `allItems` or
+  // `filteringProperties` change. When the caller supplies
+  // `options.propertyFiltering.filteringOptions`, the scan is skipped entirely
+  // and the pre-computed list is returned directly.
   const filteringProperties = options.propertyFiltering?.filteringProperties;
   const precomputedOptions = options.propertyFiltering?.filteringOptions;
   const filteringOptions = useMemo(
