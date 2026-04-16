@@ -73,6 +73,7 @@ export function useCollection<T>(allItems: ReadonlyArray<T>, options: UseCollect
       actualPageIndex,
       pagesCount,
       allItems,
+      visibleItems,
       totalItemsCount,
       expandableRows,
     }),

@@ -136,12 +136,14 @@ export function createSyncProps<T>(
     pagesCount,
     actualPageIndex,
     allItems,
+    visibleItems,
     totalItemsCount,
     expandableRows,
   }: {
     pagesCount?: number;
     actualPageIndex?: number;
     allItems: readonly T[];
+    visibleItems: readonly T[];
     totalItemsCount: number;
     expandableRows?: ExpandableRowsResultBase<T>;
   }
@@ -224,6 +226,21 @@ export function createSyncProps<T>(
             },
             selectedItems,
             trackBy: options.selection.trackBy ?? options.expandableRows?.getId,
+            ...(options.selection.selectionControllerItems
+              ? {
+                  selectionControllerItems:
+                    typeof options.selection.selectionControllerItems === 'function'
+                      ? options.selection.selectionControllerItems(visibleItems, selectedItems)
+                      : options.selection.selectionControllerItems,
+                  ...(options.selection.onSelectionControllerItemClick
+                    ? {
+                        onSelectionControllerItemClick: ({ detail }: { detail: { id: string; checked?: boolean } }) => {
+                          options.selection!.onSelectionControllerItemClick!(detail, visibleItems, actions);
+                        },
+                      }
+                    : {}),
+                }
+              : {}),
           }
         : {}),
       ref: collectionRef,

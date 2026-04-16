@@ -20,6 +20,10 @@ export {
   PropertyFilterQuery,
   PropertyFilterToken,
   PropertyFilterTokenGroup,
+  SelectionControllerItem,
+  SelectionControllerItemGroup,
+  SelectionControllerItems,
+  SelectionControllerItemClickDetail,
   UseCollectionOptions,
   UseCollectionResult,
 } from './interfaces';
