@@ -8,7 +8,12 @@ import { useCollectionState } from './use-collection-state.js';
 
 export function useCollection<T>(allItems: ReadonlyArray<T>, options: UseCollectionOptions<T>): UseCollectionResult<T> {
   const collectionRef = useRef<CollectionRef>(null);
+  const allAcrossPagesRef = useRef(false);
   const [allAcrossPages, setAllAcrossPages] = useState(false);
+  const setAllAcrossPagesSync = (value: boolean) => {
+    allAcrossPagesRef.current = value;
+    setAllAcrossPages(value);
+  };
   const [lastAllMatchingItems, setLastAllMatchingItems] = useState<ReadonlyArray<T>>([]);
   const [state, baseActions] = useCollectionState(options, collectionRef);
 
@@ -24,7 +29,7 @@ export function useCollection<T>(allItems: ReadonlyArray<T>, options: UseCollect
   } = processItems(allItems, state, options);
 
   // Wrap actions to track cross-page selection
-  const resetAcrossPages = () => setAllAcrossPages(false);
+  const resetAcrossPages = () => setAllAcrossPagesSync(false);
   const actions: typeof baseActions = {
     ...baseActions,
     setSelectedItems(selectedItems) {
@@ -45,13 +50,13 @@ export function useCollection<T>(allItems: ReadonlyArray<T>, options: UseCollect
     },
     setCurrentPage(pageNumber) {
       // Don't reset cross-page selection when navigating pages
-      if (!allAcrossPages) {
+      if (!allAcrossPagesRef.current) {
         resetAcrossPages();
       }
       baseActions.setCurrentPage(pageNumber);
     },
     selectAllAcrossPages() {
-      setAllAcrossPages(true);
+      setAllAcrossPagesSync(true);
       // Select all items that match the last selection criteria across all pages
       baseActions.setSelectedItems(
         lastAllMatchingItems.length > 0 ? lastAllMatchingItems : (allPageItems as ReadonlyArray<T>)
@@ -83,7 +88,7 @@ export function useCollection<T>(allItems: ReadonlyArray<T>, options: UseCollect
   }
 
   // Removing selected items that are no longer present in items unless keepSelection=true or cross-page selection is active.
-  if (options.selection && !options.selection.keepSelection && !allAcrossPages) {
+  if (options.selection && !options.selection.keepSelection && !allAcrossPagesRef.current) {
     const newSelectedItems = processSelectedItems(visibleItems, state.selectedItems, options.selection.trackBy);
     if (!itemsAreEqual(newSelectedItems, state.selectedItems, options.selection.trackBy)) {
       // This is a recommended pattern for how to handle the state, dependent on the incoming props
