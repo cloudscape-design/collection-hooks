@@ -153,6 +153,7 @@ export function createSyncProps<T>(
     expandableRows,
     allAcrossPages,
     lastAllMatchingItems,
+    onClearCrossPageState,
   }: {
     pagesCount?: number;
     actualPageIndex?: number;
@@ -163,6 +164,7 @@ export function createSyncProps<T>(
     expandableRows?: ExpandableRowsResultBase<T>;
     allAcrossPages?: boolean;
     lastAllMatchingItems?: readonly unknown[];
+    onClearCrossPageState?: () => void;
   }
 ): Pick<
   UseCollectionResult<T>,
@@ -269,6 +271,7 @@ export function createSyncProps<T>(
       ...(options.selection
         ? {
             onSelectionChange: ({ detail: { selectedItems } }) => {
+              onClearCrossPageState?.();
               actions.setSelectedItems(selectedItems);
             },
             selectedItems,

@@ -136,6 +136,10 @@ export function useCollection<T>(allItems: ReadonlyArray<T>, options: UseCollect
     expandableRows,
     allAcrossPages,
     lastAllMatchingItems,
+    onClearCrossPageState: () => {
+      setLastAllMatchingItems([]);
+      setAllAcrossPagesSync(false);
+    },
   });
 
   return {
