@@ -2,7 +2,8 @@
 // SPDX-License-Identifier: Apache-2.0
 import { test, expect, describe, vi } from 'vitest';
 import { processItems } from '../../operations';
-import { PropertyFilterOperator } from '../../interfaces';
+import { makeFilteringPropertiesMap } from '../../operations/property-filter.js';
+import { PropertyFilterOperator, PropertyFilterProperty } from '../../interfaces';
 import * as logging from '../../logging';
 
 const propertyFiltering = {
@@ -888,3 +889,122 @@ describe('Token groups', () => {
     ]);
   });
 });
+
+describe('makeFilteringPropertiesMap', () => {
+  const props: readonly PropertyFilterProperty[] = [
+    { key: 'id', propertyLabel: 'ID', groupValuesLabel: '', operators: [':', '=', '!='] },
+    { key: 'name', propertyLabel: 'Name', groupValuesLabel: '', operators: [':', '=', '!='] },
+  ];
+
+  test('builds a map keyed by property key', () => {
+    const map = makeFilteringPropertiesMap(props);
+    expect('id' in map).toBe(true);
+    expect('name' in map).toBe(true);
+  });
+
+  test('operators are indexed by operator string', () => {
+    const map = makeFilteringPropertiesMap(props);
+    expect((map as any).id.operators[':']).toBeDefined();
+    expect((map as any).id.operators['=']).toBeDefined();
+    expect((map as any).id.operators['!=']).toBeDefined();
+  });
+
+  test('freeTextFilterable defaults to true', () => {
+    const map = makeFilteringPropertiesMap(props);
+    expect((map as any).id.freeTextFilterable).toBe(true);
+  });
+
+  test('freeTextFilterable:false is stored in map', () => {
+    const map = makeFilteringPropertiesMap([
+      { key: 'tag', propertyLabel: '', groupValuesLabel: '', operators: ['='], freeTextFilterable: false },
+    ]);
+    expect((map as any).tag.freeTextFilterable).toBe(false);
+  });
+
+  test('dropdownFilterable defaults to true', () => {
+    const map = makeFilteringPropertiesMap(props);
+    expect((map as any).id.dropdownFilterable).toBe(true);
+  });
+
+  test('dropdownFilterable:false is stored in map', () => {
+    const map = makeFilteringPropertiesMap([
+      { key: 'val', propertyLabel: '', groupValuesLabel: '', operators: ['='], dropdownFilterable: false },
+    ]);
+    expect((map as any).val.dropdownFilterable).toBe(false);
+  });
+
+  test('same input produces structurally equal output', () => {
+    expect(makeFilteringPropertiesMap(props)).toEqual(makeFilteringPropertiesMap(props));
+  });
+});
+
+describe('freeTextFilterable flag', () => {
+  const baseProps: readonly PropertyFilterProperty[] = [
+    { key: 'name', propertyLabel: 'Name', groupValuesLabel: '', operators: [':', '='] },
+  ];
+  const items = [
+    { name: 'alpha', tag: 'prod' },
+    { name: 'beta', tag: 'prod' },
+  ];
+
+  test('freeTextFilterable:false excludes column from free-text search', () => {
+    const { items: result } = processItems(
+      items,
+      { propertyFilteringQuery: { tokens: [{ operator: ':', value: 'prod' }], operation: 'and' } },
+      {
+        propertyFiltering: {
+          filteringProperties: [
+            ...baseProps,
+            {
+              key: 'tag',
+              propertyLabel: 'Tag',
+              groupValuesLabel: '',
+              operators: [':', '='],
+              freeTextFilterable: false,
+            },
+          ],
+        },
+      }
+    );
+    expect(result).toEqual([]);
+  });
+
+  test('freeTextFilterable:false does not affect property-specific tokens', () => {
+    const { items: result } = processItems(
+      items,
+      { propertyFilteringQuery: { tokens: [{ propertyKey: 'tag', operator: '=', value: 'prod' }], operation: 'and' } },
+      {
+        propertyFiltering: {
+          filteringProperties: [
+            ...baseProps,
+            {
+              key: 'tag',
+              propertyLabel: 'Tag',
+              groupValuesLabel: '',
+              operators: [':', '='],
+              freeTextFilterable: false,
+            },
+          ],
+        },
+      }
+    );
+    expect(result).toEqual(items);
+  });
+
+  test('without freeTextFilterable:false, free-text searches all columns', () => {
+    const { items: result } = processItems(
+      items,
+      { propertyFilteringQuery: { tokens: [{ operator: ':', value: 'prod' }], operation: 'and' } },
+      {
+        propertyFiltering: {
+          filteringProperties: [
+            ...baseProps,
+            { key: 'tag', propertyLabel: 'Tag', groupValuesLabel: '', operators: [':', '='] },
+          ],
+        },
+      }
+    );
+    expect(result).toEqual(items);
+  });
+});
+

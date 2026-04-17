@@ -1,8 +1,14 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
-import { UseCollectionOptions, CollectionState, TrackBy, ExpandableRowsResultBase } from '../interfaces';
+import {
+  UseCollectionOptions,
+  CollectionState,
+  TrackBy,
+  ExpandableRowsResultBase,
+  PropertyFilterQuery,
+} from '../interfaces';
 import { createFilterPredicate } from './filter.js';
-import { createPropertyFilterPredicate } from './property-filter.js';
+import { createPropertyFilterPredicate, FilteringPropertiesMap } from './property-filter.js';
 import { createComparator } from './sort.js';
 import { createPageProps } from './pagination.js';
 import { composeFilters } from './compose-filters.js';
@@ -12,7 +18,10 @@ import { computeFlatItems, computeTreeItems } from './items-tree.js';
 export function processItems<T>(
   allItems: ReadonlyArray<T>,
   state: Partial<CollectionState<T>>,
-  { filtering, sorting, pagination, propertyFiltering, expandableRows, selection }: UseCollectionOptions<T>
+  { filtering, sorting, pagination, propertyFiltering, expandableRows, selection }: UseCollectionOptions<T>,
+  filteringPropertiesMap?: FilteringPropertiesMap<T>,
+  prebuiltFilteringFunction?: (item: T, query: PropertyFilterQuery) => boolean,
+  propertyFilterPredicate?: ((item: T) => boolean) | null
 ): {
   items: readonly T[];
   allPageItems: readonly T[];
@@ -23,10 +32,19 @@ export function processItems<T>(
   selectedItems: undefined | T[];
   expandableRows?: ExpandableRowsResultBase<T>;
 } {
-  const filterPredicate = composeFilters(
-    createPropertyFilterPredicate(propertyFiltering, state.propertyFilteringQuery),
-    createFilterPredicate(filtering, state.filteringText)
-  );
+  const textFilterPredicate = createFilterPredicate(filtering, state.filteringText);
+  const resolvedPropertyPredicate =
+    propertyFilterPredicate !== undefined
+      ? propertyFilterPredicate
+      : createPropertyFilterPredicate(
+          propertyFiltering,
+          state.propertyFilteringQuery,
+          filteringPropertiesMap,
+          prebuiltFilteringFunction
+        );
+  const filterPredicate = textFilterPredicate
+    ? composeFilters(resolvedPropertyPredicate, textFilterPredicate)
+    : resolvedPropertyPredicate;
   const sortingComparator = createComparator(sorting, state.sortingState);
   const { items, rootItemsCount, selectableItemsCount, getItemChildren, isItemExpandable, getItemsCount } =
     expandableRows

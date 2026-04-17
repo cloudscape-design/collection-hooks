@@ -136,14 +136,15 @@ function freeTextFilter<T>(
   tokenValue: string,
   item: T,
   operator: PropertyFilterOperator,
+  columnKeys: string[],
   filteringPropertiesMap: FilteringPropertiesMap<T>
 ): boolean {
   // If the operator is not a negation, we just need one property of the object to match.
   // If the operator is a negation, we want none of the properties of the object to match.
   const isNegation = operator.startsWith('!');
-  return Object.keys(filteringPropertiesMap)[isNegation ? 'every' : 'some'](propertyKey => {
-    const { operators } = filteringPropertiesMap[propertyKey as keyof typeof filteringPropertiesMap];
-    const propertyOperator = operators[operator];
+  return columnKeys[isNegation ? 'every' : 'some'](propertyKey => {
+    const entry = filteringPropertiesMap[propertyKey as keyof typeof filteringPropertiesMap];
+    const propertyOperator = entry.operators[operator];
     if (!propertyOperator) {
       return isNegation;
     }
@@ -151,7 +152,12 @@ function freeTextFilter<T>(
   });
 }
 
-function filterByToken<T>(token: PropertyFilterToken, item: T, filteringPropertiesMap: FilteringPropertiesMap<T>) {
+function filterByToken<T>(
+  token: PropertyFilterToken,
+  item: T,
+  filteringPropertiesMap: FilteringPropertiesMap<T>,
+  columnKeys: string[]
+) {
   if (token.propertyKey) {
     // token refers to a unknown property or uses an unsupported operator
     if (
@@ -170,7 +176,7 @@ function filterByToken<T>(token: PropertyFilterToken, item: T, filteringProperti
       operator: operator ?? { operator: token.operator },
     });
   }
-  return freeTextFilter(token.value, item, token.operator, filteringPropertiesMap);
+  return freeTextFilter(token.value, item, token.operator, columnKeys, filteringPropertiesMap);
 }
 
 function isPropertyFilterTokenGroup(t: PropertyFilterToken | PropertyFilterTokenGroup): t is PropertyFilterTokenGroup {
@@ -178,29 +184,42 @@ function isPropertyFilterTokenGroup(t: PropertyFilterToken | PropertyFilterToken
   return key in t;
 }
 
-function defaultFilteringFunction<T>(filteringPropertiesMap: FilteringPropertiesMap<T>) {
-  return (item: T, query: PropertyFilterQuery) => {
-    function evaluate(tokenOrGroup: PropertyFilterToken | PropertyFilterTokenGroup): boolean {
-      if (isPropertyFilterTokenGroup(tokenOrGroup)) {
-        let result = tokenOrGroup.operation === 'and' ? true : !tokenOrGroup.tokens.length;
-        for (const group of tokenOrGroup.tokens) {
-          result = tokenOrGroup.operation === 'and' ? result && evaluate(group) : result || evaluate(group);
-        }
-        return result;
-      } else {
-        return filterByToken(tokenOrGroup, item, filteringPropertiesMap);
-      }
+function evaluate<T>(
+  tokenOrGroup: PropertyFilterToken | PropertyFilterTokenGroup,
+  item: T,
+  filteringPropertiesMap: FilteringPropertiesMap<T>,
+  columnKeys: string[]
+): boolean {
+  if (isPropertyFilterTokenGroup(tokenOrGroup)) {
+    let result = tokenOrGroup.operation === 'and' ? true : !tokenOrGroup.tokens.length;
+    for (const group of tokenOrGroup.tokens) {
+      result =
+        tokenOrGroup.operation === 'and'
+          ? result && evaluate(group, item, filteringPropertiesMap, columnKeys)
+          : result || evaluate(group, item, filteringPropertiesMap, columnKeys);
     }
-    return evaluate({
-      operation: query.operation,
-      tokens: query.tokenGroups ?? query.tokens,
-    });
+    return result;
+  } else {
+    return filterByToken(tokenOrGroup, item, filteringPropertiesMap, columnKeys);
+  }
+}
+
+function defaultFilteringFunction<T>(filteringPropertiesMap: FilteringPropertiesMap<T>, columnKeys: string[]) {
+  return (item: T, query: PropertyFilterQuery) => {
+    return evaluate(
+      { operation: query.operation, tokens: query.tokenGroups ?? query.tokens },
+      item,
+      filteringPropertiesMap,
+      columnKeys
+    );
   };
 }
 
-type FilteringPropertiesMap<T> = {
+export type FilteringPropertiesMap<T> = {
   [key in keyof T]: {
     operators: FilteringOperatorsMap;
+    freeTextFilterable: boolean;
+    dropdownFilterable: boolean;
   };
 };
 
@@ -208,15 +227,11 @@ type FilteringOperatorsMap = {
   [key in PropertyFilterOperator]?: PropertyFilterOperatorExtended<any>;
 };
 
-export function createPropertyFilterPredicate<T>(
-  propertyFiltering: UseCollectionOptions<T>['propertyFiltering'],
-  query: PropertyFilterQuery = { tokens: [], operation: 'and' }
-): null | Predicate<T> {
-  if (!propertyFiltering) {
-    return null;
-  }
-  const filteringPropertiesMap = propertyFiltering.filteringProperties.reduce<FilteringPropertiesMap<T>>(
-    (acc: FilteringPropertiesMap<T>, { key, operators, defaultOperator }: PropertyFilterProperty) => {
+export function makeFilteringPropertiesMap<T>(
+  filteringProperties: readonly PropertyFilterProperty[]
+): FilteringPropertiesMap<T> {
+  return filteringProperties.reduce<FilteringPropertiesMap<T>>(
+    (acc, { key, operators, defaultOperator, freeTextFilterable, dropdownFilterable }: PropertyFilterProperty) => {
       const operatorMap: FilteringOperatorsMap = { [defaultOperator ?? '=']: { operator: defaultOperator ?? '=' } };
       operators?.forEach(op => {
         if (typeof op === 'string') {
@@ -225,12 +240,38 @@ export function createPropertyFilterPredicate<T>(
           operatorMap[op.operator] = { operator: op.operator, match: op.match, tokenType: op.tokenType };
         }
       });
-      acc[key as keyof T] = { operators: operatorMap };
+      acc[key as keyof T] = {
+        operators: operatorMap,
+        freeTextFilterable: freeTextFilterable !== false,
+        dropdownFilterable: dropdownFilterable !== false,
+      };
       return acc;
     },
     {} as FilteringPropertiesMap<T>
   );
-  const filteringFunction = propertyFiltering.filteringFunction || defaultFilteringFunction(filteringPropertiesMap);
+}
+
+export function makeDefaultFilteringFunction<T>(
+  filteringPropertiesMap: FilteringPropertiesMap<T>
+): (item: T, query: PropertyFilterQuery) => boolean {
+  const columnKeys = Object.keys(filteringPropertiesMap).filter(
+    k => (filteringPropertiesMap as any)[k].freeTextFilterable !== false
+  );
+  return defaultFilteringFunction(filteringPropertiesMap, columnKeys);
+}
+
+export function createPropertyFilterPredicate<T>(
+  propertyFiltering: UseCollectionOptions<T>['propertyFiltering'],
+  query: PropertyFilterQuery = { tokens: [], operation: 'and' },
+  filteringPropertiesMap?: FilteringPropertiesMap<T>,
+  prebuiltFilteringFunction?: (item: T, query: PropertyFilterQuery) => boolean
+): null | Predicate<T> {
+  if (!propertyFiltering) {
+    return null;
+  }
+  const map = filteringPropertiesMap ?? makeFilteringPropertiesMap<T>(propertyFiltering.filteringProperties);
+  const filteringFunction =
+    propertyFiltering.filteringFunction || prebuiltFilteringFunction || makeDefaultFilteringFunction(map);
   return item => filteringFunction(item, query);
 }
 

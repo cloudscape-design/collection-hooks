@@ -1,9 +1,10 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
 import { test, expect, describe, vi } from 'vitest';
-import { fireEvent, render as testRender } from '@testing-library/react';
+import { fireEvent, render as testRender, act } from '@testing-library/react';
 import * as React from 'react';
 import { useCollection } from '../';
+import { computeFilteringOptions } from '../utils.js';
 import { PropertyFilterProperty } from '../interfaces';
 import { Demo, Item, render } from './stubs';
 
@@ -587,5 +588,102 @@ describe('total items count and page range', () => {
     const { getRowIndices, getTotalItemsCount } = render(<App />);
     expect(getRowIndices()).toEqual(['1', '2', '3', '4']);
     expect(getTotalItemsCount()).toEqual('4');
+  });
+});
+
+describe('computeFilteringOptions', () => {
+  const PROPS: readonly PropertyFilterProperty[] = [
+    { key: 'id', propertyLabel: 'ID', groupValuesLabel: 'ID values', operators: [':', '=', '!='] },
+    { key: 'name', propertyLabel: 'Name', groupValuesLabel: 'Name values', operators: [':', '=', '!='] },
+  ];
+
+  test('returns empty array when filteringProperties is undefined', () => {
+    expect(computeFilteringOptions([], undefined)).toEqual([]);
+  });
+
+  test('returns empty array when filteringProperties is empty', () => {
+    expect(computeFilteringOptions([{ id: 'a' }], [])).toEqual([]);
+  });
+
+  test('generates one option per unique non-empty value per property', () => {
+    const items = [
+      { id: 'a', name: 'alpha' },
+      { id: 'b', name: 'alpha' },
+      { id: 'c', name: 'beta' },
+    ];
+    const result = computeFilteringOptions(items, PROPS);
+    expect(result).toEqual([
+      { propertyKey: 'id', value: 'a' },
+      { propertyKey: 'id', value: 'b' },
+      { propertyKey: 'id', value: 'c' },
+      { propertyKey: 'name', value: 'alpha' },
+      { propertyKey: 'name', value: 'beta' },
+    ]);
+  });
+
+  test('skips falsy values', () => {
+    const items = [
+      { id: 'a', name: undefined },
+      { id: 'b', name: null as any },
+    ];
+    expect(computeFilteringOptions(items, PROPS).filter(o => o.propertyKey === 'name')).toEqual([]);
+  });
+
+  test('skips freeTextFilterable:false and dropdownFilterable:false columns', () => {
+    const props: readonly PropertyFilterProperty[] = [
+      ...PROPS,
+      { key: 'tag', propertyLabel: 'Tag', groupValuesLabel: '', operators: ['='], freeTextFilterable: false },
+      { key: 'val', propertyLabel: 'Val', groupValuesLabel: '', operators: ['='], dropdownFilterable: false },
+    ];
+    const items = [{ id: 'a', name: 'x', tag: 'skip', val: 'skip' }];
+    const result = computeFilteringOptions(items, props);
+    expect(result.some(o => o.propertyKey === 'tag')).toBe(false);
+    expect(result.some(o => o.propertyKey === 'val')).toBe(false);
+    expect(result.some(o => o.propertyKey === 'id')).toBe(true);
+  });
+});
+
+describe('filteringOptions stability in useCollection', () => {
+  const STABLE_PROPS: readonly PropertyFilterProperty[] = [
+    { key: 'id', propertyLabel: 'ID', groupValuesLabel: '', operators: ['='] },
+  ];
+
+  test('filteringOptions reference is stable when allItems and filteringProperties are unchanged', () => {
+    const items = [{ id: 'a' }];
+    const snapshots: (readonly { propertyKey: string; value: string }[])[] = [];
+    function App({ tick }: { tick: number }) {
+      const result = useCollection(items, {
+        propertyFiltering: { filteringProperties: STABLE_PROPS },
+        pagination: { pageSize: tick > 0 ? 10 : 5 },
+      });
+      snapshots.push(result.propertyFilterProps.filteringOptions);
+      return null;
+    }
+    const { rerender } = testRender(<App tick={1} />);
+    act(() => {
+      rerender(<App tick={2} />);
+    });
+    act(() => {
+      rerender(<App tick={3} />);
+    });
+    expect(snapshots[0]).toBe(snapshots[1]);
+    expect(snapshots[1]).toBe(snapshots[2]);
+  });
+
+  test('filteringOptions update when allItems change', () => {
+    const items1 = [{ id: 'a' }];
+    const items2 = [{ id: 'a' }, { id: 'b' }];
+    const snapshots: (readonly { propertyKey: string; value: string }[])[] = [];
+    function App({ items }: { items: typeof items1 }) {
+      const result = useCollection(items, { propertyFiltering: { filteringProperties: STABLE_PROPS } });
+      snapshots.push(result.propertyFilterProps.filteringOptions);
+      return null;
+    }
+    const { rerender } = testRender(<App items={items1} />);
+    act(() => {
+      rerender(<App items={items2} />);
+    });
+    expect(snapshots[0]).not.toBe(snapshots[1]);
+    expect(snapshots[1].some(o => o.value === 'b')).toBe(true);
   });
 });
