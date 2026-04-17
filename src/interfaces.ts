@@ -218,6 +218,8 @@ export interface PropertyFilterProperty<TokenValue = any> {
   operators?: readonly (PropertyFilterOperator | PropertyFilterOperatorExtended<TokenValue>)[];
   defaultOperator?: PropertyFilterOperator;
   group?: string;
+  isFreeTextFilterable?: false;
+  generateFilteringOptions?: false;
 }
 
 export interface PropertyFilterOption {

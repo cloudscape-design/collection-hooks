@@ -141,7 +141,7 @@ function freeTextFilter<T>(
   // If the operator is not a negation, we just need one property of the object to match.
   // If the operator is a negation, we want none of the properties of the object to match.
   const isNegation = operator.startsWith('!');
-  return Object.keys(filteringPropertiesMap)[isNegation ? 'every' : 'some'](propertyKey => {
+  return Object.keys(filteringPropertiesMap).filter(k => filteringPropertiesMap[k as keyof FilteringPropertiesMap<T>].isFreeTextFilterable)[isNegation ? 'every' : 'some'](propertyKey => {
     const { operators } = filteringPropertiesMap[propertyKey as keyof typeof filteringPropertiesMap];
     const propertyOperator = operators[operator];
     if (!propertyOperator) {
@@ -201,6 +201,8 @@ function defaultFilteringFunction<T>(filteringPropertiesMap: FilteringProperties
 type FilteringPropertiesMap<T> = {
   [key in keyof T]: {
     operators: FilteringOperatorsMap;
+    isFreeTextFilterable: boolean;
+    generateFilteringOptions: boolean;
   };
 };
 
@@ -216,7 +218,7 @@ export function createPropertyFilterPredicate<T>(
     return null;
   }
   const filteringPropertiesMap = propertyFiltering.filteringProperties.reduce<FilteringPropertiesMap<T>>(
-    (acc: FilteringPropertiesMap<T>, { key, operators, defaultOperator }: PropertyFilterProperty) => {
+    (acc: FilteringPropertiesMap<T>, { key, operators, defaultOperator, isFreeTextFilterable, generateFilteringOptions }: PropertyFilterProperty) => {
       const operatorMap: FilteringOperatorsMap = { [defaultOperator ?? '=']: { operator: defaultOperator ?? '=' } };
       operators?.forEach(op => {
         if (typeof op === 'string') {
@@ -225,7 +227,7 @@ export function createPropertyFilterPredicate<T>(
           operatorMap[op.operator] = { operator: op.operator, match: op.match, tokenType: op.tokenType };
         }
       });
-      acc[key as keyof T] = { operators: operatorMap };
+      acc[key as keyof T] = { operators: operatorMap, isFreeTextFilterable: isFreeTextFilterable !== false, generateFilteringOptions: generateFilteringOptions !== false };
       return acc;
     },
     {} as FilteringPropertiesMap<T>

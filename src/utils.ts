@@ -158,6 +158,9 @@ export function createSyncProps<T>(
     : empty;
   const filteringOptions = options.propertyFiltering
     ? options.propertyFiltering.filteringProperties.reduce<PropertyFilterOption[]>((acc, property) => {
+        if (property.generateFilteringOptions === false) {
+          return acc;
+        }
         Object.keys(
           allItems.reduce<{ [key in string]: boolean }>((acc, item) => {
             acc['' + fixupFalsyValues(item[property.key as keyof T])] = true;

@@ -888,3 +888,87 @@ describe('Token groups', () => {
     ]);
   });
 });
+
+describe('isFreeTextFilterable flag', () => {
+  const baseProps = [
+    { key: 'name', propertyLabel: 'Name', groupValuesLabel: '', operators: [':', '='] as const },
+  ];
+  const items = [
+    { name: 'alpha', tag: 'prod' },
+    { name: 'beta', tag: 'prod' },
+  ];
+
+  test('isFreeTextFilterable:false excludes column from free-text search', () => {
+    const { items: result } = processItems(
+      items,
+      { propertyFilteringQuery: { tokens: [{ operator: ':', value: 'prod' }], operation: 'and' } },
+      {
+        propertyFiltering: {
+          filteringProperties: [
+            ...baseProps,
+            { key: 'tag', propertyLabel: 'Tag', groupValuesLabel: '', operators: [':', '='] as const, isFreeTextFilterable: false as const },
+          ],
+        },
+      }
+    );
+    expect(result).toEqual([]);
+  });
+
+  test('isFreeTextFilterable:false does not affect property-specific tokens', () => {
+    const { items: result } = processItems(
+      items,
+      { propertyFilteringQuery: { tokens: [{ propertyKey: 'tag', operator: '=', value: 'prod' }], operation: 'and' } },
+      {
+        propertyFiltering: {
+          filteringProperties: [
+            ...baseProps,
+            { key: 'tag', propertyLabel: 'Tag', groupValuesLabel: '', operators: [':', '='] as const, isFreeTextFilterable: false as const },
+          ],
+        },
+      }
+    );
+    expect(result).toEqual(items);
+  });
+
+  test('without isFreeTextFilterable:false, free-text searches all columns', () => {
+    const { items: result } = processItems(
+      items,
+      { propertyFilteringQuery: { tokens: [{ operator: ':', value: 'prod' }], operation: 'and' } },
+      {
+        propertyFiltering: {
+          filteringProperties: [
+            ...baseProps,
+            { key: 'tag', propertyLabel: 'Tag', groupValuesLabel: '', operators: [':', '='] as const },
+          ],
+        },
+      }
+    );
+    expect(result).toEqual(items);
+  });
+});
+
+describe('isFreeTextFilterable and generateFilteringOptions both false', () => {
+  const props = [
+    { key: 'name', propertyLabel: 'Name', groupValuesLabel: '', operators: [':', '='] as const },
+    { key: 'tag', propertyLabel: 'Tag', groupValuesLabel: '', operators: [':', '='] as const, isFreeTextFilterable: false as const, generateFilteringOptions: false as const },
+  ];
+  const items = [{ name: 'alpha', tag: 'prod' }, { name: 'beta', tag: 'prod' }];
+
+  test('excluded from free-text search', () => {
+    const { items: result } = processItems(
+      items,
+      { propertyFilteringQuery: { tokens: [{ operator: ':', value: 'prod' }], operation: 'and' } },
+      { propertyFiltering: { filteringProperties: props } }
+    );
+    expect(result).toEqual([]);
+  });
+
+  test('still matches explicit property-keyed tokens', () => {
+    const { items: result } = processItems(
+      items,
+      { propertyFilteringQuery: { tokens: [{ propertyKey: 'tag', operator: '=', value: 'prod' }], operation: 'and' } },
+      { propertyFiltering: { filteringProperties: props } }
+    );
+    expect(result).toEqual(items);
+  });
+});

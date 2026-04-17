@@ -589,3 +589,28 @@ describe('total items count and page range', () => {
     expect(getTotalItemsCount()).toEqual('4');
   });
 });
+
+describe('generateFilteringOptions flag', () => {
+  const props: readonly PropertyFilterProperty[] = [
+    { key: 'name', propertyLabel: 'Name', groupValuesLabel: '', operators: ['='] },
+    { key: 'tag', propertyLabel: 'Tag', groupValuesLabel: '', operators: ['='], generateFilteringOptions: false },
+  ];
+  const items = [{ name: 'alpha', tag: 'prod' }];
+
+  test('generateFilteringOptions:false excludes property from filteringOptions', () => {
+    function App() {
+      return (
+        <>
+          {JSON.stringify(
+            useCollection(items, { propertyFiltering: { filteringProperties: props } }).propertyFilterProps
+              .filteringOptions
+          )}
+        </>
+      );
+    }
+    const { container } = testRender(<App />);
+    const options: { propertyKey: string }[] = JSON.parse(container.textContent!);
+    expect(options.some(o => o.propertyKey === 'tag')).toBe(false);
+    expect(options.some(o => o.propertyKey === 'name')).toBe(true);
+  });
+});
