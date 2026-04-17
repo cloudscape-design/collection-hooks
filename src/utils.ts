@@ -1,5 +1,6 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
+import * as React from 'react';
 import { Dispatch, Reducer, ReactNode } from 'react';
 import {
   UseCollectionOptions,
@@ -43,7 +44,11 @@ interface PropertyFilteringAction {
   type: 'property-filtering';
   query: PropertyFilterQuery;
 }
+interface AllAcrossPagesAction {
+  type: 'all-across-pages';
+}
 type Action<T> =
+  | AllAcrossPagesAction
   | SelectionAction<T>
   | GroupSelectionAction<T>
   | ExpansionAction<T>
@@ -55,6 +60,9 @@ export type CollectionReducer<T> = Reducer<CollectionState<T>, Action<T>>;
 export function collectionReducer<T>(state: CollectionState<T>, action: Action<T>): CollectionState<T> {
   const newState = { ...state };
   switch (action.type) {
+    case 'all-across-pages':
+      // Handled in useCollection - sets a flag that all items across pages are selected
+      break;
     case 'selection':
       newState.selectedItems = action.selectedItems;
       break;
@@ -116,6 +124,9 @@ export function createActions<T>({
     setGroupSelection(groupSelection: GroupSelectionState<T>) {
       dispatch({ type: 'group-selection', state: groupSelection });
     },
+    selectAllAcrossPages() {
+      dispatch({ type: 'all-across-pages' });
+    },
   };
 }
 
@@ -136,18 +147,25 @@ export function createSyncProps<T>(
     pagesCount,
     actualPageIndex,
     allItems,
+    allPageItems,
     visibleItems,
     totalItemsCount,
     expandableRows,
+    allAcrossPages,
   }: {
     pagesCount?: number;
     actualPageIndex?: number;
     allItems: readonly T[];
+    allPageItems: readonly T[];
     visibleItems: readonly T[];
     totalItemsCount: number;
     expandableRows?: ExpandableRowsResultBase<T>;
+    allAcrossPages?: boolean;
   }
-): Pick<UseCollectionResult<T>, 'collectionProps' | 'filterProps' | 'paginationProps' | 'propertyFilterProps'> {
+): Pick<
+  UseCollectionResult<T>,
+  'collectionProps' | 'filterProps' | 'paginationProps' | 'propertyFilterProps' | 'crossPageSelectionState'
+> {
   let empty: ReactNode | null = options.filtering
     ? allItems.length
       ? options.filtering.noMatch
@@ -176,6 +194,24 @@ export function createSyncProps<T>(
         return acc;
       }, [])
     : [];
+
+  // Compute cross-page selection state for consumer
+  const crossPageState = (() => {
+    if (!options.selection?.crossPageSelection || !options.pagination?.pageSize) {
+      return undefined;
+    }
+    const totalMatchingCount = options.selection?.crossPageSelection?.totalMatchingCount ?? allPageItems.length;
+    const pageItemCount = visibleItems.length;
+    const allPageSelected = pageItemCount > 0 && selectedItems.length >= pageItemCount;
+
+    if (allAcrossPages) {
+      return { type: 'all-selected' as const, pageCount: pageItemCount, totalCount: totalMatchingCount };
+    }
+    if (allPageSelected && totalMatchingCount > pageItemCount) {
+      return { type: 'page-selected' as const, pageCount: selectedItems.length, totalCount: totalMatchingCount };
+    }
+    return undefined;
+  })();
 
   return {
     collectionProps: {
@@ -275,5 +311,6 @@ export function createSyncProps<T>(
         actions.setCurrentPage(currentPageIndex);
       },
     },
+    crossPageSelectionState: crossPageState,
   };
 }

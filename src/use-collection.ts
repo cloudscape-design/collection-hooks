@@ -1,6 +1,6 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
-import { useRef } from 'react';
+import { useRef, useState } from 'react';
 import { processItems, processSelectedItems, itemsAreEqual } from './operations/index.js';
 import { UseCollectionOptions, UseCollectionResult, CollectionRef } from './interfaces';
 import { createSyncProps } from './utils.js';
@@ -8,7 +8,9 @@ import { useCollectionState } from './use-collection-state.js';
 
 export function useCollection<T>(allItems: ReadonlyArray<T>, options: UseCollectionOptions<T>): UseCollectionResult<T> {
   const collectionRef = useRef<CollectionRef>(null);
-  const [state, actions] = useCollectionState(options, collectionRef);
+  const [allAcrossPages, setAllAcrossPages] = useState(false);
+  const [state, baseActions] = useCollectionState(options, collectionRef);
+
   const {
     items,
     allPageItems,
@@ -19,6 +21,36 @@ export function useCollection<T>(allItems: ReadonlyArray<T>, options: UseCollect
     selectedItems,
     expandableRows,
   } = processItems(allItems, state, options);
+
+  // Wrap actions to track cross-page selection
+  const resetAcrossPages = () => setAllAcrossPages(false);
+  const actions: typeof baseActions = {
+    ...baseActions,
+    setSelectedItems(selectedItems) {
+      resetAcrossPages();
+      baseActions.setSelectedItems(selectedItems);
+    },
+    setFiltering(filteringText) {
+      resetAcrossPages();
+      baseActions.setFiltering(filteringText);
+    },
+    setPropertyFiltering(query) {
+      resetAcrossPages();
+      baseActions.setPropertyFiltering(query);
+    },
+    setSorting(state) {
+      resetAcrossPages();
+      baseActions.setSorting(state);
+    },
+    setCurrentPage(pageNumber) {
+      resetAcrossPages();
+      baseActions.setCurrentPage(pageNumber);
+    },
+    selectAllAcrossPages() {
+      setAllAcrossPages(true);
+      baseActions.setSelectedItems(allPageItems as ReadonlyArray<T>);
+    },
+  };
 
   const expandedItemsSet = new Set<string>();
   if (options.expandableRows) {
@@ -64,18 +96,23 @@ export function useCollection<T>(allItems: ReadonlyArray<T>, options: UseCollect
   // When normal selection is used, the selectedItems are taken from state.
   // When group selection is used, the selectedItems are derived from group selection state.
   const extendedState = selectedItems ? { ...state, selectedItems } : state;
+  const syncProps = createSyncProps(options, extendedState, actions, collectionRef, {
+    actualPageIndex,
+    pagesCount,
+    allItems,
+    allPageItems,
+    visibleItems,
+    totalItemsCount,
+    expandableRows,
+    allAcrossPages,
+  });
+
   return {
     items,
     allPageItems,
     filteredItemsCount,
     actions,
-    ...createSyncProps(options, extendedState, actions, collectionRef, {
-      actualPageIndex,
-      pagesCount,
-      allItems,
-      visibleItems,
-      totalItemsCount,
-      expandableRows,
-    }),
+    crossPageSelectionState: syncProps.crossPageSelectionState,
+    ...syncProps,
   };
 }

@@ -24,6 +24,7 @@ export {
   SelectionControllerItemGroup,
   SelectionControllerItems,
   SelectionControllerItemClickDetail,
+  CrossPageSelectionState,
   UseCollectionOptions,
   UseCollectionResult,
 } from './interfaces';

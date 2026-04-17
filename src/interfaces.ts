@@ -90,6 +90,11 @@ export interface UseCollectionOptions<T> {
       visibleItems: ReadonlyArray<T>,
       actions: CollectionActions<T>
     ) => void;
+    crossPageSelection?: {
+      /** Total number of items matching the current filter across all pages.
+       * If not provided, defaults to allItems.length. */
+      totalMatchingCount?: number;
+    };
   };
   expandableRows?: ExpandableRowsProps<T>;
 }
@@ -117,6 +122,12 @@ export interface CollectionState<T> {
   groupSelection: GroupSelectionState<T>;
 }
 
+export interface CrossPageSelectionState {
+  type: 'page-selected' | 'all-selected' | 'none';
+  pageCount: number;
+  totalCount: number;
+}
+
 export interface CollectionActions<T> {
   setFiltering(filteringText: string): void;
   setCurrentPage(pageNumber: number): void;
@@ -125,6 +136,7 @@ export interface CollectionActions<T> {
   setPropertyFiltering(query: PropertyFilterQuery): void;
   setExpandedItems(items: ReadonlyArray<T>): void;
   setGroupSelection(state: GroupSelectionState<T>): void;
+  selectAllAcrossPages(): void;
 }
 
 interface UseCollectionResultBase<T> {
@@ -188,6 +200,7 @@ export interface ExpandableRowsResult<T> extends ExpandableRowsResultBase<T> {
 
 export interface UseCollectionResult<T> extends UseCollectionResultBase<T> {
   filteredItemsCount: number | undefined;
+  crossPageSelectionState?: CrossPageSelectionState;
   paginationProps: UseCollectionResultBase<T>['paginationProps'] & {
     pagesCount: number;
   };
