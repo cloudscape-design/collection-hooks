@@ -9,6 +9,7 @@ import { useCollectionState } from './use-collection-state.js';
 export function useCollection<T>(allItems: ReadonlyArray<T>, options: UseCollectionOptions<T>): UseCollectionResult<T> {
   const collectionRef = useRef<CollectionRef>(null);
   const [allAcrossPages, setAllAcrossPages] = useState(false);
+  const [lastAllMatchingItems, setLastAllMatchingItems] = useState<ReadonlyArray<T>>([]);
   const [state, baseActions] = useCollectionState(options, collectionRef);
 
   const {
@@ -43,12 +44,18 @@ export function useCollection<T>(allItems: ReadonlyArray<T>, options: UseCollect
       baseActions.setSorting(state);
     },
     setCurrentPage(pageNumber) {
-      resetAcrossPages();
+      // Don't reset cross-page selection when navigating pages
+      if (!allAcrossPages) {
+        resetAcrossPages();
+      }
       baseActions.setCurrentPage(pageNumber);
     },
     selectAllAcrossPages() {
       setAllAcrossPages(true);
-      baseActions.setSelectedItems(allPageItems as ReadonlyArray<T>);
+      // Select all items that match the last selection criteria across all pages
+      baseActions.setSelectedItems(
+        lastAllMatchingItems.length > 0 ? lastAllMatchingItems : (allPageItems as ReadonlyArray<T>)
+      );
     },
   };
 
@@ -75,8 +82,8 @@ export function useCollection<T>(allItems: ReadonlyArray<T>, options: UseCollect
     visibleItems = flatItems;
   }
 
-  // Removing selected items that are no longer present in items unless keepSelection=true.
-  if (options.selection && !options.selection.keepSelection) {
+  // Removing selected items that are no longer present in items unless keepSelection=true or cross-page selection is active.
+  if (options.selection && !options.selection.keepSelection && !allAcrossPages) {
     const newSelectedItems = processSelectedItems(visibleItems, state.selectedItems, options.selection.trackBy);
     if (!itemsAreEqual(newSelectedItems, state.selectedItems, options.selection.trackBy)) {
       // This is a recommended pattern for how to handle the state, dependent on the incoming props
@@ -96,7 +103,25 @@ export function useCollection<T>(allItems: ReadonlyArray<T>, options: UseCollect
   // When normal selection is used, the selectedItems are taken from state.
   // When group selection is used, the selectedItems are derived from group selection state.
   const extendedState = selectedItems ? { ...state, selectedItems } : state;
-  const syncProps = createSyncProps(options, extendedState, actions, collectionRef, {
+  // Wrap onSelectionControllerItemClick to capture allMatchingItems for cross-page selection
+  const wrappedOptions = { ...options };
+  if (options.selection?.onSelectionControllerItemClick) {
+    const originalCallback = options.selection.onSelectionControllerItemClick;
+    wrappedOptions.selection = {
+      ...options.selection,
+      onSelectionControllerItemClick: (detail, visibleItems, hookActions, allItems) => {
+        const result = originalCallback(detail, visibleItems, hookActions, allItems);
+        if (result && 'allMatchingItems' in result) {
+          setLastAllMatchingItems(result.allMatchingItems);
+        } else {
+          setLastAllMatchingItems([]);
+        }
+        return result;
+      },
+    };
+  }
+
+  const syncProps = createSyncProps(wrappedOptions, extendedState, actions, collectionRef, {
     actualPageIndex,
     pagesCount,
     allItems,
@@ -105,6 +130,7 @@ export function useCollection<T>(allItems: ReadonlyArray<T>, options: UseCollect
     totalItemsCount,
     expandableRows,
     allAcrossPages,
+    lastAllMatchingItems,
   });
 
   return {

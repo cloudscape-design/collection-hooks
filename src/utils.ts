@@ -152,6 +152,7 @@ export function createSyncProps<T>(
     totalItemsCount,
     expandableRows,
     allAcrossPages,
+    lastAllMatchingItems,
   }: {
     pagesCount?: number;
     actualPageIndex?: number;
@@ -161,6 +162,7 @@ export function createSyncProps<T>(
     totalItemsCount: number;
     expandableRows?: ExpandableRowsResultBase<T>;
     allAcrossPages?: boolean;
+    lastAllMatchingItems?: readonly unknown[];
   }
 ): Pick<
   UseCollectionResult<T>,
@@ -200,16 +202,25 @@ export function createSyncProps<T>(
     if (!options.selection?.crossPageSelection || !options.pagination?.pageSize) {
       return undefined;
     }
-    const totalMatchingCount = options.selection?.crossPageSelection?.totalMatchingCount ?? allPageItems.length;
-    const pageItemCount = visibleItems.length;
-    const allPageSelected = pageItemCount > 0 && selectedItems.length >= pageItemCount;
 
     if (allAcrossPages) {
-      return { type: 'all-selected' as const, pageCount: pageItemCount, totalCount: totalMatchingCount };
+      const totalCount =
+        lastAllMatchingItems && lastAllMatchingItems.length > 0
+          ? lastAllMatchingItems.length
+          : options.selection?.crossPageSelection?.totalMatchingCount ?? allPageItems.length;
+      return { type: 'all-selected' as const, pageCount: visibleItems.length, totalCount };
     }
-    if (allPageSelected && totalMatchingCount > pageItemCount) {
-      return { type: 'page-selected' as const, pageCount: selectedItems.length, totalCount: totalMatchingCount };
+
+    // Check if there are matching items beyond the current page
+    // Use lastAllMatchingItems if available (from selection controller click)
+    if (lastAllMatchingItems && lastAllMatchingItems.length > 0) {
+      const matchingOnPage = selectedItems.length;
+      const totalMatching = lastAllMatchingItems.length;
+      if (matchingOnPage > 0 && totalMatching > matchingOnPage) {
+        return { type: 'page-selected' as const, pageCount: matchingOnPage, totalCount: totalMatching };
+      }
     }
+
     return undefined;
   })();
 
@@ -271,7 +282,12 @@ export function createSyncProps<T>(
                   ...(options.selection.onSelectionControllerItemClick
                     ? {
                         onSelectionControllerItemClick: ({ detail }: { detail: { id: string; checked?: boolean } }) => {
-                          options.selection!.onSelectionControllerItemClick!(detail, visibleItems, actions);
+                          options.selection!.onSelectionControllerItemClick!(
+                            detail,
+                            visibleItems,
+                            actions,
+                            allPageItems
+                          );
                         },
                       }
                     : {}),

@@ -88,8 +88,9 @@ export interface UseCollectionOptions<T> {
     onSelectionControllerItemClick?: (
       detail: SelectionControllerItemClickDetail,
       visibleItems: ReadonlyArray<T>,
-      actions: CollectionActions<T>
-    ) => void;
+      actions: CollectionActions<T>,
+      allItems: ReadonlyArray<T>
+    ) => void | { allMatchingItems: ReadonlyArray<T> };
     crossPageSelection?: {
       /** Total number of items matching the current filter across all pages.
        * If not provided, defaults to allItems.length. */
