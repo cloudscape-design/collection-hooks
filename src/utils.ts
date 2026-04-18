@@ -9,11 +9,37 @@ import {
   CollectionRef,
   PropertyFilterQuery,
   PropertyFilterOption,
+  PropertyFilterProperty,
   CollectionActions,
   GroupSelectionState,
   ExpandableRowsResultBase,
 } from './interfaces';
 import { fixupFalsyValues } from './operations/property-filter.js';
+
+export function computeFilteringOptions<T>(
+  allItems: readonly T[],
+  filteringProperties: readonly PropertyFilterProperty[] | undefined
+): PropertyFilterOption[] {
+  if (!filteringProperties) {
+    return [];
+  }
+  return filteringProperties.reduce<PropertyFilterOption[]>((acc, property) => {
+    Object.keys(
+      allItems.reduce<{ [key in string]: boolean }>((acc, item) => {
+        acc['' + fixupFalsyValues(item[property.key as keyof T])] = true;
+        return acc;
+      }, {})
+    ).forEach(value => {
+      if (value !== '') {
+        acc.push({
+          propertyKey: property.key,
+          value,
+        });
+      }
+    });
+    return acc;
+  }, []);
+}
 
 interface SelectionAction<T> {
   type: 'selection';
@@ -138,12 +164,14 @@ export function createSyncProps<T>(
     allItems,
     totalItemsCount,
     expandableRows,
+    filteringOptions,
   }: {
     pagesCount?: number;
     actualPageIndex?: number;
     allItems: readonly T[];
     totalItemsCount: number;
     expandableRows?: ExpandableRowsResultBase<T>;
+    filteringOptions: PropertyFilterOption[];
   }
 ): Pick<UseCollectionResult<T>, 'collectionProps' | 'filterProps' | 'paginationProps' | 'propertyFilterProps'> {
   let empty: ReactNode | null = options.filtering
@@ -156,24 +184,6 @@ export function createSyncProps<T>(
       ? options.propertyFiltering.noMatch
       : options.propertyFiltering.empty
     : empty;
-  const filteringOptions = options.propertyFiltering
-    ? options.propertyFiltering.filteringProperties.reduce<PropertyFilterOption[]>((acc, property) => {
-        Object.keys(
-          allItems.reduce<{ [key in string]: boolean }>((acc, item) => {
-            acc['' + fixupFalsyValues(item[property.key as keyof T])] = true;
-            return acc;
-          }, {})
-        ).forEach(value => {
-          if (value !== '') {
-            acc.push({
-              propertyKey: property.key,
-              value,
-            });
-          }
-        });
-        return acc;
-      }, [])
-    : [];
 
   return {
     collectionProps: {

@@ -1,14 +1,21 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
-import { useRef } from 'react';
+import { useRef, useMemo } from 'react';
 import { processItems, processSelectedItems, itemsAreEqual } from './operations/index.js';
-import { UseCollectionOptions, UseCollectionResult, CollectionRef } from './interfaces';
-import { createSyncProps } from './utils.js';
+import { UseCollectionOptions, UseCollectionResult, CollectionRef, PropertyFilterQuery } from './interfaces';
+import { makeEvaluate } from './operations/property-filter.js';
+import { createSyncProps, computeFilteringOptions } from './utils.js';
 import { useCollectionState } from './use-collection-state.js';
 
 export function useCollection<T>(allItems: ReadonlyArray<T>, options: UseCollectionOptions<T>): UseCollectionResult<T> {
   const collectionRef = useRef<CollectionRef>(null);
   const [state, actions] = useCollectionState(options, collectionRef);
+  const filteringProperties = options.propertyFiltering?.filteringProperties;
+  const filteringFunction = useMemo(() => {
+    const evaluate = makeEvaluate<T>(filteringProperties ?? []);
+    return (item: T, query: PropertyFilterQuery) =>
+      evaluate(item, { operation: query.operation, tokens: query.tokenGroups ?? query.tokens });
+  }, [filteringProperties]);
   const {
     items,
     allPageItems,
@@ -18,7 +25,7 @@ export function useCollection<T>(allItems: ReadonlyArray<T>, options: UseCollect
     actualPageIndex,
     selectedItems,
     expandableRows,
-  } = processItems(allItems, state, options);
+  } = processItems(allItems, state, options, filteringFunction);
 
   const expandedItemsSet = new Set<string>();
   if (options.expandableRows) {
@@ -61,6 +68,11 @@ export function useCollection<T>(allItems: ReadonlyArray<T>, options: UseCollect
     }
   }
 
+  const filteringOptions = useMemo(
+    () => computeFilteringOptions(allItems, filteringProperties),
+    [allItems, filteringProperties]
+  );
+
   // When normal selection is used, the selectedItems are taken from state.
   // When group selection is used, the selectedItems are derived from group selection state.
   const extendedState = selectedItems ? { ...state, selectedItems } : state;
@@ -75,6 +87,7 @@ export function useCollection<T>(allItems: ReadonlyArray<T>, options: UseCollect
       allItems,
       totalItemsCount,
       expandableRows,
+      filteringOptions,
     }),
   };
 }

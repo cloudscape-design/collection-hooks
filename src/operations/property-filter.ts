@@ -178,26 +178,6 @@ function isPropertyFilterTokenGroup(t: PropertyFilterToken | PropertyFilterToken
   return key in t;
 }
 
-function defaultFilteringFunction<T>(filteringPropertiesMap: FilteringPropertiesMap<T>) {
-  return (item: T, query: PropertyFilterQuery) => {
-    function evaluate(tokenOrGroup: PropertyFilterToken | PropertyFilterTokenGroup): boolean {
-      if (isPropertyFilterTokenGroup(tokenOrGroup)) {
-        let result = tokenOrGroup.operation === 'and' ? true : !tokenOrGroup.tokens.length;
-        for (const group of tokenOrGroup.tokens) {
-          result = tokenOrGroup.operation === 'and' ? result && evaluate(group) : result || evaluate(group);
-        }
-        return result;
-      } else {
-        return filterByToken(tokenOrGroup, item, filteringPropertiesMap);
-      }
-    }
-    return evaluate({
-      operation: query.operation,
-      tokens: query.tokenGroups ?? query.tokens,
-    });
-  };
-}
-
 type FilteringPropertiesMap<T> = {
   [key in keyof T]: {
     operators: FilteringOperatorsMap;
@@ -208,14 +188,8 @@ type FilteringOperatorsMap = {
   [key in PropertyFilterOperator]?: PropertyFilterOperatorExtended<any>;
 };
 
-export function createPropertyFilterPredicate<T>(
-  propertyFiltering: UseCollectionOptions<T>['propertyFiltering'],
-  query: PropertyFilterQuery = { tokens: [], operation: 'and' }
-): null | Predicate<T> {
-  if (!propertyFiltering) {
-    return null;
-  }
-  const filteringPropertiesMap = propertyFiltering.filteringProperties.reduce<FilteringPropertiesMap<T>>(
+export function makeEvaluate<T>(filteringProperties: readonly PropertyFilterProperty[]) {
+  const filteringPropertiesMap = filteringProperties.reduce<FilteringPropertiesMap<T>>(
     (acc: FilteringPropertiesMap<T>, { key, operators, defaultOperator }: PropertyFilterProperty) => {
       const operatorMap: FilteringOperatorsMap = { [defaultOperator ?? '=']: { operator: defaultOperator ?? '=' } };
       operators?.forEach(op => {
@@ -230,8 +204,43 @@ export function createPropertyFilterPredicate<T>(
     },
     {} as FilteringPropertiesMap<T>
   );
-  const filteringFunction = propertyFiltering.filteringFunction || defaultFilteringFunction(filteringPropertiesMap);
-  return item => filteringFunction(item, query);
+  return function evaluate(item: T, tokenOrGroup: PropertyFilterToken | PropertyFilterTokenGroup): boolean {
+    if (isPropertyFilterTokenGroup(tokenOrGroup)) {
+      let result = tokenOrGroup.operation === 'and' ? true : !tokenOrGroup.tokens.length;
+      for (const group of tokenOrGroup.tokens) {
+        result = tokenOrGroup.operation === 'and' ? result && evaluate(item, group) : result || evaluate(item, group);
+      }
+      return result;
+    } else {
+      return filterByToken(tokenOrGroup, item, filteringPropertiesMap);
+    }
+  };
+}
+
+function defaultFilteringFunction<T>(
+  evaluate: (item: T, tokenOrGroup: PropertyFilterToken | PropertyFilterTokenGroup) => boolean
+) {
+  return (item: T, query: PropertyFilterQuery) => {
+    return evaluate(item, {
+      operation: query.operation,
+      tokens: query.tokenGroups ?? query.tokens,
+    });
+  };
+}
+
+export function createPropertyFilterPredicate<T>(
+  propertyFiltering: UseCollectionOptions<T>['propertyFiltering'],
+  query: PropertyFilterQuery = { tokens: [], operation: 'and' },
+  filteringFunction?: (item: T, query: PropertyFilterQuery) => boolean
+): null | Predicate<T> {
+  if (!propertyFiltering) {
+    return null;
+  }
+  const resolvedFilteringFunction =
+    propertyFiltering.filteringFunction ||
+    filteringFunction ||
+    defaultFilteringFunction(makeEvaluate<T>(propertyFiltering.filteringProperties));
+  return item => resolvedFilteringFunction(item, query);
 }
 
 export const fixupFalsyValues = <T>(value: T): T | string => {
