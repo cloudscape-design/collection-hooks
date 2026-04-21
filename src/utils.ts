@@ -9,10 +9,10 @@ import {
   CollectionRef,
   PropertyFilterQuery,
   PropertyFilterOption,
-  PropertyFilterProperty,
   CollectionActions,
   GroupSelectionState,
   ExpandableRowsResultBase,
+  PropertyFilterProperty,
 } from './interfaces';
 import { fixupFalsyValues } from './operations/property-filter.js';
 

@@ -132,16 +132,26 @@ function matchPrimitiveValue({
   }
 }
 
+export type NonFalsyKeysCache<T> = Map<T, string[]>;
+
 function freeTextFilter<T>(
   tokenValue: string,
   item: T,
   operator: PropertyFilterOperator,
-  filteringPropertiesMap: FilteringPropertiesMap<T>
+  filteringPropertiesMap: FilteringPropertiesMap<T>,
+  nonFalsyKeysCache?: NonFalsyKeysCache<T>
 ): boolean {
-  // If the operator is not a negation, we just need one property of the object to match.
-  // If the operator is a negation, we want none of the properties of the object to match.
   const isNegation = operator.startsWith('!');
-  return Object.keys(filteringPropertiesMap)[isNegation ? 'every' : 'some'](propertyKey => {
+  const nonFalsyKeys =
+    nonFalsyKeysCache?.get(item) ??
+    Object.keys(filteringPropertiesMap).filter(k => {
+      const v = item[k as keyof T];
+      return v !== null && v !== undefined && v !== '' && v !== false;
+    });
+  if (nonFalsyKeys.length === 0) {
+    return isNegation;
+  }
+  return nonFalsyKeys[isNegation ? 'every' : 'some'](propertyKey => {
     const { operators } = filteringPropertiesMap[propertyKey as keyof typeof filteringPropertiesMap];
     const propertyOperator = operators[operator];
     if (!propertyOperator) {
@@ -151,7 +161,12 @@ function freeTextFilter<T>(
   });
 }
 
-function filterByToken<T>(token: PropertyFilterToken, item: T, filteringPropertiesMap: FilteringPropertiesMap<T>) {
+function filterByToken<T>(
+  token: PropertyFilterToken,
+  item: T,
+  filteringPropertiesMap: FilteringPropertiesMap<T>,
+  nonFalsyKeysCache?: NonFalsyKeysCache<T>
+) {
   if (token.propertyKey) {
     // token refers to a unknown property or uses an unsupported operator
     if (
@@ -170,7 +185,7 @@ function filterByToken<T>(token: PropertyFilterToken, item: T, filteringProperti
       operator: operator ?? { operator: token.operator },
     });
   }
-  return freeTextFilter(token.value, item, token.operator, filteringPropertiesMap);
+  return freeTextFilter(token.value, item, token.operator, filteringPropertiesMap, nonFalsyKeysCache);
 }
 
 function isPropertyFilterTokenGroup(t: PropertyFilterToken | PropertyFilterTokenGroup): t is PropertyFilterTokenGroup {
@@ -205,15 +220,22 @@ export function makeEvaluate<T>(filteringProperties: readonly PropertyFilterProp
     },
     {} as FilteringPropertiesMap<T>
   );
-  return function evaluate(item: T, tokenOrGroup: PropertyFilterToken | PropertyFilterTokenGroup): boolean {
+  return function evaluate(
+    item: T,
+    tokenOrGroup: PropertyFilterToken | PropertyFilterTokenGroup,
+    nonFalsyKeysCache?: NonFalsyKeysCache<T>
+  ): boolean {
     if (isPropertyFilterTokenGroup(tokenOrGroup)) {
       let result = tokenOrGroup.operation === 'and' ? true : !tokenOrGroup.tokens.length;
       for (const group of tokenOrGroup.tokens) {
-        result = tokenOrGroup.operation === 'and' ? result && evaluate(item, group) : result || evaluate(item, group);
+        result =
+          tokenOrGroup.operation === 'and'
+            ? result && evaluate(item, group, nonFalsyKeysCache)
+            : result || evaluate(item, group, nonFalsyKeysCache);
       }
       return result;
     } else {
-      return filterByToken(tokenOrGroup, item, filteringPropertiesMap);
+      return filterByToken(tokenOrGroup, item, filteringPropertiesMap, nonFalsyKeysCache);
     }
   };
 }
