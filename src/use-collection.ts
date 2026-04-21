@@ -108,18 +108,39 @@ export function useCollection<T>(allItems: ReadonlyArray<T>, options: UseCollect
   // When normal selection is used, the selectedItems are taken from state.
   // When group selection is used, the selectedItems are derived from group selection state.
   const extendedState = selectedItems ? { ...state, selectedItems } : state;
-  // Wrap onSelectionControllerItemClick to capture allMatchingItems for cross-page selection
+  // Wrap onSelectionControllerItemClick to accumulate allMatchingItems for cross-page selection.
+  // When a checkbox item is toggled ON, its matching items are added to the accumulated set.
+  // When toggled OFF, its matching items are removed.
   const wrappedOptions = { ...options };
   if (options.selection?.onSelectionControllerItemClick) {
     const originalCallback = options.selection.onSelectionControllerItemClick;
+    const trackBy = options.selection.trackBy;
+    const getKey = (item: T): string => {
+      if (typeof trackBy === 'function') {
+        return trackBy(item);
+      }
+      if (typeof trackBy === 'string') {
+        return String((item as any)[trackBy]);
+      }
+      return JSON.stringify(item);
+    };
     wrappedOptions.selection = {
       ...options.selection,
       onSelectionControllerItemClick: (detail, visibleItems, hookActions, allItems) => {
         const result = originalCallback(detail, visibleItems, hookActions, allItems);
         if (result && 'allMatchingItems' in result) {
-          setLastAllMatchingItems(result.allMatchingItems);
-        } else {
-          setLastAllMatchingItems([]);
+          const matching = result.allMatchingItems;
+          setLastAllMatchingItems(prev => {
+            if (detail.checked) {
+              // Toggled ON — union prev with matching
+              const existing = new Set(prev.map(getKey));
+              return [...prev, ...matching.filter(m => !existing.has(getKey(m)))];
+            } else {
+              // Toggled OFF — remove matching from prev
+              const toRemove = new Set(matching.map(getKey));
+              return prev.filter(p => !toRemove.has(getKey(p)));
+            }
+          });
         }
         return result;
       },
