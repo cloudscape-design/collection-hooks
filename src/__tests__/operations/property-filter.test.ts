@@ -890,9 +890,7 @@ describe('Token groups', () => {
 });
 
 describe('isFreeTextFilterable flag', () => {
-  const baseProps = [
-    { key: 'name', propertyLabel: 'Name', groupValuesLabel: '', operators: [':', '='] as const },
-  ];
+  const baseProps = [{ key: 'name', propertyLabel: 'Name', groupValuesLabel: '', operators: [':', '='] as const }];
   const items = [
     { name: 'alpha', tag: 'prod' },
     { name: 'beta', tag: 'prod' },
@@ -906,7 +904,13 @@ describe('isFreeTextFilterable flag', () => {
         propertyFiltering: {
           filteringProperties: [
             ...baseProps,
-            { key: 'tag', propertyLabel: 'Tag', groupValuesLabel: '', operators: [':', '='] as const, isFreeTextFilterable: false as const },
+            {
+              key: 'tag',
+              propertyLabel: 'Tag',
+              groupValuesLabel: '',
+              operators: [':', '='] as const,
+              isFreeTextFilterable: false as const,
+            },
           ],
         },
       }
@@ -922,7 +926,13 @@ describe('isFreeTextFilterable flag', () => {
         propertyFiltering: {
           filteringProperties: [
             ...baseProps,
-            { key: 'tag', propertyLabel: 'Tag', groupValuesLabel: '', operators: [':', '='] as const, isFreeTextFilterable: false as const },
+            {
+              key: 'tag',
+              propertyLabel: 'Tag',
+              groupValuesLabel: '',
+              operators: [':', '='] as const,
+              isFreeTextFilterable: false as const,
+            },
           ],
         },
       }
@@ -950,9 +960,19 @@ describe('isFreeTextFilterable flag', () => {
 describe('isFreeTextFilterable and generateFilteringOptions both false', () => {
   const props = [
     { key: 'name', propertyLabel: 'Name', groupValuesLabel: '', operators: [':', '='] as const },
-    { key: 'tag', propertyLabel: 'Tag', groupValuesLabel: '', operators: [':', '='] as const, isFreeTextFilterable: false as const, generateFilteringOptions: false as const },
+    {
+      key: 'tag',
+      propertyLabel: 'Tag',
+      groupValuesLabel: '',
+      operators: [':', '='] as const,
+      isFreeTextFilterable: false as const,
+      generateFilteringOptions: false as const,
+    },
   ];
-  const items = [{ name: 'alpha', tag: 'prod' }, { name: 'beta', tag: 'prod' }];
+  const items = [
+    { name: 'alpha', tag: 'prod' },
+    { name: 'beta', tag: 'prod' },
+  ];
 
   test('excluded from free-text search', () => {
     const { items: result } = processItems(
