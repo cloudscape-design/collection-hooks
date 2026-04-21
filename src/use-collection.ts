@@ -19,7 +19,7 @@ export function useCollection<T>(allItems: ReadonlyArray<T>, options: UseCollect
     actualPageIndex,
     selectedItems,
     expandableRows,
-  } = processItems(allItems, state, options);
+  } = processItems(allItems, state, options, filteringFunction);
 
   const expandedItemsSet = new Set<string>();
   if (options.expandableRows) {
