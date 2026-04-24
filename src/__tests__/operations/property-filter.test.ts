@@ -1,9 +1,18 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
 import { test, expect, describe, vi } from 'vitest';
-import { processItems } from '../../operations';
-import { PropertyFilterOperator } from '../../interfaces';
+import { PropertyFilterOperator, PropertyFilterQuery, UseCollectionOptions } from '../../interfaces';
 import * as logging from '../../logging';
+import { renderUseCollection } from '../utils';
+
+function processItems<T>(
+  items: readonly T[],
+  state: { propertyFilteringQuery?: PropertyFilterQuery },
+  options: Pick<UseCollectionOptions<T>, 'propertyFiltering'>
+) {
+  const propertyFiltering = { ...options.propertyFiltering!, defaultQuery: state.propertyFilteringQuery };
+  return renderUseCollection(items, { ...options, propertyFiltering }).result;
+}
 
 const propertyFiltering = {
   filteringProperties: [
