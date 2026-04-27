@@ -1,5 +1,6 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
+import * as React from 'react';
 import { Dispatch, Reducer, ReactNode } from 'react';
 import {
   UseCollectionOptions,
@@ -43,7 +44,11 @@ interface PropertyFilteringAction {
   type: 'property-filtering';
   query: PropertyFilterQuery;
 }
+interface AllAcrossPagesAction {
+  type: 'all-across-pages';
+}
 type Action<T> =
+  | AllAcrossPagesAction
   | SelectionAction<T>
   | GroupSelectionAction<T>
   | ExpansionAction<T>
@@ -55,6 +60,9 @@ export type CollectionReducer<T> = Reducer<CollectionState<T>, Action<T>>;
 export function collectionReducer<T>(state: CollectionState<T>, action: Action<T>): CollectionState<T> {
   const newState = { ...state };
   switch (action.type) {
+    case 'all-across-pages':
+      // Handled in useCollection - sets a flag that all items across pages are selected
+      break;
     case 'selection':
       newState.selectedItems = action.selectedItems;
       break;
@@ -116,6 +124,9 @@ export function createActions<T>({
     setGroupSelection(groupSelection: GroupSelectionState<T>) {
       dispatch({ type: 'group-selection', state: groupSelection });
     },
+    selectAllAcrossPages() {
+      dispatch({ type: 'all-across-pages' });
+    },
   };
 }
 
@@ -136,16 +147,29 @@ export function createSyncProps<T>(
     pagesCount,
     actualPageIndex,
     allItems,
+    allPageItems,
+    visibleItems,
     totalItemsCount,
     expandableRows,
+    allAcrossPages,
+    lastAllMatchingItems,
+    onClearCrossPageState,
   }: {
     pagesCount?: number;
     actualPageIndex?: number;
     allItems: readonly T[];
+    allPageItems: readonly T[];
+    visibleItems: readonly T[];
     totalItemsCount: number;
     expandableRows?: ExpandableRowsResultBase<T>;
+    allAcrossPages?: boolean;
+    lastAllMatchingItems?: readonly unknown[];
+    onClearCrossPageState?: () => void;
   }
-): Pick<UseCollectionResult<T>, 'collectionProps' | 'filterProps' | 'paginationProps' | 'propertyFilterProps'> {
+): Pick<
+  UseCollectionResult<T>,
+  'collectionProps' | 'filterProps' | 'paginationProps' | 'propertyFilterProps' | 'crossPageSelectionState'
+> {
   let empty: ReactNode | null = options.filtering
     ? allItems.length
       ? options.filtering.noMatch
@@ -174,6 +198,33 @@ export function createSyncProps<T>(
         return acc;
       }, [])
     : [];
+
+  // Compute cross-page selection state for consumer
+  const crossPageState = (() => {
+    if (!options.selection?.crossPageSelection || !options.pagination?.pageSize) {
+      return undefined;
+    }
+
+    if (allAcrossPages) {
+      const totalCount =
+        lastAllMatchingItems && lastAllMatchingItems.length > 0
+          ? lastAllMatchingItems.length
+          : options.selection?.crossPageSelection?.totalMatchingCount ?? allPageItems.length;
+      return { type: 'all-selected' as const, pageCount: visibleItems.length, totalCount };
+    }
+
+    // Check if there are matching items beyond the current page
+    // Use lastAllMatchingItems if available (from selection controller click)
+    if (lastAllMatchingItems && lastAllMatchingItems.length > 0) {
+      const matchingOnPage = selectedItems.length;
+      const totalMatching = lastAllMatchingItems.length;
+      if (matchingOnPage > 0 && totalMatching > matchingOnPage) {
+        return { type: 'page-selected' as const, pageCount: matchingOnPage, totalCount: totalMatching };
+      }
+    }
+
+    return undefined;
+  })();
 
   return {
     collectionProps: {
@@ -220,10 +271,31 @@ export function createSyncProps<T>(
       ...(options.selection
         ? {
             onSelectionChange: ({ detail: { selectedItems } }) => {
+              onClearCrossPageState?.();
               actions.setSelectedItems(selectedItems);
             },
             selectedItems,
             trackBy: options.selection.trackBy ?? options.expandableRows?.getId,
+            ...(options.selection.selectionControllerItems
+              ? {
+                  selectionControllerItems:
+                    typeof options.selection.selectionControllerItems === 'function'
+                      ? options.selection.selectionControllerItems(visibleItems, selectedItems)
+                      : options.selection.selectionControllerItems,
+                  ...(options.selection.onSelectionControllerItemClick
+                    ? {
+                        onSelectionControllerItemClick: ({ detail }: { detail: { id: string; checked?: boolean } }) => {
+                          options.selection!.onSelectionControllerItemClick!(
+                            detail,
+                            visibleItems,
+                            actions,
+                            allPageItems
+                          );
+                        },
+                      }
+                    : {}),
+                }
+              : {}),
           }
         : {}),
       ref: collectionRef,
@@ -258,5 +330,6 @@ export function createSyncProps<T>(
         actions.setCurrentPage(currentPageIndex);
       },
     },
+    crossPageSelectionState: crossPageState,
   };
 }

@@ -1,6 +1,6 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
-import { useRef } from 'react';
+import { useRef, useState } from 'react';
 import { processItems, processSelectedItems, itemsAreEqual } from './operations/index.js';
 import { UseCollectionOptions, UseCollectionResult, CollectionRef } from './interfaces';
 import { createSyncProps } from './utils.js';
@@ -8,7 +8,15 @@ import { useCollectionState } from './use-collection-state.js';
 
 export function useCollection<T>(allItems: ReadonlyArray<T>, options: UseCollectionOptions<T>): UseCollectionResult<T> {
   const collectionRef = useRef<CollectionRef>(null);
-  const [state, actions] = useCollectionState(options, collectionRef);
+  const allAcrossPagesRef = useRef(false);
+  const [allAcrossPages, setAllAcrossPages] = useState(false);
+  const setAllAcrossPagesSync = (value: boolean) => {
+    allAcrossPagesRef.current = value;
+    setAllAcrossPages(value);
+  };
+  const [lastAllMatchingItems, setLastAllMatchingItems] = useState<ReadonlyArray<T>>([]);
+  const [state, baseActions] = useCollectionState(options, collectionRef);
+
   const {
     items,
     allPageItems,
@@ -19,6 +27,42 @@ export function useCollection<T>(allItems: ReadonlyArray<T>, options: UseCollect
     selectedItems,
     expandableRows,
   } = processItems(allItems, state, options);
+
+  // Wrap actions to track cross-page selection
+  const resetAcrossPages = () => setAllAcrossPagesSync(false);
+  const actions: typeof baseActions = {
+    ...baseActions,
+    setSelectedItems(selectedItems) {
+      resetAcrossPages();
+      baseActions.setSelectedItems(selectedItems);
+    },
+    setFiltering(filteringText) {
+      resetAcrossPages();
+      baseActions.setFiltering(filteringText);
+    },
+    setPropertyFiltering(query) {
+      resetAcrossPages();
+      baseActions.setPropertyFiltering(query);
+    },
+    setSorting(state) {
+      resetAcrossPages();
+      baseActions.setSorting(state);
+    },
+    setCurrentPage(pageNumber) {
+      // Don't reset cross-page selection when navigating pages
+      if (!allAcrossPagesRef.current) {
+        resetAcrossPages();
+      }
+      baseActions.setCurrentPage(pageNumber);
+    },
+    selectAllAcrossPages() {
+      setAllAcrossPagesSync(true);
+      // Select all items that match the last selection criteria across all pages
+      baseActions.setSelectedItems(
+        lastAllMatchingItems.length > 0 ? lastAllMatchingItems : (allPageItems as ReadonlyArray<T>)
+      );
+    },
+  };
 
   const expandedItemsSet = new Set<string>();
   if (options.expandableRows) {
@@ -43,8 +87,8 @@ export function useCollection<T>(allItems: ReadonlyArray<T>, options: UseCollect
     visibleItems = flatItems;
   }
 
-  // Removing selected items that are no longer present in items unless keepSelection=true.
-  if (options.selection && !options.selection.keepSelection) {
+  // Removing selected items that are no longer present in items unless keepSelection=true or cross-page selection is active.
+  if (options.selection && !options.selection.keepSelection && !allAcrossPagesRef.current) {
     const newSelectedItems = processSelectedItems(visibleItems, state.selectedItems, options.selection.trackBy);
     if (!itemsAreEqual(newSelectedItems, state.selectedItems, options.selection.trackBy)) {
       // This is a recommended pattern for how to handle the state, dependent on the incoming props
@@ -64,17 +108,67 @@ export function useCollection<T>(allItems: ReadonlyArray<T>, options: UseCollect
   // When normal selection is used, the selectedItems are taken from state.
   // When group selection is used, the selectedItems are derived from group selection state.
   const extendedState = selectedItems ? { ...state, selectedItems } : state;
+  // Wrap onSelectionControllerItemClick to accumulate allMatchingItems for cross-page selection.
+  // When a checkbox item is toggled ON, its matching items are added to the accumulated set.
+  // When toggled OFF, its matching items are removed.
+  const wrappedOptions = { ...options };
+  if (options.selection?.onSelectionControllerItemClick) {
+    const originalCallback = options.selection.onSelectionControllerItemClick;
+    const trackBy = options.selection.trackBy;
+    const getKey = (item: T): string => {
+      if (typeof trackBy === 'function') {
+        return trackBy(item);
+      }
+      if (typeof trackBy === 'string') {
+        return String((item as any)[trackBy]);
+      }
+      return JSON.stringify(item);
+    };
+    wrappedOptions.selection = {
+      ...options.selection,
+      onSelectionControllerItemClick: (detail, visibleItems, hookActions, allItems) => {
+        const result = originalCallback(detail, visibleItems, hookActions, allItems);
+        if (result && 'allMatchingItems' in result) {
+          const matching = result.allMatchingItems;
+          setLastAllMatchingItems(prev => {
+            if (detail.checked) {
+              // Toggled ON — union prev with matching
+              const existing = new Set(prev.map(getKey));
+              return [...prev, ...matching.filter(m => !existing.has(getKey(m)))];
+            } else {
+              // Toggled OFF — remove matching from prev
+              const toRemove = new Set(matching.map(getKey));
+              return prev.filter(p => !toRemove.has(getKey(p)));
+            }
+          });
+        }
+        return result;
+      },
+    };
+  }
+
+  const syncProps = createSyncProps(wrappedOptions, extendedState, actions, collectionRef, {
+    actualPageIndex,
+    pagesCount,
+    allItems,
+    allPageItems,
+    visibleItems,
+    totalItemsCount,
+    expandableRows,
+    allAcrossPages,
+    lastAllMatchingItems,
+    onClearCrossPageState: () => {
+      setLastAllMatchingItems([]);
+      setAllAcrossPagesSync(false);
+    },
+  });
+
   return {
     items,
     allPageItems,
     filteredItemsCount,
     actions,
-    ...createSyncProps(options, extendedState, actions, collectionRef, {
-      actualPageIndex,
-      pagesCount,
-      allItems,
-      totalItemsCount,
-      expandableRows,
-    }),
+    crossPageSelectionState: syncProps.crossPageSelectionState,
+    ...syncProps,
   };
 }

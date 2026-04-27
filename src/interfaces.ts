@@ -37,6 +37,30 @@ export interface GroupSelectionChangeDetail<T> {
 
 export type TrackBy<T> = string | ((item: T) => string);
 
+// Selection controller item types - mirrors ButtonDropdown item types
+export interface SelectionControllerItem {
+  id: string;
+  text: string;
+  itemType?: 'checkbox';
+  checked?: boolean;
+  disabled?: boolean;
+  secondaryText?: string;
+  [key: string]: any;
+}
+
+export interface SelectionControllerItemGroup {
+  text?: string;
+  items: ReadonlyArray<SelectionControllerItem>;
+  [key: string]: any;
+}
+
+export type SelectionControllerItems = ReadonlyArray<SelectionControllerItem | SelectionControllerItemGroup>;
+
+export interface SelectionControllerItemClickDetail {
+  id: string;
+  checked?: boolean;
+}
+
 export interface UseCollectionOptions<T> {
   filtering?: FilteringOptions<T> & {
     empty?: React.ReactNode;
@@ -58,6 +82,20 @@ export interface UseCollectionOptions<T> {
     defaultSelectedItems?: ReadonlyArray<T>;
     keepSelection?: boolean;
     trackBy?: TrackBy<T>;
+    selectionControllerItems?:
+      | SelectionControllerItems
+      | ((visibleItems: ReadonlyArray<T>, selectedItems: ReadonlyArray<T>) => SelectionControllerItems);
+    onSelectionControllerItemClick?: (
+      detail: SelectionControllerItemClickDetail,
+      visibleItems: ReadonlyArray<T>,
+      actions: CollectionActions<T>,
+      allItems: ReadonlyArray<T>
+    ) => void | { allMatchingItems: ReadonlyArray<T> };
+    crossPageSelection?: {
+      /** Total number of items matching the current filter across all pages.
+       * If not provided, defaults to allItems.length. */
+      totalMatchingCount?: number;
+    };
   };
   expandableRows?: ExpandableRowsProps<T>;
 }
@@ -85,6 +123,12 @@ export interface CollectionState<T> {
   groupSelection: GroupSelectionState<T>;
 }
 
+export interface CrossPageSelectionState {
+  type: 'page-selected' | 'all-selected' | 'none';
+  pageCount: number;
+  totalCount: number;
+}
+
 export interface CollectionActions<T> {
   setFiltering(filteringText: string): void;
   setCurrentPage(pageNumber: number): void;
@@ -93,6 +137,7 @@ export interface CollectionActions<T> {
   setPropertyFiltering(query: PropertyFilterQuery): void;
   setExpandedItems(items: ReadonlyArray<T>): void;
   setGroupSelection(state: GroupSelectionState<T>): void;
+  selectAllAcrossPages(): void;
 }
 
 interface UseCollectionResultBase<T> {
@@ -109,6 +154,8 @@ interface UseCollectionResultBase<T> {
     onSelectionChange?(event: CustomEventLike<SelectionChangeDetail<T>>): void;
     expandableRows?: ExpandableRowsResult<T>;
     trackBy?: string | ((item: T) => string);
+    selectionControllerItems?: SelectionControllerItems;
+    onSelectionControllerItemClick?(event: CustomEventLike<SelectionControllerItemClickDetail>): void;
     ref: React.RefObject<CollectionRef>;
     // The count of all root items (on all pages). It is used together with the firstIndex to announce page changes.
     totalItemsCount: number;
@@ -154,6 +201,7 @@ export interface ExpandableRowsResult<T> extends ExpandableRowsResultBase<T> {
 
 export interface UseCollectionResult<T> extends UseCollectionResultBase<T> {
   filteredItemsCount: number | undefined;
+  crossPageSelectionState?: CrossPageSelectionState;
   paginationProps: UseCollectionResultBase<T>['paginationProps'] & {
     pagesCount: number;
   };
