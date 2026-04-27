@@ -507,7 +507,55 @@ describe('Property filtering', () => {
       return <>{result.propertyFilterProps.filteringOptions.map(({ value }) => value).join(',')}</>;
     };
     const { container } = testRender(<MixedOptions />);
-    expect(container?.textContent?.split(',')).toEqual(['0', 'false']);
+    expect(container?.textContent?.split(',')).toEqual(['false', '0']);
+  });
+
+  test('should use custom filteringOptions when provided', () => {
+    const customOptions = [
+      { propertyKey: 'id', value: 'custom-1' },
+      { propertyKey: 'id', value: 'custom-2' },
+    ];
+    function App() {
+      const result = useCollection([{ id: '1' }, { id: '2' }] as Item[], {
+        propertyFiltering: {
+          filteringProperties: [{ key: 'id', groupValuesLabel: 'ID', propertyLabel: 'ID' }],
+          filteringOptions: customOptions,
+        },
+        pagination: {},
+      });
+      return <>{result.propertyFilterProps.filteringOptions.map(({ value }) => value).join(',')}</>;
+    }
+    const { container } = testRender(<App />);
+    expect(container?.textContent?.split(',')).toEqual(['custom-1', 'custom-2']);
+  });
+
+  test('should derive filteringOptions from items when custom options are not provided', () => {
+    function App() {
+      const result = useCollection([{ id: 'a' }, { id: 'b' }] as Item[], {
+        propertyFiltering: {
+          filteringProperties: [{ key: 'id', groupValuesLabel: 'ID', propertyLabel: 'ID' }],
+        },
+        pagination: {},
+      });
+      return <>{result.propertyFilterProps.filteringOptions.map(({ value }) => value).join(',')}</>;
+    }
+    const { container } = testRender(<App />);
+    expect(container?.textContent?.split(',')).toEqual(['a', 'b']);
+  });
+
+  test('should use custom filteringOptions even when empty', () => {
+    function App() {
+      const result = useCollection([{ id: '1' }] as Item[], {
+        propertyFiltering: {
+          filteringProperties: [{ key: 'id', groupValuesLabel: 'ID', propertyLabel: 'ID' }],
+          filteringOptions: [],
+        },
+        pagination: {},
+      });
+      return <>{result.propertyFilterProps.filteringOptions.length}</>;
+    }
+    const { container } = testRender(<App />);
+    expect(container?.textContent).toEqual('0');
   });
 });
 

@@ -47,6 +47,7 @@ export interface UseCollectionOptions<T> {
     empty?: React.ReactNode;
     noMatch?: React.ReactNode;
     filteringProperties: readonly PropertyFilterProperty[];
+    filteringOptions?: PropertyFilterOption[];
     // custom filtering function
     filteringFunction?: (item: T, query: PropertyFilterQuery) => boolean;
     defaultQuery?: PropertyFilterQuery;

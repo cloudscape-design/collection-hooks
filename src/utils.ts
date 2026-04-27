@@ -24,19 +24,18 @@ export function computeFilteringOptions<T>(
     return [];
   }
   return filteringProperties.reduce<PropertyFilterOption[]>((acc, property) => {
-    Object.keys(
-      allItems.reduce<{ [key in string]: boolean }>((acc, item) => {
-        acc['' + fixupFalsyValues(item[property.key as keyof T])] = true;
-        return acc;
-      }, {})
-    ).forEach(value => {
-      if (value !== '') {
-        acc.push({
-          propertyKey: property.key,
-          value,
-        });
+    const cache = new Set<string>(['']);
+    const addOption = (value: string) => {
+      if (!cache.has(value)) {
+        cache.add(value);
+        acc.push({ propertyKey: property.key, value });
+        return true;
       }
-    });
+      return false;
+    };
+    for (const item of allItems) {
+      addOption('' + fixupFalsyValues(item[property.key as keyof T]));
+    }
     return acc;
   }, []);
 }

@@ -178,15 +178,16 @@ function isPropertyFilterTokenGroup(t: PropertyFilterToken | PropertyFilterToken
   return key in t;
 }
 
-type FilteringPropertiesMap<T> = {
-  [key in keyof T]: {
-    operators: FilteringOperatorsMap;
+function defaultFilteringFunction<T>({
+  filteringProperties,
+}: {
+  filteringProperties: readonly PropertyFilterProperty[];
+}) {
+  const evaluate = makeEvaluate(filteringProperties);
+  return (item: T, query: PropertyFilterQuery) => {
+    return evaluate(item, { operation: query.operation, tokens: query.tokenGroups ?? query.tokens });
   };
-};
-
-type FilteringOperatorsMap = {
-  [key in PropertyFilterOperator]?: PropertyFilterOperatorExtended<any>;
-};
+}
 
 export function makeEvaluate<T>(filteringProperties: readonly PropertyFilterProperty[]) {
   const filteringPropertiesMap = filteringProperties.reduce<FilteringPropertiesMap<T>>(
@@ -217,30 +218,25 @@ export function makeEvaluate<T>(filteringProperties: readonly PropertyFilterProp
   };
 }
 
-function defaultFilteringFunction<T>(
-  evaluate: (item: T, tokenOrGroup: PropertyFilterToken | PropertyFilterTokenGroup) => boolean
-) {
-  return (item: T, query: PropertyFilterQuery) => {
-    return evaluate(item, {
-      operation: query.operation,
-      tokens: query.tokenGroups ?? query.tokens,
-    });
+type FilteringPropertiesMap<T> = {
+  [key in keyof T]: {
+    operators: FilteringOperatorsMap;
   };
-}
+};
+
+type FilteringOperatorsMap = {
+  [key in PropertyFilterOperator]?: PropertyFilterOperatorExtended<any>;
+};
 
 export function createPropertyFilterPredicate<T>(
   propertyFiltering: UseCollectionOptions<T>['propertyFiltering'],
-  query: PropertyFilterQuery = { tokens: [], operation: 'and' },
-  filteringFunction?: (item: T, query: PropertyFilterQuery) => boolean
+  query: PropertyFilterQuery = { tokens: [], operation: 'and' }
 ): null | Predicate<T> {
   if (!propertyFiltering) {
     return null;
   }
-  const resolvedFilteringFunction =
-    propertyFiltering.filteringFunction ||
-    filteringFunction ||
-    defaultFilteringFunction(makeEvaluate<T>(propertyFiltering.filteringProperties));
-  return item => resolvedFilteringFunction(item, query);
+  const filteringFunction = propertyFiltering.filteringFunction ?? defaultFilteringFunction(propertyFiltering);
+  return item => filteringFunction(item, query);
 }
 
 export const fixupFalsyValues = <T>(value: T): T | string => {

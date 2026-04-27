@@ -2,8 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 import { useRef, useMemo } from 'react';
 import { processItems, processSelectedItems, itemsAreEqual } from './operations/index.js';
-import { UseCollectionOptions, UseCollectionResult, CollectionRef, PropertyFilterQuery } from './interfaces';
-import { makeEvaluate } from './operations/property-filter.js';
+import { UseCollectionOptions, UseCollectionResult, CollectionRef } from './interfaces';
 import { createSyncProps, computeFilteringOptions } from './utils.js';
 import { useCollectionState } from './use-collection-state.js';
 
@@ -11,11 +10,6 @@ export function useCollection<T>(allItems: ReadonlyArray<T>, options: UseCollect
   const collectionRef = useRef<CollectionRef>(null);
   const [state, actions] = useCollectionState(options, collectionRef);
   const filteringProperties = options.propertyFiltering?.filteringProperties;
-  const filteringFunction = useMemo(() => {
-    const evaluate = makeEvaluate<T>(filteringProperties ?? []);
-    return (item: T, query: PropertyFilterQuery) =>
-      evaluate(item, { operation: query.operation, tokens: query.tokenGroups ?? query.tokens });
-  }, [filteringProperties]);
   const {
     items,
     allPageItems,
@@ -25,7 +19,7 @@ export function useCollection<T>(allItems: ReadonlyArray<T>, options: UseCollect
     actualPageIndex,
     selectedItems,
     expandableRows,
-  } = processItems(allItems, state, options, filteringFunction);
+  } = processItems(allItems, state, options);
 
   const expandedItemsSet = new Set<string>();
   if (options.expandableRows) {
@@ -68,9 +62,10 @@ export function useCollection<T>(allItems: ReadonlyArray<T>, options: UseCollect
     }
   }
 
+  const externalFilteringOptions = options.propertyFiltering?.filteringOptions;
   const filteringOptions = useMemo(
-    () => computeFilteringOptions(allItems, filteringProperties),
-    [allItems, filteringProperties]
+    () => externalFilteringOptions ?? computeFilteringOptions(allItems, filteringProperties),
+    [allItems, filteringProperties, externalFilteringOptions]
   );
 
   // When normal selection is used, the selectedItems are taken from state.
