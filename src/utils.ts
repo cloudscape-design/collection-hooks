@@ -8,11 +8,11 @@ import {
   UseCollectionResult,
   CollectionRef,
   PropertyFilterQuery,
+  PropertyFilterProperty,
   PropertyFilterOption,
   CollectionActions,
   GroupSelectionState,
   ExpandableRowsResultBase,
-  PropertyFilterProperty,
 } from './interfaces';
 import { fixupFalsyValues } from './operations/property-filter.js';
 
