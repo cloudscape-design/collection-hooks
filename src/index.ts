@@ -18,6 +18,7 @@ export {
   PropertyFilterProperty,
   PropertyFilterTokenType,
   PropertyFilterQuery,
+  PropertyFilterTextOperatorExtended,
   PropertyFilterToken,
   PropertyFilterTokenGroup,
   UseCollectionOptions,

@@ -732,6 +732,101 @@ describe('matching enum token', () => {
   });
 });
 
+describe('custom free-text match', () => {
+  const items = [
+    { id: 1, field: 'alpha', searchIndex: 'alpha beta' },
+    { id: 2, field: 'beta', searchIndex: 'gamma delta' },
+    { id: 3, field: 'gamma', searchIndex: 'alpha gamma' },
+  ];
+
+  test('uses custom match and bypasses per-property iteration', () => {
+    const customMatch = vi.fn((item: unknown, text: string) => {
+      return ((item as (typeof items)[0]).searchIndex ?? '').toLowerCase().includes(text.toLowerCase());
+    });
+    const { items: processed } = processItems(
+      items,
+      { propertyFilteringQuery: { tokens: [{ operator: ':', value: 'delta' }], operation: 'and' } },
+      {
+        propertyFiltering: {
+          filteringProperties: [{ key: 'field', operators: [':'], propertyLabel: 'Field', groupValuesLabel: '' }],
+          freeTextFiltering: { operators: [{ operator: ':', match: customMatch }] },
+        },
+      }
+    );
+    expect(processed).toEqual([items[1]]);
+    // Called once per item, not once per item×property
+    expect(customMatch).toHaveBeenCalledTimes(3);
+    expect(customMatch).toHaveBeenCalledWith(items[0], 'delta');
+  });
+
+  test('falls back to default per-property iteration when no custom match for operator', () => {
+    const { items: processed } = processItems(
+      items,
+      { propertyFilteringQuery: { tokens: [{ operator: ':', value: 'alpha' }], operation: 'and' } },
+      {
+        propertyFiltering: {
+          filteringProperties: [{ key: 'field', operators: [':'], propertyLabel: 'Field', groupValuesLabel: '' }],
+          freeTextFiltering: { operators: [{ operator: '!:', match: () => true }] },
+        },
+      }
+    );
+    expect(processed).toEqual([items[0]]);
+  });
+
+  test('custom match receives the entire item object', () => {
+    const customMatch = vi.fn(() => false);
+    processItems(
+      items,
+      { propertyFilteringQuery: { tokens: [{ operator: ':', value: 'test' }], operation: 'and' } },
+      {
+        propertyFiltering: {
+          filteringProperties: [{ key: 'field', operators: [':'], propertyLabel: 'Field', groupValuesLabel: '' }],
+          freeTextFiltering: { operators: [{ operator: ':', match: customMatch }] },
+        },
+      }
+    );
+    expect(customMatch).toHaveBeenCalledWith(items[0], 'test');
+    expect(customMatch).toHaveBeenCalledWith(items[1], 'test');
+    expect(customMatch).toHaveBeenCalledWith(items[2], 'test');
+  });
+
+  test('does not affect property-specific token filtering', () => {
+    const customMatch = vi.fn(() => false);
+    const { items: processed } = processItems(
+      items,
+      {
+        propertyFilteringQuery: { tokens: [{ propertyKey: 'field', operator: ':', value: 'alpha' }], operation: 'and' },
+      },
+      {
+        propertyFiltering: {
+          filteringProperties: [{ key: 'field', operators: [':'], propertyLabel: 'Field', groupValuesLabel: '' }],
+          freeTextFiltering: { operators: [{ operator: ':', match: customMatch }] },
+        },
+      }
+    );
+    // Property-specific token should use default logic, not custom match
+    expect(processed).toEqual([items[0]]);
+    expect(customMatch).not.toHaveBeenCalled();
+  });
+
+  test('works with string-only operators in freeTextFiltering alongside extended ones', () => {
+    const customMatch = vi.fn((item: unknown, text: string) => {
+      return ((item as (typeof items)[0]).searchIndex ?? '').toLowerCase().includes(text.toLowerCase());
+    });
+    const { items: processed } = processItems(
+      items,
+      { propertyFilteringQuery: { tokens: [{ operator: ':', value: 'gamma' }], operation: 'and' } },
+      {
+        propertyFiltering: {
+          filteringProperties: [{ key: 'field', operators: [':', '!:'], propertyLabel: 'Field', groupValuesLabel: '' }],
+          freeTextFiltering: { operators: ['!:', { operator: ':', match: customMatch }] },
+        },
+      }
+    );
+    expect(processed).toEqual([items[1], items[2]]);
+  });
+});
+
 describe('Token groups', () => {
   test('token groups have precedence over tokens', () => {
     const { items: processed } = processItems(

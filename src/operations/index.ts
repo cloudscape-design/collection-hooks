@@ -1,14 +1,8 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
-import {
-  UseCollectionOptions,
-  CollectionState,
-  TrackBy,
-  ExpandableRowsResultBase,
-  PropertyFilterQuery,
-} from '../interfaces';
+import { UseCollectionOptions, CollectionState, TrackBy, ExpandableRowsResultBase } from '../interfaces';
 import { createFilterPredicate } from './filter.js';
-import { createPropertyFilterPredicate, NonFalsyKeysCache } from './property-filter.js';
+import { createPropertyFilterPredicate } from './property-filter.js';
 import { createComparator } from './sort.js';
 import { createPageProps } from './pagination.js';
 import { composeFilters } from './compose-filters.js';
@@ -18,9 +12,7 @@ import { computeFlatItems, computeTreeItems } from './items-tree.js';
 export function processItems<T>(
   allItems: ReadonlyArray<T>,
   state: Partial<CollectionState<T>>,
-  { filtering, sorting, pagination, propertyFiltering, expandableRows, selection }: UseCollectionOptions<T>,
-  filteringFunction?: (item: T, query: PropertyFilterQuery, nonFalsyKeysCache?: NonFalsyKeysCache<T>) => boolean,
-  nonFalsyKeysCache?: NonFalsyKeysCache<T>
+  { filtering, sorting, pagination, propertyFiltering, expandableRows, selection }: UseCollectionOptions<T>
 ): {
   items: readonly T[];
   allPageItems: readonly T[];
@@ -32,12 +24,7 @@ export function processItems<T>(
   expandableRows?: ExpandableRowsResultBase<T>;
 } {
   const filterPredicate = composeFilters(
-    createPropertyFilterPredicate(
-      propertyFiltering,
-      state.propertyFilteringQuery,
-      filteringFunction,
-      nonFalsyKeysCache
-    ),
+    createPropertyFilterPredicate(propertyFiltering, state.propertyFilteringQuery),
     createFilterPredicate(filtering, state.filteringText)
   );
   const sortingComparator = createComparator(sorting, state.sortingState);

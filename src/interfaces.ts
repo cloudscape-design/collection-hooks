@@ -184,6 +184,11 @@ export type PropertyFilterOperatorMatchByType = 'date' | 'datetime';
 
 export type PropertyFilterOperatorMatchCustom<TokenValue> = (itemValue: unknown, tokenValue: TokenValue) => boolean;
 
+export interface PropertyFilterTextOperatorExtended {
+  operator: PropertyFilterOperator;
+  match?: (item: unknown, text: string) => boolean;
+}
+
 export interface PropertyFilterOperatorFormProps<TokenValue> {
   value: null | TokenValue;
   onChange: (value: null | TokenValue) => void;
@@ -229,6 +234,6 @@ export interface PropertyFilterOption {
   filteringTags?: ReadonlyArray<string>;
 }
 export interface PropertyFilterFreeTextFiltering {
-  operators?: readonly PropertyFilterOperator[];
+  operators?: readonly (PropertyFilterOperator | PropertyFilterTextOperatorExtended)[];
   defaultOperator?: PropertyFilterOperator;
 }
