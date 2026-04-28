@@ -47,6 +47,7 @@ export interface UseCollectionOptions<T> {
     empty?: React.ReactNode;
     noMatch?: React.ReactNode;
     filteringProperties: readonly PropertyFilterProperty[];
+    // This type is not readonly because it is passed to the output unchanged, and the output is not readonly.
     filteringOptions?: PropertyFilterOption[];
     // custom filtering function
     filteringFunction?: (item: T, query: PropertyFilterQuery) => boolean;
