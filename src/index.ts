@@ -14,6 +14,7 @@ export {
   PropertyFilterOperatorFormat,
   PropertyFilterOperatorFormProps,
   PropertyFilterOperatorMatch,
+  PropertyFilterTextOperatorExtended,
   PropertyFilterOption,
   PropertyFilterProperty,
   PropertyFilterTokenType,
