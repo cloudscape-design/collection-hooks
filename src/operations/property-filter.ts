@@ -178,23 +178,43 @@ function isPropertyFilterTokenGroup(t: PropertyFilterToken | PropertyFilterToken
   return key in t;
 }
 
-function defaultFilteringFunction<T>(filteringPropertiesMap: FilteringPropertiesMap<T>) {
+function defaultFilteringFunction<T>({
+  filteringProperties,
+}: {
+  filteringProperties: readonly PropertyFilterProperty[];
+}) {
+  const evaluate = makeEvaluate(filteringProperties);
   return (item: T, query: PropertyFilterQuery) => {
-    function evaluate(tokenOrGroup: PropertyFilterToken | PropertyFilterTokenGroup): boolean {
-      if (isPropertyFilterTokenGroup(tokenOrGroup)) {
-        let result = tokenOrGroup.operation === 'and' ? true : !tokenOrGroup.tokens.length;
-        for (const group of tokenOrGroup.tokens) {
-          result = tokenOrGroup.operation === 'and' ? result && evaluate(group) : result || evaluate(group);
+    return evaluate(item, { operation: query.operation, tokens: query.tokenGroups ?? query.tokens });
+  };
+}
+
+export function makeEvaluate<T>(filteringProperties: readonly PropertyFilterProperty[]) {
+  const filteringPropertiesMap = filteringProperties.reduce<FilteringPropertiesMap<T>>(
+    (acc: FilteringPropertiesMap<T>, { key, operators, defaultOperator }: PropertyFilterProperty) => {
+      const operatorMap: FilteringOperatorsMap = { [defaultOperator ?? '=']: { operator: defaultOperator ?? '=' } };
+      operators?.forEach(op => {
+        if (typeof op === 'string') {
+          operatorMap[op] = { operator: op };
+        } else {
+          operatorMap[op.operator] = { operator: op.operator, match: op.match, tokenType: op.tokenType };
         }
-        return result;
-      } else {
-        return filterByToken(tokenOrGroup, item, filteringPropertiesMap);
+      });
+      acc[key as keyof T] = { operators: operatorMap };
+      return acc;
+    },
+    {} as FilteringPropertiesMap<T>
+  );
+  return function evaluate(item: T, tokenOrGroup: PropertyFilterToken | PropertyFilterTokenGroup): boolean {
+    if (isPropertyFilterTokenGroup(tokenOrGroup)) {
+      let result = tokenOrGroup.operation === 'and' ? true : !tokenOrGroup.tokens.length;
+      for (const group of tokenOrGroup.tokens) {
+        result = tokenOrGroup.operation === 'and' ? result && evaluate(item, group) : result || evaluate(item, group);
       }
+      return result;
+    } else {
+      return filterByToken(tokenOrGroup, item, filteringPropertiesMap);
     }
-    return evaluate({
-      operation: query.operation,
-      tokens: query.tokenGroups ?? query.tokens,
-    });
   };
 }
 
@@ -215,22 +235,7 @@ export function createPropertyFilterPredicate<T>(
   if (!propertyFiltering) {
     return null;
   }
-  const filteringPropertiesMap = propertyFiltering.filteringProperties.reduce<FilteringPropertiesMap<T>>(
-    (acc: FilteringPropertiesMap<T>, { key, operators, defaultOperator }: PropertyFilterProperty) => {
-      const operatorMap: FilteringOperatorsMap = { [defaultOperator ?? '=']: { operator: defaultOperator ?? '=' } };
-      operators?.forEach(op => {
-        if (typeof op === 'string') {
-          operatorMap[op] = { operator: op };
-        } else {
-          operatorMap[op.operator] = { operator: op.operator, match: op.match, tokenType: op.tokenType };
-        }
-      });
-      acc[key as keyof T] = { operators: operatorMap };
-      return acc;
-    },
-    {} as FilteringPropertiesMap<T>
-  );
-  const filteringFunction = propertyFiltering.filteringFunction || defaultFilteringFunction(filteringPropertiesMap);
+  const filteringFunction = propertyFiltering.filteringFunction ?? defaultFilteringFunction(propertyFiltering);
   return item => filteringFunction(item, query);
 }
 

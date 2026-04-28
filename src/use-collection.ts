@@ -1,14 +1,15 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
-import { useRef } from 'react';
+import { useRef, useMemo } from 'react';
 import { processItems, processSelectedItems, itemsAreEqual } from './operations/index.js';
 import { UseCollectionOptions, UseCollectionResult, CollectionRef } from './interfaces';
-import { createSyncProps } from './utils.js';
+import { createSyncProps, computeFilteringOptions } from './utils.js';
 import { useCollectionState } from './use-collection-state.js';
 
 export function useCollection<T>(allItems: ReadonlyArray<T>, options: UseCollectionOptions<T>): UseCollectionResult<T> {
   const collectionRef = useRef<CollectionRef>(null);
   const [state, actions] = useCollectionState(options, collectionRef);
+  const filteringProperties = options.propertyFiltering?.filteringProperties;
   const {
     items,
     allPageItems,
@@ -61,6 +62,12 @@ export function useCollection<T>(allItems: ReadonlyArray<T>, options: UseCollect
     }
   }
 
+  const externalFilteringOptions = options.propertyFiltering?.filteringOptions;
+  const filteringOptions = useMemo(
+    () => externalFilteringOptions ?? computeFilteringOptions(allItems, filteringProperties),
+    [allItems, filteringProperties, externalFilteringOptions]
+  );
+
   // When normal selection is used, the selectedItems are taken from state.
   // When group selection is used, the selectedItems are derived from group selection state.
   const extendedState = selectedItems ? { ...state, selectedItems } : state;
@@ -75,6 +82,7 @@ export function useCollection<T>(allItems: ReadonlyArray<T>, options: UseCollect
       allItems,
       totalItemsCount,
       expandableRows,
+      filteringOptions,
     }),
   };
 }
