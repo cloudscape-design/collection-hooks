@@ -7,6 +7,7 @@ export {
   CollectionRef,
   FilteringOptions,
   PropertyFilterFreeTextFiltering,
+  PropertyFilterFreeTextOperator,
   PropertyFilterOperation,
   PropertyFilterOperator,
   PropertyFilterOperatorExtended,

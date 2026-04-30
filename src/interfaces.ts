@@ -164,7 +164,7 @@ export interface CollectionRef {
   scrollToTop: () => void;
 }
 
-export type PropertyFilterOperator = '<' | '<=' | '>' | '>=' | ':' | '!:' | '=' | '!=' | '^' | string;
+export type PropertyFilterOperator = '<' | '<=' | '>' | '>=' | ':' | '!:' | '=' | '!=' | '^' | '!^' | string;
 
 export interface PropertyFilterOperatorExtended<TokenValue> {
   operator: PropertyFilterOperator;
@@ -229,6 +229,8 @@ export interface PropertyFilterOption {
   filteringTags?: ReadonlyArray<string>;
 }
 export interface PropertyFilterFreeTextFiltering {
-  operators?: readonly PropertyFilterOperator[];
+  operators?: readonly PropertyFilterFreeTextOperator[];
   defaultOperator?: PropertyFilterOperator;
 }
+
+export type PropertyFilterFreeTextOperator = PropertyFilterOperator;
