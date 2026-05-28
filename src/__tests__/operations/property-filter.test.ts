@@ -357,6 +357,147 @@ test('unsupported operator results in an exception', () => {
   ).toThrow('Unsupported operator given.');
 });
 
+describe('custom operators', () => {
+  test('custom operator with match function filters items', () => {
+    const items = [{ field: 'app-web-prod' }, { field: 'app-api-staging' }, { field: 'app-worker-prod' }];
+    const { items: processed } = processItems(
+      items,
+      {
+        propertyFilteringQuery: {
+          tokens: [{ propertyKey: 'field', operator: '~', value: 'app-.*-prod' }],
+          operation: 'and',
+        },
+      },
+      {
+        propertyFiltering: {
+          filteringProperties: [
+            {
+              key: 'field',
+              operators: [
+                {
+                  operator: '~',
+                  match: (itemValue, tokenValue) => new RegExp(tokenValue).test(String(itemValue)),
+                },
+              ],
+              propertyLabel: 'Field',
+              groupValuesLabel: 'Field values',
+            },
+          ],
+        },
+      }
+    );
+    expect(processed).toEqual([items[0], items[2]]);
+  });
+
+  test('custom operator without match function throws', () => {
+    const items = [{ field: 'test' }];
+    expect(() =>
+      processItems(
+        items,
+        {
+          propertyFilteringQuery: {
+            tokens: [{ propertyKey: 'field', operator: '~', value: 'test' }],
+            operation: 'and',
+          },
+        },
+        {
+          propertyFiltering: {
+            filteringProperties: [
+              {
+                key: 'field',
+                operators: ['~'],
+                propertyLabel: 'Field',
+                groupValuesLabel: 'Field values',
+              },
+            ],
+          },
+        }
+      )
+    ).toThrow('Unsupported operator given.');
+  });
+
+  test('custom match on predefined operator overrides default behavior', () => {
+    const items = [{ field: 'hello world' }, { field: 'HELLO WORLD' }, { field: 'goodbye' }];
+    const { items: processed } = processItems(
+      items,
+      {
+        propertyFilteringQuery: {
+          tokens: [{ propertyKey: 'field', operator: '=', value: 'hello world' }],
+          operation: 'and',
+        },
+      },
+      {
+        propertyFiltering: {
+          filteringProperties: [
+            {
+              key: 'field',
+              operators: [
+                {
+                  operator: '=',
+                  match: (itemValue: unknown, tokenValue: unknown) =>
+                    String(itemValue).toLowerCase() === String(tokenValue).toLowerCase(),
+                },
+              ],
+              propertyLabel: 'Field',
+              groupValuesLabel: 'Field values',
+            },
+          ],
+        },
+      }
+    );
+    // Default "=" uses == which is case-sensitive. Custom match is case-insensitive.
+    expect(processed).toEqual([items[0], items[1]]);
+  });
+
+  test('custom operator works in free text filtering across properties', () => {
+    const items = [
+      { name: 'app-web-prod', env: 'production' },
+      { name: 'app-api-staging', env: 'staging' },
+      { name: 'svc-auth-prod', env: 'production' },
+    ];
+    const { items: processed } = processItems(
+      items,
+      {
+        propertyFilteringQuery: {
+          tokens: [{ operator: '~', value: 'prod' }],
+          operation: 'and',
+        },
+      },
+      {
+        propertyFiltering: {
+          filteringProperties: [
+            {
+              key: 'name',
+              operators: [
+                {
+                  operator: '~',
+                  match: (itemValue: unknown, tokenValue: unknown) =>
+                    new RegExp(String(tokenValue)).test(String(itemValue)),
+                },
+              ],
+              propertyLabel: 'Name',
+              groupValuesLabel: 'Name values',
+            },
+            {
+              key: 'env',
+              operators: [
+                {
+                  operator: '~',
+                  match: (itemValue: unknown, tokenValue: unknown) =>
+                    new RegExp(String(tokenValue)).test(String(itemValue)),
+                },
+              ],
+              propertyLabel: 'Environment',
+              groupValuesLabel: 'Environment values',
+            },
+          ],
+        },
+      }
+    );
+    expect(processed).toEqual([items[0], items[2]]);
+  });
+});
+
 describe('filtering function', () => {
   test('Is called with the current query', () => {
     const items = [{ id: 1, field: 'match me' }];

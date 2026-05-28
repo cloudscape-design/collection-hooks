@@ -173,6 +173,7 @@ export interface PropertyFilterOperatorExtended<TokenValue> {
   match?: PropertyFilterOperatorMatch<TokenValue>;
   form?: PropertyFilterOperatorForm<TokenValue>;
   format?: PropertyFilterOperatorFormat<TokenValue>;
+  description?: string;
 }
 
 export type PropertyFilterTokenType = 'value' | 'enum';
