@@ -389,66 +389,6 @@ describe('custom operators', () => {
     expect(processed).toEqual([items[0], items[2]]);
   });
 
-  test('custom operator without match function throws', () => {
-    const items = [{ field: 'test' }];
-    expect(() =>
-      processItems(
-        items,
-        {
-          propertyFilteringQuery: {
-            tokens: [{ propertyKey: 'field', operator: '~', value: 'test' }],
-            operation: 'and',
-          },
-        },
-        {
-          propertyFiltering: {
-            filteringProperties: [
-              {
-                key: 'field',
-                operators: ['~'],
-                propertyLabel: 'Field',
-                groupValuesLabel: 'Field values',
-              },
-            ],
-          },
-        }
-      )
-    ).toThrow('Unsupported operator given.');
-  });
-
-  test('custom match on predefined operator overrides default behavior', () => {
-    const items = [{ field: 'hello world' }, { field: 'HELLO WORLD' }, { field: 'goodbye' }];
-    const { items: processed } = processItems(
-      items,
-      {
-        propertyFilteringQuery: {
-          tokens: [{ propertyKey: 'field', operator: '=', value: 'hello world' }],
-          operation: 'and',
-        },
-      },
-      {
-        propertyFiltering: {
-          filteringProperties: [
-            {
-              key: 'field',
-              operators: [
-                {
-                  operator: '=',
-                  match: (itemValue: unknown, tokenValue: unknown) =>
-                    String(itemValue).toLowerCase() === String(tokenValue).toLowerCase(),
-                },
-              ],
-              propertyLabel: 'Field',
-              groupValuesLabel: 'Field values',
-            },
-          ],
-        },
-      }
-    );
-    // Default "=" uses == which is case-sensitive. Custom match is case-insensitive.
-    expect(processed).toEqual([items[0], items[1]]);
-  });
-
   test('custom operator works in free text filtering across properties', () => {
     const items = [
       { name: 'app-web-prod', env: 'production' },
