@@ -6,6 +6,6 @@
     "noEmit": true,
     "jsx": "react"
   },
-  "include": ["**/__tests__/**/*.ts", "**/__tests__/**/*.tsx"],
+  "include": ["src/types.ts", "**/__tests__/**/*.ts", "**/__tests__/**/*.tsx"],
   "exclude": []
 }
