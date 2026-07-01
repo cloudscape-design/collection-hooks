@@ -54,7 +54,7 @@ interface ExpansionAction<T> {
 }
 interface SortingAction<T> {
   type: 'sorting';
-  sortingState: SortingState<T>;
+  sortingColumns: ReadonlyArray<SortingState<T>>;
 }
 interface PaginationAction {
   type: 'pagination';
@@ -95,7 +95,7 @@ export function collectionReducer<T>(state: CollectionState<T>, action: Action<T
       break;
     case 'sorting':
       newState.currentPageIndex = 1;
-      newState.sortingState = action.sortingState;
+      newState.sortingColumns = action.sortingColumns;
       break;
     case 'pagination':
       newState.currentPageIndex = action.pageIndex;
@@ -121,7 +121,11 @@ export function createActions<T>({
       collectionRef.current?.scrollToTop();
     },
     setSorting(state: SortingState<T>) {
-      dispatch({ type: 'sorting', sortingState: state });
+      dispatch({ type: 'sorting', sortingColumns: [state] });
+      collectionRef.current?.scrollToTop();
+    },
+    setMultiSorting(sortingColumns: ReadonlyArray<SortingState<T>>) {
+      dispatch({ type: 'sorting', sortingColumns });
       collectionRef.current?.scrollToTop();
     },
     setCurrentPage(pageIndex: number) {
@@ -148,7 +152,7 @@ export function createSyncProps<T>(
   options: UseCollectionOptions<T>,
   {
     filteringText,
-    sortingState,
+    sortingColumns,
     selectedItems,
     expandedItems,
     currentPageIndex,
@@ -188,13 +192,22 @@ export function createSyncProps<T>(
     collectionProps: {
       empty,
       ...(options.sorting
-        ? {
-            onSortingChange: ({ detail }) => {
-              actions.setSorting(detail);
-            },
-            sortingColumn: sortingState?.sortingColumn,
-            sortingDescending: sortingState?.isDescending,
-          }
+        ? options.sorting.multiColumn
+          ? {
+              multiColumnSort: {
+                sortingColumns: sortingColumns,
+                onChange: ({ detail }) => {
+                  actions.setMultiSorting(detail.sortingColumns);
+                },
+              },
+            }
+          : {
+              onSortingChange: ({ detail }) => {
+                actions.setSorting(detail);
+              },
+              sortingColumn: sortingColumns[0]?.sortingColumn,
+              sortingDescending: sortingColumns[0]?.isDescending,
+            }
         : {}),
       ...(options.expandableRows && expandableRows
         ? {
