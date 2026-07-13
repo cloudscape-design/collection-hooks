@@ -23,30 +23,12 @@ function getSorter<T>(sortingField?: keyof T) {
 
 export function createComparator<T>(
   sorting: UseCollectionOptions<T>['sorting'],
-  sortingColumns: ReadonlyArray<SortingState<T>> | undefined
+  state: SortingState<T> | undefined
 ): null | ((a: T, b: T) => number) {
-  if (!sorting || !sortingColumns) {
+  if (!sorting || !state) {
     return null;
   }
-  // Compose each column's comparator in priority order: the first entry wins, later entries break ties.
-  const comparators = sortingColumns
-    .map(entry => {
-      const direction = entry.isDescending ? -1 : 1;
-      const comparator =
-        entry.sortingColumn.sortingComparator ?? getSorter(entry.sortingColumn.sortingField as keyof T);
-      return comparator ? (a: T, b: T) => comparator(a, b) * direction : null;
-    })
-    .filter((comparator): comparator is (a: T, b: T) => number => comparator !== null);
-  if (comparators.length === 0) {
-    return null;
-  }
-  return (a, b) => {
-    for (const comparator of comparators) {
-      const result = comparator(a, b);
-      if (result !== 0) {
-        return result;
-      }
-    }
-    return 0;
-  };
+  const direction = state.isDescending ? -1 : 1;
+  const comparator = state.sortingColumn.sortingComparator ?? getSorter(state.sortingColumn.sortingField as keyof T);
+  return comparator ? (a, b) => comparator(a, b) * direction : null;
 }

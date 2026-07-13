@@ -27,7 +27,7 @@ export function processItems<T>(
     createPropertyFilterPredicate(propertyFiltering, state.propertyFilteringQuery),
     createFilterPredicate(filtering, state.filteringText)
   );
-  const sortingComparator = createComparator(sorting, state.sortingColumns);
+  const sortingComparator = createComparator(sorting, state.sortingState);
   const { items, rootItemsCount, selectableItemsCount, getItemChildren, isItemExpandable, getItemsCount } =
     expandableRows
       ? computeTreeItems(allItems, expandableRows, filterPredicate, sortingComparator)

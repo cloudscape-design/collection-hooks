@@ -22,10 +22,6 @@ export interface SortingColumn<T> {
   sortingComparator?: (a: T, b: T) => number;
 }
 
-export interface MultiColumnSortChangeDetail<T> {
-  sortingColumns: ReadonlyArray<SortingState<T>>;
-}
-
 export interface SelectionChangeDetail<T> {
   selectedItems: ReadonlyArray<T>;
 }
@@ -58,29 +54,7 @@ export interface UseCollectionOptions<T> {
     defaultQuery?: PropertyFilterQuery;
     freeTextFiltering?: PropertyFilterFreeTextFiltering;
   };
-  sorting?:
-    | {
-        /**
-         * Enables multi-column sorting.
-         *
-         * @defaultValue false
-         */
-        multiColumn?: false;
-        /**
-         * Initial sort state.
-         */
-        defaultState?: SortingState<T>;
-      }
-    | {
-        /**
-         * Enables multi-column sorting.
-         */
-        multiColumn: true;
-        /**
-         * Initial sort state as an array of descriptors in priority order (the first entry has the highest priority).
-         */
-        defaultState?: ReadonlyArray<SortingState<T>>;
-      };
+  sorting?: { defaultState?: SortingState<T> };
   pagination?: { defaultPage?: number; pageSize?: number; allowPageOutOfRange?: boolean };
   selection?: {
     defaultSelectedItems?: ReadonlyArray<T>;
@@ -107,7 +81,7 @@ export interface CollectionState<T> {
   filteringText: string;
   propertyFilteringQuery: PropertyFilterQuery;
   currentPageIndex: number;
-  sortingColumns: ReadonlyArray<SortingState<T>>;
+  sortingState?: SortingState<T>;
   selectedItems: ReadonlyArray<T>;
   expandedItems: ReadonlyArray<T>;
   groupSelection: GroupSelectionState<T>;
@@ -117,7 +91,6 @@ export interface CollectionActions<T> {
   setFiltering(filteringText: string): void;
   setCurrentPage(pageNumber: number): void;
   setSorting(state: SortingState<T>): void;
-  setMultiSorting(sortingColumns: ReadonlyArray<SortingState<T>>): void;
   setSelectedItems(selectedItems: ReadonlyArray<T>): void;
   setPropertyFiltering(query: PropertyFilterQuery): void;
   setExpandedItems(items: ReadonlyArray<T>): void;
@@ -133,10 +106,6 @@ interface UseCollectionResultBase<T> {
     onSortingChange?(event: CustomEventLike<SortingState<T>>): void;
     sortingColumn?: SortingColumn<T>;
     sortingDescending?: boolean;
-    multiColumnSort?: {
-      sortingColumns: ReadonlyArray<SortingState<T>>;
-      onChange(event: CustomEventLike<MultiColumnSortChangeDetail<T>>): void;
-    };
     // When data grouping is set, the property is derived from group selection, and includes all effectively selected items.
     selectedItems?: ReadonlyArray<T>;
     onSelectionChange?(event: CustomEventLike<SelectionChangeDetail<T>>): void;

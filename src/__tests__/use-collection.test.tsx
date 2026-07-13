@@ -1,10 +1,10 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: Apache-2.0
 import { test, expect, describe, vi } from 'vitest';
-import { fireEvent, act, render as testRender } from '@testing-library/react';
+import { fireEvent, render as testRender } from '@testing-library/react';
 import * as React from 'react';
 import { useCollection } from '../';
-import { PropertyFilterProperty, UseCollectionResult } from '../interfaces';
+import { PropertyFilterProperty } from '../interfaces';
 import { Demo, Item, render } from './stubs';
 
 const generateItems = (length: number) =>
@@ -106,31 +106,6 @@ test('should reset current page when filtering or sorting changes', () => {
   fireEvent.click(findSortBy());
   expect(getVisibleItems()).toEqual(['13', '23', '3', '30', '31', '32', '33', '34', '35', '36']);
   expect(getCurrentPage()).toEqual('1');
-});
-
-test('single-sort onSortingChange updates collectionProps.sortingColumn and sortingDescending', () => {
-  const allItems = generateItems(4);
-  const capture: { current: UseCollectionResult<Item> | null } = { current: null };
-  function App() {
-    const result = useCollection(allItems, { sorting: {} });
-    capture.current = result;
-    return <Demo {...result} />;
-  }
-  render(<App />);
-
-  // No default sort -> derived from an empty sortingColumns array.
-  expect(capture.current!.collectionProps.sortingColumn).toBeUndefined();
-  expect(capture.current!.collectionProps.sortingDescending).toBeUndefined();
-
-  act(() => {
-    capture.current!.collectionProps.onSortingChange!({
-      detail: { sortingColumn: { sortingField: 'id' }, isDescending: true },
-    });
-  });
-
-  // The single-sort props are derived from sortingColumns[0] after the always-array refactor.
-  expect(capture.current!.collectionProps.sortingColumn).toEqual({ sortingField: 'id' });
-  expect(capture.current!.collectionProps.sortingDescending).toBe(true);
 });
 
 test('should update total pages count when filtering changes', () => {
