@@ -46,7 +46,7 @@ test('filtering with sorting', () => {
     filteredItemsCount,
   } = processItems(
     items,
-    { filteringText: 'match', sortingState: { sortingColumn: { sortingField: 'id' } } },
+    { filteringText: 'match', sortingColumns: [{ sortingColumn: { sortingField: 'id' } }] },
     { sorting: {}, filtering: {} }
   );
   expect(pagesCount).toBeUndefined();
@@ -62,7 +62,7 @@ test('pagination with sorting', () => {
     filteredItemsCount,
   } = processItems(
     items,
-    { currentPageIndex: 2, sortingState: { sortingColumn: { sortingField: 'id' } } },
+    { currentPageIndex: 2, sortingColumns: [{ sortingColumn: { sortingField: 'id' } }] },
     { sorting: {}, pagination: { pageSize: 5 } }
   );
   expect(pagesCount).toEqual(2);
@@ -89,7 +89,7 @@ test('all together', () => {
     filteredItemsCount,
   } = processItems(
     items,
-    { filteringText: 'match', currentPageIndex: 2, sortingState: { sortingColumn: { sortingField: 'id' } } },
+    { filteringText: 'match', currentPageIndex: 2, sortingColumns: [{ sortingColumn: { sortingField: 'id' } }] },
     { filtering: {}, sorting: {}, pagination: { pageSize: 5 } }
   );
   expect(pagesCount).toEqual(2);
