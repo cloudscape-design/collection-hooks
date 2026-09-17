@@ -205,8 +205,7 @@ export interface PropertyFilterOperatorExtended<TokenValue> {
 export type PropertyFilterTokenType = 'value' | 'enum';
 
 export type PropertyFilterOperatorMatch<TokenValue> =
-  | PropertyFilterOperatorMatchByType
-  | PropertyFilterOperatorMatchCustom<TokenValue>;
+  PropertyFilterOperatorMatchByType | PropertyFilterOperatorMatchCustom<TokenValue>;
 
 export type PropertyFilterOperatorMatchByType = 'date' | 'datetime';
 
